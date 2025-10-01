@@ -1,0 +1,20 @@
+import { queues } from "./objects.js";
+import { createMatch } from "./utils.js";
+export default async function remoteMatch(fastify) {
+    fastify.post("/game-orchestration/remote", async (request, reply) => {
+        const player = request.body;
+        queues.remote.push(player);
+        if (queues.remote.length == 2) {
+            const matchPlayers = queues.remote.splice(0, 2);
+            const match = createMatch(matchPlayers, "remote", 0);
+            const res = fetch("http://localhost:3002/game-engine/start", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(match)
+            });
+            console.log("Game engine response:", (await res).body);
+            return match;
+        }
+        return { status: "waiting" };
+    });
+}
