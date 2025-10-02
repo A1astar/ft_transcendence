@@ -1,5 +1,5 @@
 import Fastify from 'fastify';
-function routeRequest(fastify) {
+async function routeRequest(fastify) {
     fastify.get('/', function (request, reply) {
         reply
             .type('text/html')
@@ -15,7 +15,7 @@ function routeRequest(fastify) {
     });
 }
 async function initServer(fastify) {
-    fastify.listen({ port: 80 }, function (err, address) {
+    fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
         if (err) {
             fastify.log.error(err);
             throw err;

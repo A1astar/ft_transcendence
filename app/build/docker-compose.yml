@@ -1,6 +1,16 @@
 name: ft_transcendence
 
 services:
+  reverse-proxy:
+    build: ../reverse-proxy/
+    ports:
+      - "8080:8080"
+    networks:
+      - app-network
+    depends_on:
+      - api-gateway
+    restart: "no"
+
   api-gateway:
     build: ../services/api-gateway
     ports:
@@ -9,6 +19,7 @@ services:
       - app-network
     depends_on:
       - game-orchestration
+    restart: "no"
 
   game-orchestration:
     build: ../services/game_orchestration
@@ -16,6 +27,9 @@ services:
       - "3002:3002"
     networks:
       - app-network
+    restart: "no"
+
+# volumes:
 
 networks:
   app-network:

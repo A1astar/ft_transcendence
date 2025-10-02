@@ -17,7 +17,7 @@ async function routeRequest(fastify: FastifyInstance) {
 }
 
 async function initServer(fastify: FastifyInstance) {
-    fastify.listen({ port: 80, host: "0.0.0.0" }, function (err, address) {
+    fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
     if (err) {
         fastify.log.error(err)
         throw err
