@@ -4,4 +4,4 @@ WORKDIR /app
 
 COPY nginx.conf /etc/nginx/nginx.conf
 
-RUN ["nginx"]
+CMD ["nginx", "-g", "daemon off;"]

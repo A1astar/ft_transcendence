@@ -5,7 +5,8 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm install --production
+RUN npm install --production \
+    npm run build
 
 EXPOSE 3001
 

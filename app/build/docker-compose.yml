@@ -4,7 +4,7 @@ services:
   reverse-proxy:
     build: ../reverse-proxy/
     ports:
-      - "8080:8080"
+      - "8080:80"
     networks:
       - app-network
     depends_on:
@@ -14,7 +14,7 @@ services:
   api-gateway:
     build: ../services/api-gateway
     ports:
-      - "3001:3001"
+      - "3001"
     networks:
       - app-network
     depends_on:
@@ -24,7 +24,7 @@ services:
   game-orchestration:
     build: ../services/game_orchestration
     ports:
-      - "3002:3002"
+      - "3002"
     networks:
       - app-network
     restart: "no"
