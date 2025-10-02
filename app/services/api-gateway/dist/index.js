@@ -1,10 +1,9 @@
-import Fastify, { FastifyInstance } from 'fastify'
-
-async function routeRequest(fastify: FastifyInstance) {
+import Fastify from 'fastify';
+function routeRequest(fastify) {
     fastify.get('/', function (request, reply) {
         reply
-        .type('text/html')
-        .send(`
+            .type('text/html')
+            .send(`
             <!DOCTYPE html>
             <html>
             <head><title>Fastify Page</title></head>
@@ -13,30 +12,26 @@ async function routeRequest(fastify: FastifyInstance) {
             </body>
             </html>
         `);
-    })
+    });
 }
-
-async function initServer(fastify: FastifyInstance) {
-    fastify.listen({ port: 80, host: "0.0.0.0" }, function (err, address) {
-    if (err) {
-        fastify.log.error(err)
-        throw err
-    }
-    })
+async function initServer(fastify) {
+    fastify.listen({ port: 80 }, function (err, address) {
+        if (err) {
+            fastify.log.error(err);
+            throw err;
+        }
+    });
 }
-
 async function main() {
     const fastify = Fastify({
         logger: true
-    })
-
+    });
     try {
         initServer(fastify);
         routeRequest(fastify);
-
-    } catch (err) {
+    }
+    catch (err) {
         console.log(err);
     }
 }
-
 main();

@@ -1,0 +1,22 @@
+name: ft_transcendence
+
+services:
+  api-gateway:
+    build: ../services/api-gateway
+    ports:
+      - "3001:3001"
+    networks:
+      - app-network
+    depends_on:
+      - game-orchestration
+
+  game-orchestration:
+    build: ../services/game_orchestration
+    ports:
+      - "3002:3002"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
