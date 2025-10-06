@@ -1,29 +1,28 @@
-import Fastify from "fastify";
+import Fastify, { FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
+import { randomUUID } from "crypto";
+import { Player, Match, queues } from "./objects.js";
+import localMatch from "./local.js";
+import remoteMatch from "./remote.js";
+import tournamentMatch from "./tournament.js";
 
-const fastify = Fastify({ logger: true });
-
-// Enable CORS (allow connections from frontend or other services)
-fastify.register(cors, {
-  origin: "*"
-});
-
-// Minimal route
-fastify.get("/health", async (request, reply) => {
-  return { status: "ok", service: "user-service" };
-});
-
-// Example user endpoint (dummy)
-fastify.get("/users/:id", async (request, reply) => {
-  const { id } = request.params as { id: string };
-  return { id, username: "player" + id };
-});
 
 // Start server
-const start = async () => {
+async function start() {
+
+  const fastify = Fastify({ logger: true });
+
+  // Enable CORS (allow connections from frontend or other services)
+  fastify.register(cors, {
+    origin: "*"
+  });
+
+  localMatch(fastify);
+  remoteMatch(fastify);
+  tournamentMatch(fastify);
   try {
-    await fastify.listen({ port: 3002, host: "0.0.0.0" });
-    console.log("User Service running on port 3001");
+    await fastify.listen({ port: 3001, host: "0.0.0.0" });
+    console.log("Game Orchestration Service running on port 3001");
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
