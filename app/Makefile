@@ -1,8 +1,9 @@
 IMAGE = reverse-proxy \
+		authentication \
         api-gateway \
         game-orchestration
 
-IMAGE := $(addprefix ft_transcendence-, $(IMAGE))
+IMAGE := $(addprefix transcendence-, $(IMAGE))
 
 COMPOSE_FILE=./build/docker-compose.yml
 
@@ -17,10 +18,14 @@ up:
 down:
 	docker-compose -f $(COMPOSE_FILE) down --rmi local
 
+local:
+	cd build
+	./build.sh
+
 clean: down
 
 fclean: clean
 
 re: clean all
 
-.PHONY: all build up down clean fclean re
+.PHONY: all build up down local clean fclean re

@@ -1,7 +1,7 @@
 import Fastify, { FastifyInstance } from 'fastify'
 import chalk from 'chalk'
 
-async function routeRequest(fastify: FastifyInstance) {
+async function manageRequest(fastify: FastifyInstance) {
     fastify.all('*', async(request, reply) => {
         const path = request.raw.url;
 
@@ -9,7 +9,7 @@ async function routeRequest(fastify: FastifyInstance) {
             case "/":
                 console.log(chalk.red.bold("/"));
                 break;
-            case "/authentication":
+            case "/auth":
                 console.log(chalk.blue.bold("/authentication"));
                 break;
             case "/game-orchestration":
@@ -22,8 +22,8 @@ async function routeRequest(fastify: FastifyInstance) {
     });
 }
 
-async function initAPIGateway(fastify: FastifyInstance) {
-    fastify.listen({ port: 3000, host: "0.0.0.0" }, function (err, address) {
+async function initAuthenticationService(fastify: FastifyInstance) {
+    fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
     if (err) {
         fastify.log.error(err)
         throw err
@@ -31,18 +31,18 @@ async function initAPIGateway(fastify: FastifyInstance) {
     })
 }
 
-async function main() {
+async function start() {
     const fastify = Fastify({
         logger: true
     })
 
     try {
-        initAPIGateway(fastify);
-        routeRequest(fastify);
+        initAuthenticationService(fastify);
+        manageRequest(fastify);
 
     } catch (err) {
         console.log(err);
     }
 }
 
-main();
+start();
