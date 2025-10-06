@@ -10,6 +10,7 @@ async function routeRequest(fastify: FastifyInstance) {
             <head><title>Fastify Page</title></head>
             <body>
                 <h1 align="center"><bold>TRANSCENDENCE</bold></h1>
+                <button></button>
             </body>
             </html>
         `);

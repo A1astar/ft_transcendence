@@ -20,6 +20,9 @@ down:
 clean: down
 	docker image rm $(IMAGE)
 
+fclean: clean
+	
+
 re: clean all
 
 .PHONY: all build up down
