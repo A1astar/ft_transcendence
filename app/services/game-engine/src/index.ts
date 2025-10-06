@@ -4,7 +4,7 @@ import cors from "@fastify/cors";
 
 // Start server
 const start = async () => {
-  
+
   const fastify = Fastify({ logger: true });
 
   // Enable CORS (allow connections from frontend or other services)
@@ -18,8 +18,8 @@ const start = async () => {
 	});
 
   try {
-    await fastify.listen({ port: 3002, host: "0.0.0.0" });
-    console.log("Game Engine Service running on port 3002");
+    await fastify.listen({ port: 3003, host: "0.0.0.0" });
+    console.log("Game Engine Service running on port 3003");
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);

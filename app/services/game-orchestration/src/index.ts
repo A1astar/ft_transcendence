@@ -21,8 +21,8 @@ async function start() {
   remoteMatch(fastify);
   tournamentMatch(fastify);
   try {
-    await fastify.listen({ port: 3001, host: "0.0.0.0" });
-    console.log("Game Orchestration Service running on port 3001");
+    await fastify.listen({ port: 3002, host: "0.0.0.0" });
+    console.log("Game Orchestration Service running on port 3002");
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
