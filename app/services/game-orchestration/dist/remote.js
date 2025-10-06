@@ -7,12 +7,12 @@ export default async function remoteMatch(fastify) {
         if (queues.remote.length == 2) {
             const matchPlayers = queues.remote.splice(0, 2);
             const match = createMatch(matchPlayers, "remote", 0);
-            const res = fetch("http://localhost:3002/game-engine/start", {
+            const res = await fetch("http://localhost:3002/game-engine/start", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(match)
             });
-            console.log("Game engine response:", (await res).body);
+            console.log("Game engine response:", await res.json());
             return match;
         }
         return { status: "waiting" };

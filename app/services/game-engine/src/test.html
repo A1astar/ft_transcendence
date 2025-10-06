@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pong Test</title>
+</head>
+<body>
+    <canvas id="game" width="800" height="600" style="border: 1px solid black;"></canvas>
+    <div id="status">Connecting...</div>
+    <div id="score">Score: 0 - 0</div>
+    
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+        const scoreDiv = document.getElementById('score');
+        
+        // Connect to WebSocket
+        const ws = new WebSocket('ws://localhost:3003/game-engine/test-match-123');
+        
+        ws.onopen = () => {
+            statusDiv.textContent = 'Connected!';
+            console.log('Connected to game');
+        };
+        
+        ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            console.log('Received:', data);
+            
+            if (data.type === 'gameState') {
+                drawGame(data.data);
+                updateScore(data.data.score);
+            }
+        };
+        
+        ws.onerror = (error) => {
+            statusDiv.textContent = 'Connection Error!';
+            console.error('WebSocket error:', error);
+        };
+        
+        ws.onclose = () => {
+            statusDiv.textContent = 'Disconnected';
+            console.log('Connection closed');
+        };
+        
+        // Draw game state
+        function drawGame(game) {
+            // Clear canvas
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw paddles
+            ctx.fillStyle = 'white';
+            ctx.fillRect(game.paddles.left.x, game.paddles.left.y, 
+                        game.paddles.left.width, game.paddles.left.height);
+            ctx.fillRect(game.paddles.right.x, game.paddles.right.y, 
+                        game.paddles.right.width, game.paddles.right.height);
+            
+            // Draw ball
+            ctx.beginPath();
+            ctx.arc(game.ball.x, game.ball.y, game.ball.radius, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        function updateScore(score) {
+            scoreDiv.textContent = `Score: ${score.left} - ${score.right}`;
+        }
+        
+        // Send key events
+        document.addEventListener('keydown', (event) => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'keyPress',
+                    key: event.key
+                }));
+                console.log('Sent key:', event.key);
+            }
+        });
+    </script>
+</body>
+</html>

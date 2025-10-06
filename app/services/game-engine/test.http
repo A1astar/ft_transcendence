@@ -1,0 +1,13 @@
+### local
+POST http://localhost:3003/game-engine/start HTTP/1.1
+Content-Type: application/json
+
+{
+    "id": "test-match-123",
+    "players": [
+        {"id": "player1", "username": "alice"},
+        {"id": "player2", "username": "bob"}
+    ],
+    "mode": "local",
+    "status": "waiting"
+}

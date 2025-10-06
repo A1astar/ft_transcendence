@@ -1,0 +1,69 @@
+### local
+POST http://localhost:3002/game-orchestration/local HTTP/1.1
+content-type: application/json
+
+{
+    "player": {"id": "player1", "username": "bob"},
+    "nbPlayers": 2
+}
+
+### remote
+POST http://localhost:3002/game-orchestration/remote HTTP/1.1
+content-type: application/json
+
+{
+    "player": {"id": "player2", "username": "bob"},
+    "nbPlayers": 2
+}
+
+### tournament 4-1
+POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+content-type: application/json
+
+{
+    "player": {"id": "player1", "username": "bob"},
+    "mode": "tournament4",
+	"tournamentRound": 1
+}
+
+### tournament 4-2
+POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+content-type: application/json
+
+{
+    "player": {"id": "player1", "username": "bob"},
+    "mode": "tournament4",
+	"tournamentRound": 2
+
+}
+
+### tournament 8-1
+POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+content-type: application/json
+
+{
+    "player": {"id": "player2", "username": "bob"},
+    "mode": "tournament8",
+	"tournamentRound": 1
+}
+
+### tournament 8-2
+POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+content-type: application/json
+
+{
+    "player": {"id": "player2", "username": "bob"},
+    "mode": "tournament8",
+	"tournamentRound": 2
+}
+
+### tournament 8-3
+POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+content-type: application/json
+
+{
+    "player": {"id": "player2", "username": "bob"},
+    "mode": "tournament8",
+	"tournamentRound": 3
+}
+
