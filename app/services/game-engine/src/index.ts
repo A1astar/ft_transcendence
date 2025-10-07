@@ -1,12 +1,11 @@
 import Fastify, { FastifyInstance } from "fastify";
 import cors from "@fastify/cors";
 import webSocket from "@fastify/websocket";
-import { Game } from "./objects.js";
+import { games, gameConnections } from "./objects.js";
 import { initGame } from "./initGame.js";
 import { handleWebSocket } from "./handleWebSocket.js";
 
-const games = new Map<string, Game>();
-const gameConnections = new Map<string, Set<any>>();
+
 
 // Start server
 const start = async () => {

@@ -14,7 +14,6 @@ export async function initGame(fastify: FastifyInstance, games: Map<string, Game
 	  return {
 		gameId,
 		status: "already_running",
-		webSocketUrl: `ws://localhost:3003/game-engine/${gameId}`
 	};
 
 	const game = new Game;
@@ -25,7 +24,6 @@ export async function initGame(fastify: FastifyInstance, games: Map<string, Game
 	return {
 		gameId,
 		status: "started",
-		webSocketUrl: `ws://localhost:3003/game-engine/${gameId}`
 	};
 	});
 }

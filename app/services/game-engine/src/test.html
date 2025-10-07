@@ -5,7 +5,7 @@
 </head>
 <body>
     <canvas id="game" width="800" height="600" style="border: 1px solid black;"></canvas>
-    <div id="status">Connecting...</div>
+    <div id="status">Starting game...</div>
     <div id="score">Score: 0 - 0</div>
     
     <script>
@@ -13,34 +13,58 @@
         const ctx = canvas.getContext('2d');
         const statusDiv = document.getElementById('status');
         const scoreDiv = document.getElementById('score');
+        let ws;
         
-        // Connect to WebSocket
-        const ws = new WebSocket('ws://localhost:3003/game-engine/test-match-123');
-        
-        ws.onopen = () => {
-            statusDiv.textContent = 'Connected!';
-            console.log('Connected to game');
-        };
-        
-        ws.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            console.log('Received:', data);
-            
-            if (data.type === 'gameState') {
-                drawGame(data.data);
-                updateScore(data.data.score);
+        // ✅ First start the game, THEN connect WebSocket
+        async function startGameAndConnect() {
+            try {
+                // Start the game via HTTP
+                const response = await fetch('http://localhost:3003/game-engine/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: 'test-match-123',
+                        players: []
+                    })
+                });
+                
+                const gameData = await response.json();
+                console.log('Game started:', gameData);
+                statusDiv.textContent = 'Game started, connecting...';
+                
+                // Now connect to WebSocket
+                ws = new WebSocket('ws://localhost:3003/game-engine/test-match-123');
+                
+                ws.onopen = () => {
+                    statusDiv.textContent = 'Connected and playing!';
+                    console.log('Connected to game');
+                };
+                
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    console.log('Received:', data);
+                    
+                    if (data.type === 'gameState') {
+                        drawGame(data.data);
+                        updateScore(data.data.score);
+                    }
+                };
+                
+                ws.onerror = (error) => {
+                    statusDiv.textContent = 'Connection Error!';
+                    console.error('WebSocket error:', error);
+                };
+                
+                ws.onclose = () => {
+                    statusDiv.textContent = 'Disconnected';
+                    console.log('Connection closed');
+                };
+                
+            } catch (error) {
+                console.error('Failed to start game:', error);
+                statusDiv.textContent = 'Failed to start game';
             }
-        };
-        
-        ws.onerror = (error) => {
-            statusDiv.textContent = 'Connection Error!';
-            console.error('WebSocket error:', error);
-        };
-        
-        ws.onclose = () => {
-            statusDiv.textContent = 'Disconnected';
-            console.log('Connection closed');
-        };
+        }
         
         // Draw game state
         function drawGame(game) {
@@ -67,14 +91,25 @@
         
         // Send key events
         document.addEventListener('keydown', (event) => {
-            if (ws.readyState === WebSocket.OPEN) {
+            if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({
-                    type: 'keyPress',
+                    type: 'keyPress',sws
                     key: event.key
                 }));
-                console.log('Sent key:', event.key);
             }
         });
+
+        document.addEventListener('keyup', (event) => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'keyRelease',
+                    key: event.key
+                }));
+            }
+        });
+        
+        // Start everything when page loads
+        startGameAndConnect();
     </script>
 </body>
 </html>

@@ -1,17 +1,17 @@
 import { FastifyInstance } from "fastify";
 import { Game } from "./objects";
-import { paddleMoveDown, paddleMoveUp } from "./movements";
+import chalk from 'chalk';
 
 
 export function handleWebSocket(fastify: FastifyInstance, games: Map<string, Game>, gameConnections: Map<string, Set<any>>) {
 	fastify.register(async function (fastify) {
-		fastify.get('/game/:gameId', {websocket:true}, (conn,req) => {
+		fastify.get('/game-engine/:gameId', {websocket:true}, (connection,req) => {
 			const gameId = (req.params as any).gameId;
-			const game = games.get(gameId);
+			let game = games.get(gameId);
 
 			if (!game) {
-				conn.socket.send(JSON.stringify({error: "Match not sound"}));
-				conn.socket.close();
+				connection.send(JSON.stringify({error: "Match not found"}));
+				connection.close();
 				return;
 			}
 
@@ -21,38 +21,56 @@ export function handleWebSocket(fastify: FastifyInstance, games: Map<string, Gam
 				connections = new Set<any>();
 				gameConnections.set(gameId, connections);
 			}
-			connections.add(conn.socket);
-			console.log(`Player connected to game ${gameId} on ${conn}`);
+			connections.add(connection);
+			console.log(chalk.red(`Player connected to game ${gameId}`));
 
 			// handle keypress event
-			conn.socket.on('message', (message: any) => {
+			connection.on('message', (message: any) => {
 				try {
 					const data = JSON.parse(message.toString());
 					const { type, key } = data;
 				
 					if (type === 'keyPress') {
+						console.log(`keypressed: ${key}`)
 						if (key == 'w')
-							paddleMoveUp(game, "left");
+							game.paddleMovement.leftUp = true;
 						else if (key == 's')
-							paddleMoveDown(game, "left");
+							game.paddleMovement.leftDown = true;
 						else if (key == 'p')
-							paddleMoveUp(game, "right");
+							game.paddleMovement.rightUp = true;
 						else if (key == 'l')
-							paddleMoveDown(game, "right");						
+							game.paddleMovement.rightDown = true;
+					}
+					else if (type === 'keyRelease') {
+						console.log(`keyreleased: ${key}`)
+						if (key == 'w')
+							game.paddleMovement.leftUp = false;
+						else if (key == 's')
+							game.paddleMovement.leftDown = false;
+						else if (key == 'p')
+							game.paddleMovement.rightUp = false;
+						else if (key == 'l')
+							game.paddleMovement.rightDown = false;
 					}
 				} catch (error) {
-					console.error('Invalide message', error);
+					console.error('Invalid message', error);
 				}
 			})
 			
 			// close websocket
-			conn.socket.on('close', () => {
-				connections.delete(conn.socket);
-				console.log(`Player disconnected from game ${gameId} on ${conn}`);
+			connection.on('close', () => {
+				connections.delete(connection);
+				console.log(`Player disconnected from game ${gameId} on ${connection}`);
+			})
+
+			// handle error
+			connection.on('error',  (error:any) => {
+				console.error(`Websocket error: ${error}`);
+				connections.delete(connection);
 			})
 
 			// send ws reply
-			conn.socket.send(JSON.stringify({
+			connection.send(JSON.stringify({
 				type: 'gameState',
 				gameId,
 				data: game

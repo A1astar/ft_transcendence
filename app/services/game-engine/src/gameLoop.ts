@@ -1,4 +1,4 @@
-import { updateGame } from "./movements";
+import { updateGame, updatePaddle } from "./movements";
 import { Game } from "./objects";
 
 const activeGameLoops = new Map<string, NodeJS.Timeout>();
@@ -17,6 +17,7 @@ export function startGameLoop(gameId: string, games: Map<string, Game>, gameConn
 		}
 
 		updateGame(game);
+		updatePaddle(game);
 		broadcastGameState(gameId, game, connections);
 		
 	}, 1000 / 60);
@@ -30,8 +31,8 @@ export function broadcastGameState(gameId: string, game: Game, connections: Set<
 		data: game
 	});
 	connections.forEach(socket => {
-		if (socket.readyState === 1)
-			socket.send(message);
+		if (socket && socket.readyState === 1)
+			socket.send(message);			
 	})
 }
 
