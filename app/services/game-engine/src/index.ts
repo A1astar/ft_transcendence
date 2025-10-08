@@ -10,7 +10,7 @@ import { apiRoutes } from "./api.js";
 
 // Start server
 async function start() {
-  
+
   const fastify = Fastify({ logger: true });
 
   // Enable CORS (allow connections from frontend or other services)
@@ -22,6 +22,8 @@ async function start() {
   apiRoutes(fastify, games, gameConnections);
 
   try {
+    await fastify.listen({ port: 3003, host: "0.0.0.0" });
+    console.log("Game Engine Service running on port 3003");
     await fastify.listen({ port: 3003, host: "0.0.0.0" });
     console.log("Game Engine Service running on port 3003");
   } catch (err) {

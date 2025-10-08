@@ -1,0 +1,45 @@
+name: transcendence
+
+services:
+  reverse-proxy:
+    build: ../reverse-proxy/
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+    depends_on:
+      - api-gateway
+    restart: "no"
+
+  api-gateway:
+    build: ../services/api-gateway
+    ports:
+      - "3000"
+    networks:
+      - app-network
+    depends_on:
+      - authentication
+      - game-orchestration
+    restart: "no"
+
+  authentication:
+    build: ../services/api-gateway
+    ports:
+      - "3001"
+    networks:
+      - app-network
+    restart: "no"
+
+  game-orchestration:
+    build: ../services/game-orchestration
+    ports:
+      - "3002"
+    networks:
+      - app-network
+    restart: "no"
+
+# volumes:
+
+networks:
+  app-network:
+    driver: bridge
