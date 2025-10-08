@@ -6,8 +6,6 @@ import { initGame } from "./initGame.js";
 import { handleWebSocket } from "./handleWebSocket.js";
 import { apiRoutes } from "./api.js";
 
-
-
 // Start server
 async function start() {
 

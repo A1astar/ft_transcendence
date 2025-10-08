@@ -12,7 +12,7 @@ export async function apiUserInput(fastify: FastifyInstance, games: Map<string, 
 	const { id: gameId } = request.body as { id : string };
 	let game = games.get(gameId);
 	const { keyType } = request.body as { keyType : "press" | "release" };
-	const { key } = request.body as {key : string };
+	const { key } = request.body as { key : string };
 	if (game && keyType == "press" && key == ' w')
 		game.paddleMovement.leftUp = true;
 	else if (game && keyType == "press" && key == 's')

@@ -17,11 +17,13 @@ export function handleWebSocket(fastify: FastifyInstance, games: Map<string, Gam
 
 			// add connection to game
 			let connections = gameConnections.get(gameId);
+			console.log(chalk.blue(connections?.size));
 			if (!connections) {
 				connections = new Set<any>();
 				gameConnections.set(gameId, connections);
 			}
 			connections.add(connection);
+			console.log(chalk.blue(connections?.size));
 			console.log(chalk.red(`Player connected to game ${gameId}`));
 
 			// handle keypress event
@@ -31,7 +33,6 @@ export function handleWebSocket(fastify: FastifyInstance, games: Map<string, Gam
 					const { type, key } = data;
 				
 					if (type === 'keyPress') {
-						console.log(`keypressed: ${key}`)
 						if (key == 'w')
 							game.paddleMovement.leftUp = true;
 						else if (key == 's')
@@ -42,7 +43,6 @@ export function handleWebSocket(fastify: FastifyInstance, games: Map<string, Gam
 							game.paddleMovement.rightDown = true;
 					}
 					else if (type === 'keyRelease') {
-						console.log(`keyreleased: ${key}`)
 						if (key == 'w')
 							game.paddleMovement.leftUp = false;
 						else if (key == 's')
@@ -60,7 +60,7 @@ export function handleWebSocket(fastify: FastifyInstance, games: Map<string, Gam
 			// close websocket
 			connection.on('close', () => {
 				connections.delete(connection);
-				console.log(`Player disconnected from game ${gameId} on ${connection}`);
+				console.log(chalk.red(`Player disconnected from game ${gameId}`));
 			})
 
 			// handle error
