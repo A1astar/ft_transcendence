@@ -20,8 +20,8 @@ export class Game {
 		radius: 10
 	};
 	paddles = {
-		left: { x: 30, y: 250, width: 10, height: 100, speed: 10 },
-		right: { x: 760, y: 250, width: 10, height: 100, speed: 10 }
+		left: { x: 30, y: 250, width: 10, height: 100, speed: 1 },
+		right: { x: 760, y: 250, width: 10, height: 100, speed: 1 }
 	};
 	score = { left: 0, right: 0 };
 	paddleMovement = {

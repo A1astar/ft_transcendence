@@ -10,7 +10,7 @@ export function startGameLoop(gameId: string, games: Map<string, Game>, gameConn
 		const game = games.get(gameId);
 		const connections = gameConnections.get(gameId);
 
-		if (!game || !connections || connections.size === 0) {
+		if (!game || !connections) {
 			clearInterval(interval);
 			activeGameLoops.delete(gameId);
 			return;

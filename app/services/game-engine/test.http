@@ -1,4 +1,4 @@
-### local
+### start game
 POST http://localhost:3003/game-engine/start HTTP/1.1
 Content-Type: application/json
 
@@ -11,3 +11,53 @@ Content-Type: application/json
     "mode": "local",
     "status": "waiting"
 }
+
+### right padde down
+POST http://localhost:3003/game-engine/input/test-match-123 HTTP/1.1
+Content-Type: application/json
+
+{
+    "id": "test-match-123",
+    "keyType": "press",
+    "key": "l"
+}
+
+### right paddle up
+POST http://localhost:3003/game-engine/input/test-match-123 HTTP/1.1
+Content-Type: application/json
+
+{
+    "id": "test-match-123",
+    "keyType": "press",
+    "key": "p"
+}
+
+### key release
+POST http://localhost:3003/game-engine/input/test-match-123 HTTP/1.1
+Content-Type: application/json
+
+{
+    "id": "test-match-123",
+    "keyType": "release",
+    "key": "l"
+}
+
+### key release
+POST http://localhost:3003/game-engine/input/test-match-123 HTTP/1.1
+Content-Type: application/json
+
+{
+    "id": "test-match-123",
+    "keyType": "release",
+    "key": "p"
+}
+
+
+### get game state
+POST http://localhost:3003/game-engine/game-state/test-match-123 HTTP/1.1
+Content-Type: application/json
+
+{
+    "id": "test-match-123"
+}
+
