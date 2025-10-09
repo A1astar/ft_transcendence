@@ -1,59 +1,61 @@
 <!DOCTYPE html>
-<!-- <html> -->
-<html class="h-full bg-gray-900">
+<html lang="en">
     <head>
-        <title>transcendence</title>
-        <link rel="stylesheet" href="./dist/output.css">
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Transcendence</title>
+        <script src="app.ts" defer></script>
+        <script src="https://cdn.tailwindcss.com"></script>
     </head>
-    <!-- <body> -->
-    <body class="h-full">
-        <h1 align="center">Transcendence</h1>
+    <body
+        class="flex flex-col justify-center items-center h-screen m-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black font-serif"
+        style="background: url('icons/mordor.gif') center center / cover no-repeat fixed"
+    >
+        <img
+            src="icons/sauron.png"
+            alt="Barad-dûr Logo"
+            class="w-24 h-24 mb-4 drop-shadow-2xl"
+            style="
+                filter: brightness(0) saturate(100%) invert(64%) sepia(92%) saturate(3557%)
+                    hue-rotate(2deg) brightness(101%) contrast(104%);
+            "
+        />
 
-        <!--
-        This example requires updating your template:
+        <h1
+            class="mb-8 text-5xl font-extrabold text-amber-500 drop-shadow-lg tracking-widest font-lora italic"
+            style="text-shadow: 0 2px 12px #ff6600, 0 0px 1px #fff"
+        >
+            Lord of the Transcendence
+        </h1>
 
-        ```
-        <html class="h-full bg-gray-900">
-        <body class="h-full">
-        ```
-        -->
-        <div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-        <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-            <img src="https://tailwindcss.com/plus-assets/img/logos/mark.svg?color=indigo&shade=500" alt="Your Company" class="mx-auto h-10 w-auto" />
-            <h2 class="mt-10 text-center text-2xl/9 font-bold tracking-tight text-white">Sign in to your account</h2>
-        </div>
-
-        <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-            <form action="#" method="POST" class="space-y-6">
-            <div>
-                <label for="email" class="block text-sm/6 font-medium text-gray-100">Email address</label>
-                <div class="mt-2">
-                <input id="email" type="email" name="email" required autocomplete="email" class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
-                </div>
-            </div>
-
-            <div>
-                <div class="flex items-center justify-between">
-                <label for="password" class="block text-sm/6 font-medium text-gray-100">Password</label>
-                <div class="text-sm">
-                    <a href="#" class="font-semibold text-indigo-400 hover:text-indigo-300">Forgot password?</a>
-                </div>
-                </div>
-                <div class="mt-2">
-                <input id="password" type="password" name="password" required autocomplete="current-password" class="block w-full rounded-md bg-white/5 px-3 py-1.5 text-base text-white outline-1 -outline-offset-1 outline-white/10 placeholder:text-gray-500 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-500 sm:text-sm/6" />
-                </div>
-            </div>
-
-            <div>
-                <button type="submit" class="flex w-full justify-center rounded-md bg-indigo-500 px-3 py-1.5 text-sm/6 font-semibold text-white hover:bg-indigo-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">Sign in</button>
-            </div>
+        <div
+            class="bg-gradient-to-br from-gray-800 via-gray-900 to-black p-8 rounded-3xl shadow-2xl w-96 border-4 border-amber-900/60 backdrop-blur-md ring-2 ring-amber-700/40"
+        >
+            <h2 class="text-2xl font-bold mb-6 text-center text-amber-400 tracking-wider font-lora">
+                Connexion
+            </h2>
+            <form action="login.html" method="POST" class="flex flex-col gap-5">
+                <input
+                    type="text"
+                    name="username"
+                    placeholder="Pseudo"
+                    required
+                    class="px-4 py-2 border border-amber-900/40 rounded-lg bg-gray-900/60 text-amber-200 placeholder-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition font-lora"
+                />
+                <input
+                    type="password"
+                    name="password"
+                    placeholder="password"
+                    required
+                    class="px-4 py-2 border border-amber-900/40 rounded-lg bg-gray-900/60 text-amber-200 placeholder-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-700 focus:border-amber-700 transition font-lora"
+                />
+                <button
+                    type="submit"
+                    class="px-4 py-2 bg-gradient-to-r from-amber-900 via-amber-700 to-red-900 text-amber-100 rounded-lg font-bold hover:from-amber-700 hover:to-red-800 shadow-lg transition-all duration-200 tracking-wider font-lora border-2 border-amber-900"
+                >
+                    Connect
+                </button>
             </form>
-
-            <p class="mt-10 text-center text-sm/6 text-gray-400">
-            Not a member?
-            <a href="#" class="font-semibold text-indigo-400 hover:text-indigo-300">Start a 14 day free trial</a>
-            </p>
-        </div>
         </div>
     </body>
 </html>
