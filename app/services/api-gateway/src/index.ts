@@ -43,17 +43,15 @@ async function routeRequest(fastify: FastifyInstance) {
 
     fastify.register(fastifyStatic, {
         root: frontendPath,
-        prefix: '/', // optional, but common
+        prefix: '/',
+        index: ['index.html'],
+        wildcard: false
     });
 
-
-    fastify.get('/', async (request, reply) => {
-        console.log(chalk.magenta.bold("request: ") + chalk.blue.bold(request.url));
-        reply
-        .code(200)
-        .type('text/html')
-        .sendFile("index.html");
+    fastify.get('/*', async (req, reply) => {
+        return reply.sendFile('index.html');
     });
+
 }
 
 async function initAPIGateway(fastify: FastifyInstance) {
@@ -71,8 +69,8 @@ async function main() {
     // const fastify = Fastify();
 
     try {
-        initAPIGateway(fastify);
         await routeRequest(fastify);
+        await initAPIGateway(fastify);
 
     } catch (err) {
         console.log(err);
