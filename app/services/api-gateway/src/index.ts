@@ -1,22 +1,13 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import fastifyStatic from '@fastify/static';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import chalk from 'chalk';
 
-let page = `
-<!DOCTYPE html>
-<html>
-    <head>
-        <title>Transcendence</title>
-    </head>
-
-    <body>
-        <h1 align="center">Transcendence</h1>
-        <script>
-
-        </script>
-    </body>
-</html>
-`;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const frontendPath = path.join(__dirname, '../../../frontend');
+console.log(frontendPath);
 
 function manageAuthentication() {
     console.log(chalk.blue.bold("/authentication"));
@@ -27,27 +18,32 @@ function manageGameOrchestration() {
 }
 
 function manageGameEngine() {
-    console.log(chalk.green.bold("/game-engine"));
+    console.log(chalk.green.bold("/game-bravo engine"));
 }
 
 async function routeRequest(fastify: FastifyInstance) {
-    fastify.all('*', async(request, reply) => {
-        const path = request.raw.url;
+    // fastify.all('*', async(request, reply) => {
+    //     const path = request.raw.url;
 
-        switch (path) {
-            case "/":
-                console.log(chalk.red.bold("/"));
-                break;
-            case "/authentication":
-                manageAuthentication();
-                break;
-            case "/game-orchestration":
-                manageGameOrchestration();
-                break;
-            case "/game-engine":
-                manageGameEngine();
-                break;
-        }
+    //     switch (path) {
+    //         case "/":
+    //             console.log(chalk.red.bold("/"));
+    //             break;
+    //         case "/authentication":
+    //             manageAuthentication();
+    //             break;
+    //         case "/game-orchestration":
+    //             manageGameOrchestration();
+    //             break;
+    //         case "/game-engine":
+    //             manageGameEngine();
+    //             break;
+    //     }
+    // });
+
+    fastify.register(fastifyStatic, {
+        root: frontendPath,
+        prefix: '/', // optional, but common
     });
 
 
@@ -56,7 +52,7 @@ async function routeRequest(fastify: FastifyInstance) {
         reply
         .code(200)
         .type('text/html')
-        .send(page);
+        .sendFile("index.html");
     });
 }
 
@@ -71,8 +67,8 @@ async function initAPIGateway(fastify: FastifyInstance) {
 }
 
 async function main() {
-    // const fastify = Fastify({ logger: true });
-    const fastify = Fastify();
+    const fastify = Fastify({ logger: true });
+    // const fastify = Fastify();
 
     try {
         initAPIGateway(fastify);
