@@ -1,4 +1,4 @@
-name: ft_transcendence
+name: transcendence
 
 services:
   reverse-proxy:
@@ -14,15 +14,24 @@ services:
   api-gateway:
     build: ../services/api-gateway
     ports:
-      - "3001"
+      - "3000"
     networks:
       - app-network
     depends_on:
+      - authentication
       - game-orchestration
     restart: "no"
 
+  authentication:
+    build: ../services/api-gateway
+    ports:
+      - "3001"
+    networks:
+      - app-network
+    restart: "no"
+
   game-orchestration:
-    build: ../services/game_orchestration
+    build: ../services/game-orchestration
     ports:
       - "3002"
     networks:

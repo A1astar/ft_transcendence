@@ -10,12 +10,20 @@ if [ $# -gt 0 ]; then
         "api-gateway")
             services="$service_dir/api-gateway"
         ;;
+        "authentication")
+            services="$service_dir/authentication"
+        ;;
+        "game-engine")
+            services="$service_dir/game-engine"
+        ;;
         "game-orchestration")
-            "$service_dir/game-orchestration"
+            services="$service_dir/game-orchestration"
         ;;
         default)
             services=(
                 "$service_dir/api-gateway"
+                "$service_dir/authentication"
+                "$service_dir/game-engine"
                 "$service_dir/game-orchestration"
             )
         ;;
@@ -27,6 +35,4 @@ for service in "${services[@]}"; do
     # docker build $service/Dockerfile.node -t ft_transcendence-api-gateway
     echo $service
     cd $service
-    npm install
-    npx node index.js &
 done
