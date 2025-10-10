@@ -5,6 +5,7 @@ import cors from "@fastify/cors";
 import { localMatch } from "./local.js";
 import { remoteMatch } from "./remote.js";
 import { tournamentMatch } from "./tournament.js";
+import { testMatch } from "./api-test.js";
 
 
 // Start server
@@ -18,6 +19,7 @@ async function start() {
   localMatch(fastify);
   remoteMatch(fastify);
   tournamentMatch(fastify);
+  testMatch(fastify);
 
   try {
     await fastify.listen({ port: 3002, host: "0.0.0.0" });

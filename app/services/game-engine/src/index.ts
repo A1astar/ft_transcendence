@@ -5,13 +5,14 @@ import { games, gameConnections } from "./objects.js";
 import { initGame } from "./initGame.js";
 import { handleWebSocket } from "./handleWebSocket.js";
 import { apiRoutes } from "./api.js";
+import chalk from 'chalk';
+
 
 // Start server
 async function start() {
 
   const fastify = Fastify({ logger: true });
 
-  // Enable CORS (allow connections from frontend or other services)
   fastify.register(cors, {origin: "*"});
   fastify.register(webSocket);
 
@@ -21,9 +22,7 @@ async function start() {
 
   try {
     await fastify.listen({ port: 3003, host: "0.0.0.0" });
-    console.log("Game Engine Service running on port 3003");
-    await fastify.listen({ port: 3003, host: "0.0.0.0" });
-    console.log("Game Engine Service running on port 3003");
+    console.log(chalk.green.bold("Game Engine Service running on port 3003"));
   } catch (err) {
     fastify.log.error(err);
     process.exit(1);
