@@ -1,21 +1,28 @@
-import Fastify, { FastifyInstance } from 'fastify'
-import chalk from 'chalk'
+import Fastify, { FastifyInstance } from 'fastify';
+import * as oauth2 from "./oauth2";
+import * as jwt from "./jwt";
+import * as vault from "./vault";
+import * as twoFA from "./2fa";
+import chalk from 'chalk';
 
 async function manageRequest(fastify: FastifyInstance) {
     fastify.all('*', async(request, reply) => { const path = request.raw.url;
 
         switch (path) {
-            case "/":
-                console.log(chalk.red.bold("/"));
-                break;
             case "/auth":
-                console.log(chalk.blue.bold("/authentication"));
+                console.log(chalk.red.bold("/auth"));
                 break;
-            case "/game-orchestration":
-                console.log(chalk.yellow.bold("/game-orchestration"));
+            case "/auth/2fa":
+                twoFA.manage2FA(fastify);
                 break;
-            case "/game-engine":
-                console.log(chalk.green.bold("/game-engine"));
+            case "/auth/jwt":
+                jwt.manageJWT(fastify);
+                break;
+            case "/auth/oauth2":
+                oauth2.manageOauth2(fastify);
+                break;
+            case "/auth/vault":
+                vault.manageVault(fastify);
                 break;
         }
     });
