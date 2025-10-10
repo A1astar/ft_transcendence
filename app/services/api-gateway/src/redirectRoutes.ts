@@ -30,9 +30,8 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: s
 				body: ['POST','PUT'].includes(req.method) ? JSON.stringify(req.body) : undefined,
 				});
 				const data = await res.text();
-				reply.code(res.status);
 				res.headers.forEach((value, key) => reply.header(key, value));
-				return reply.send(data);
+				return reply.code(res.status).send(data);
 			}
 			catch (err) {
 				console.error(`Error forwarding ${req.url}:`, err);
