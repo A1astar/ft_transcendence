@@ -1,17 +1,17 @@
-import Fastify, { FastifyInstance } from "fastify";
-import { Player, Match, queues } from "./objects.js";
+import { FastifyInstance } from "fastify";
+import { Player, MatchRequest, Match, queues } from "./objects.js";
 import { createMatch } from "./utils.js"
 
 
-export default async function localMatch(fastify: FastifyInstance) {
+export async function localMatch(fastify: FastifyInstance) {
   fastify.post("/game-orchestration/local", async(request, reply) => {
-	const player = request.body as Player;
-	queues.local.push(player);
+	const matchRequest = request.body as MatchRequest;
+	queues.local.push(matchRequest.player);
 
 	if (queues.local.length == 2) {
 	  const matchPlayers = queues.local.splice(0,2);
 	  const match: Match = createMatch(matchPlayers, "local", 0);
-	  const res = await fetch("http://localhost:3002/game-engine/start", {
+	  const res = await fetch("http://localhost:3003/game-engine/start", {
 		method: "POST",
 		headers: {"Content-Type": "application/json"},
 		body: JSON.stringify(match)

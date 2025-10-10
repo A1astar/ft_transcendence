@@ -1,12 +1,19 @@
 export interface Player {
 	id: string;
+	alias: string
+}
+
+export interface MatchRequest {
+	player: Player;
+	mode: "local" | "remote" | "tournament4" | "tournament8" | "four_players";
+	tournamentRound: number;
 }
 
 export interface Match {
 	id: string;
 	players: Player[];
-	mode: "local" | "remote" | "tournament" | "four_players";
-	tournament_id: number;
+	mode: "local" | "remote" | "tournament4" | "tournament8" | "four_players";
+	tournamentRound: number;
 	status: "waiting" | "running" | "finished";
 }
 
