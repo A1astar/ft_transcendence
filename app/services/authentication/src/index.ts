@@ -2,8 +2,7 @@ import Fastify, { FastifyInstance } from 'fastify'
 import chalk from 'chalk'
 
 async function manageRequest(fastify: FastifyInstance) {
-    fastify.all('*', async(request, reply) => {
-        const path = request.raw.url;
+    fastify.all('*', async(request, reply) => { const path = request.raw.url;
 
         switch (path) {
             case "/":
