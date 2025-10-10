@@ -40,6 +40,7 @@ async function routeRequest(fastify: FastifyInstance) {
     //             break;
     //     }
     // });
+    fastify.
 
     fastify.register(fastifyStatic, {
         root: frontendPath,
@@ -65,7 +66,8 @@ async function initAPIGateway(fastify: FastifyInstance) {
 }
 
 async function main() {
-    const fastify = Fastify({ logger: true });
+    // const fastify = Fastify({ logger: true });
+    const fastify = Fastify({ });
     // const fastify = Fastify();
 
     try {
