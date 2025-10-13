@@ -1,5 +1,5 @@
-import { updateGame, updatePaddle } from "./movements";
-import { Game } from "./objects";
+import { updateGame, updatePaddle } from "./movements.js";
+import { Game } from "./objects.js";
 
 const activeGameLoops = new Map<string, NodeJS.Timeout>();
 

@@ -1,4 +1,4 @@
-import { Game } from "./objects";
+import { Game } from "./objects.js";
 
 export function updateGame(game: Game) {
 	const left = game.paddles.left;

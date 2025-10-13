@@ -10,7 +10,7 @@ export async function testMatch(fastify: FastifyInstance) {
 
 	if (queues.local.length == 2) {
 	  const matchPlayers = queues.local.splice(0,2);
-	  const match: Match = createMatch(matchPlayers, "local", 0);
+	  const match: Match = createMatch(matchPlayers, "remote2", 0);
 	  const res = await fetch("http://localhost:3003/game-engine/start", {
 		method: "POST",
 		headers: {"Content-Type": "application/json"},

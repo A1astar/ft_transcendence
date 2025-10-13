@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { Player, Match, queues } from "./objects.js";
 
-export function createMatch(matchPlayers:Player[], matchMode: "local" | "remote" | "tournament4" | "tournament8" | "four_players", tournamentRound:number) {
+export function createMatch(matchPlayers:Player[], matchMode: "local" | "remote2" | "remote4" | "tournament4" | "tournament8", tournamentRound:number) {
   const match: Match = {
 	id: randomUUID(),
 	players: matchPlayers,

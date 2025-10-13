@@ -2,7 +2,7 @@ import Fastify, { FastifyInstance } from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
 import chalk from 'chalk';
-import { routeRequest } from "./redirectRoutes";
+import { routeRequest } from "./redirectRoutes.js";
 
 async function initAPIGateway(fastify: FastifyInstance) {
     fastify.listen({ port: 3000, host: "0.0.0.0" }, function (err, address) {

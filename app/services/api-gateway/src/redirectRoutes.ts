@@ -31,6 +31,8 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: s
 				});
 				const data = await res.text();
 				res.headers.forEach((value, key) => reply.header(key, value));
+				console.log(chalk.blue(req.session.sessionId))
+				console.log(chalk.blue(req.cookies.id))
 				return reply.code(res.status).send(data);
 			}
 			catch (err) {
@@ -47,7 +49,6 @@ export async function routeRequest(fastify: FastifyInstance) {
 	routeServices(fastify, "authentication", "http://localhost:3001");
 	routeServices(fastify, "game-orchestration", "http://localhost:3002");
 	routeServices(fastify, "game-engine", "http://localhost:3003");
-
 
     fastify.register(fastifyStatic, {
         root: frontendPath,

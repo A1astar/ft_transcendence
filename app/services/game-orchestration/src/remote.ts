@@ -6,11 +6,11 @@ import { createMatch } from "./utils.js"
 export async function remoteMatch(fastify: FastifyInstance) {
   fastify.post("/game-orchestration/remote", async(request, reply) => {
 	const matchRequest = request.body as MatchRequest;
-	queues.remote.push(matchRequest.player);
+	queues.remote2.push(matchRequest.player);
 
-	if (queues.remote.length == 2) {
-	  const matchPlayers = queues.remote.splice(0,2);
-	  const match: Match = createMatch(matchPlayers, "remote", 0);
+	if (queues.remote2.length == 2) {
+	  const matchPlayers = queues.remote2.splice(0,2);
+	  const match: Match = createMatch(matchPlayers, "remote2", 0);
 	  const res = await fetch("http://localhost:3003/game-engine/start", {
 		method: "POST",
 		headers: {"Content-Type": "application/json"},

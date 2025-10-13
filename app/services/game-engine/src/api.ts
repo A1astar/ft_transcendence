@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { Game } from "./objects";
+import { Game } from "./objects.js";
 
 export async function apiRoutes(fastify: FastifyInstance, games: Map<string, Game>, gameConnections: Map<string, Set<any>>) {
 	apiGetGameState(fastify, games, gameConnections);
