@@ -1,10 +1,29 @@
-GET http://localhost:3001/
-Content-Type: application/json
-
 GET http://localhost:3001/auth
 Content-Type: application/json
 
-POST http://localhost:3001/
+###
+
+GET http://localhost:3001/auth/2fa
+Content-Type: application/json
+
+###
+
+GET http://localhost:3001/auth/jwt
+Content-Type: application/json
+
+###
+
+GET http://localhost:3001/auth/oauth2
+Content-Type: application/json
+
+###
+
+GET http://localhost:3001/auth/session
+Content-Type: application/json
+
+###
+
+POST http://localhost:3001/auth
 Content-Type: application/json
 
 {
