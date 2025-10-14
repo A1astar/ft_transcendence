@@ -1,11 +1,11 @@
-import {
-    renderNotFound,
-    renderLogin,
-    renderProfile,
-    renderSettings,
-    renderGame,
-    renderDashboard,
-} from "./render.js";
+import { renderGameMenu } from "./view/gameMenu.js";
+import { renderGuestLogin } from "./view/guest.js";
+import { renderHome } from "./view/home.js";
+import { renderLogin } from "./view/login.js";
+import { renderNotFound } from "./view/notFound.js";
+import { renderProfile } from "./view/profile.js";
+import { renderSettings } from "./view/settings.js";
+
 
 export async function router(path: string): Promise<void> {
     switch (path) {
@@ -18,11 +18,8 @@ export async function router(path: string): Promise<void> {
         case "/settings":
             renderSettings();
             break;
-        case "/game":
-            renderGame();
-            break;
-        case "/dashboard":
-            renderDashboard();
+        case "/":
+            renderHome();
             break;
         default:
             renderNotFound();
