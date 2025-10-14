@@ -3,8 +3,8 @@ import cors from "@fastify/cors";
 // import { randomUUID } from "crypto";
 // import { Player, Match, queues } from "./objects.js";
 import { localMatch } from "./local.js";
-import { remoteMatch } from "./remote.js";
-import { tournamentMatch } from "./tournament.js";
+import { remoteMatch2, remoteMatch4 } from "./remote.js";
+import { tournamentMatch4, tournamentMatch8 } from "./tournament.js";
 import { testMatch } from "./api-test.js";
 
 
@@ -17,8 +17,10 @@ async function start() {
   fastify.register(cors, {origin: "*"});
 
   localMatch(fastify);
-  remoteMatch(fastify);
-  tournamentMatch(fastify);
+  remoteMatch2(fastify);
+  remoteMatch4(fastify);
+  tournamentMatch4(fastify);
+  tournamentMatch8(fastify);
   testMatch(fastify);
 
   try {

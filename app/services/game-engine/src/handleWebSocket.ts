@@ -72,7 +72,7 @@ function keyMovements(game: Game, connection: any, playerside: 'left' | 'right' 
 
 export async function handleWebSocket(fastify: FastifyInstance, games: Map<string, Game>, gameConnections: Map<string, Set<any>>) {
 	fastify.register(async function (fastify) {
-		fastify.get('/game-engine/:gameId', {websocket:true}, (connection,req) => {
+		fastify.get('/api/game-engine/:gameId', {websocket:true}, (connection,req) => {
 			const gameId = (req.params as any).gameId;
 			let game = games.get(gameId);
 			let playerside: 'left' | 'right' | 'up' | 'down' | '' = '';

@@ -4,7 +4,7 @@ import { createMatch } from "./utils.js"
 
 
 export async function testMatch(fastify: FastifyInstance) {
-  fastify.post("/game-orchestration/test", async(request, reply) => {
+  fastify.post("/api/game-orchestration/test", async(request, reply) => {
 	const matchRequest = request.body as MatchRequest;
 	queues.local.push(matchRequest.player);
 

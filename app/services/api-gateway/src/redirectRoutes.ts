@@ -46,9 +46,9 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: s
 
 export async function routeRequest(fastify: FastifyInstance) {
 
-	routeServices(fastify, "authentication", "http://localhost:3001");
-	routeServices(fastify, "game-orchestration", "http://localhost:3002");
-	routeServices(fastify, "game-engine", "http://localhost:3003");
+	routeServices(fastify, "api/authentication", "http://localhost:3001");
+	routeServices(fastify, "api/game-orchestration", "http://localhost:3002");
+	routeServices(fastify, "api/game-engine", "http://localhost:3003");
 
     fastify.register(fastifyStatic, {
         root: frontendPath,

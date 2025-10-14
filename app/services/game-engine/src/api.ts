@@ -7,7 +7,7 @@ export async function apiRoutes(fastify: FastifyInstance, games: Map<string, Gam
 }
 
 export async function apiUserInput(fastify: FastifyInstance, games: Map<string, Game>, gameConnections: Map<string, Set<any>>) {
-	fastify.post("/game-engine/input/:gameId", async(request, reply) => {
+	fastify.post("/api/game-engine/input/:gameId", async(request, reply) => {
 	console.log(request.body);	
 	const { id: gameId } = request.body as { id : string };
 	let game = games.get(gameId);
@@ -37,7 +37,7 @@ export async function apiUserInput(fastify: FastifyInstance, games: Map<string, 
 }
 
 export async function apiGetGameState(fastify: FastifyInstance, games: Map<string, Game>, gameConnections: Map<string, Set<any>>) {
-	fastify.post("/game-engine/game-state/:gameId", async(request, reply) => {
+	fastify.post("/api/game-engine/game-state/:gameId", async(request, reply) => {
 	console.log(request.body);
 	const { id: gameId } = request.body as { id : string };
 	let game = games.get(gameId);

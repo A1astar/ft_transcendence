@@ -1,23 +1,25 @@
 ### local
-POST http://localhost:3002/game-orchestration/local HTTP/1.1
+POST http://localhost:3002/api/game-orchestration/local HTTP/1.1
 content-type: application/json
 
 {
     "player": {"id": "player1", "username": "bob"},
-    "nbPlayers": 2
+    "mode": "local",
+    "tournamentRound": 0
 }
 
 ### remote
-POST http://localhost:3002/game-orchestration/remote HTTP/1.1
+POST http://localhost:3002/api/game-orchestration/remote2 HTTP/1.1
 content-type: application/json
 
 {
     "player": {"id": "player2", "username": "bob"},
-    "nbPlayers": 2
+    "mode": "remote2",
+    "tournamentRound": 0
 }
 
 ### tournament 4-1
-POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+POST http://localhost:3002/api/game-orchestration/tournament4 HTTP/1.1
 content-type: application/json
 
 {
@@ -27,18 +29,19 @@ content-type: application/json
 }
 
 ### tournament 4-2
-POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+POST http://localhost:3002/api/game-orchestration/tournament4 HTTP/1.1
 content-type: application/json
 
 {
     "player": {"id": "player1", "username": "bob"},
     "mode": "tournament4",
-	"tournamentRound": 2
+	"tournamentRound": 2,
+    "tournamentId": "02633327-7817-4ff0-8a53-6c606d962893"
 
 }
 
 ### tournament 8-1
-POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+POST http://localhost:3002/api/game-orchestration/tournament8 HTTP/1.1
 content-type: application/json
 
 {
@@ -48,7 +51,7 @@ content-type: application/json
 }
 
 ### tournament 8-2
-POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+POST http://localhost:3002/api/game-orchestration/tournament8 HTTP/1.1
 content-type: application/json
 
 {
@@ -58,7 +61,7 @@ content-type: application/json
 }
 
 ### tournament 8-3
-POST http://localhost:3002/game-orchestration/tournament HTTP/1.1
+POST http://localhost:3002/api/game-orchestration/tournament8 HTTP/1.1
 content-type: application/json
 
 {
