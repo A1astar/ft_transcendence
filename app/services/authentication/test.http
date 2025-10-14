@@ -1,3 +1,8 @@
+GET http://localhost:3001/
+Content-Type: application/json
+
+###
+
 GET http://localhost:3001/auth
 Content-Type: application/json
 

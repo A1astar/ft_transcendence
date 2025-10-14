@@ -1,18 +1,34 @@
-import Fastify, { FastifyInstance } from 'fastify';
+import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import * as oauth2 from "./oauth2.js";
 import * as jwt from "./jwt.js";
 import * as vault from "./vault.js";
 import * as twoFA from "./2fa.js";
 import * as session from "./session.js"
+import * as database from "./database.js"
 import chalk from 'chalk';
 
 function manageLogin(fastify: FastifyInstance) {
     console.log(chalk.blue.bold("/auth"));
 }
 
-async function manageRequest(fastify: FastifyInstance) {
-    fastify.all('*', async(request, reply) => { const path = request.raw.url;
+function checkSession(fastify: FastifyInstance) {
 
+}
+
+function printRequest(request: FastifyRequest) {
+    console.log("\nheaders:\n" + request.headers);
+    console.log("\nraw-headers:\n");
+    console.log(request.raw.headers);
+    console.log(`\nbody:\n${request.body}\n\n`);
+    console.log(`\nbody:\n${request.body}\n\n`);
+    console.log("\ncookies:\n");
+    console.log(request.cookies);
+}
+
+async function manageRequest(fastify: FastifyInstance) {
+
+    fastify.all('/*', async(request, reply) => { const path = request.raw.url;
+        printRequest(request);
         switch (path) {
             case "/auth":
                 manageLogin(fastify);
