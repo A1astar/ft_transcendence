@@ -183,7 +183,7 @@ export function createParagraphText(
 export function createButtonLink(
     href: string,
     text: string,
-    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center"
+    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center",
 ): HTMLAnchorElement {
     const backLink = document.createElement("a");
     backLink.href = href;
@@ -220,6 +220,22 @@ export function createButtonLink(
             break;
     }
     return backLink;
+}
+
+export function createButtonForm(
+    text: string,
+    name: string
+): HTMLButtonElement {
+    const button = document.createElement("button");
+    button.type = "submit";
+    button.name = name;
+    button.className =
+        "px-4 py-2 bg-gradient-to-r from-amber-900 via-amber-700 to-red-900 text-amber-100 \
+        rounded-lg font-bold hover:from-amber-700 hover:to-red-800 shadow-lg transition-all \
+        duration-200 tracking-wider font-lora border-2 border-amber-900";
+    button.style.textShadow = "1px 1px 6px #000";
+    button.textContent = text;
+    return button;
 }
 
 export function createFormElement(

@@ -21,9 +21,9 @@ export function renderHome() {
 
 		const formDiv = createFormElement();
 		formDiv.appendChild(createSubheadingText("Enter the realm of shadows"));
-		formDiv.appendChild(createButtonLink("/api/authentication/login", "Login"));
-		formDiv.appendChild(createButtonLink("/api/authentication/register", "Register"));
-		formDiv.appendChild(createButtonLink("/api/authentication/guest-session", "Continue as Guest"));
+		formDiv.appendChild(createButtonLink("/login", "Login"));
+		formDiv.appendChild(createButtonLink("/register", "Register"));
+		formDiv.appendChild(createButtonLink("/guest", "Continue as Guest"));
 
 		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));

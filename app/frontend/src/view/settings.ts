@@ -6,8 +6,8 @@ import {
     createParagraphText,
     createFormElement,
     createInputElement,
-    createButtonLink,
     createLogoElement,
+	createButtonForm,
 } from "./domElements.js";
 
 const backgroundDiv = document.getElementById("background");
@@ -22,12 +22,11 @@ export function renderSettings() {
 		clearDiv(appDiv);
 
 		const formDiv = createFormElement();
-
 		formDiv.appendChild(createSubheadingText("Settings"));
 		formDiv.appendChild(createParagraphText("Change your settings here."));
 		formDiv.appendChild(createInputElement("text", "username", "New Username"));
 		formDiv.appendChild(createInputElement("email", "email", "New Email"));
-		formDiv.appendChild(createButtonLink("/api/user/update", "Update Settings"));
+		formDiv.appendChild(createButtonForm("updateSettings", "Update Settings"));
 
 		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));

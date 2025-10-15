@@ -5,8 +5,8 @@ import {
     createSubheadingText,
     createFormElement,
     createInputElement,
-    createButtonLink,
     createLogoElement,
+	createButtonForm,
 } from "./domElements.js";
 
 const backgroundDiv = document.getElementById("background");
@@ -21,10 +21,9 @@ export function renderGuestLogin() {
 		clearDiv(appDiv);
 
 		const formDiv = createFormElement();
-
 		formDiv.appendChild(createSubheadingText("Join the realm of shadows as guest"));
 		formDiv.appendChild(createInputElement("text", "username", "Pseudo"));
-		formDiv.appendChild(createButtonLink("/api/authentication/guest-session", "Continue as Guest"));
+		formDiv.appendChild(createButtonForm("guest", "Continue as Guest"));
 
 		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));
