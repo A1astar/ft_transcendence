@@ -1,4 +1,6 @@
 // Définition d'une interface pour les binders d'événements
+import { ApiClient } from "./apiService.js";
+
 export interface ViewEventBinder {
 	bind(): void;
     unbind(): void;
@@ -19,11 +21,26 @@ export class GameMenuBinder implements ViewEventBinder {
 		document.getElementById("Tournament4")?.removeEventListener("click", this.onTournament4Click);
 		document.getElementById("Tournament8")?.removeEventListener("click", this.onTournament8Click);
 	}
-	private onLocalClick(this: HTMLElement, event: MouseEvent) {/*fun*/}
-	private onRemote2Click(this: HTMLElement, event: MouseEvent) {/*super fun*/}
-	private onRemote4Click(this: HTMLElement, event: MouseEvent) {/*giga fun*/}
-	private onTournament4Click(this: HTMLElement, event: MouseEvent) {/*ultra fun*/}
-	private onTournament8Click(this: HTMLElement, event: MouseEvent) {/*mega fun*/}
+	private onLocalClick(this: HTMLElement, event: MouseEvent) {
+		history.pushState({}, "", "/game/local");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
+	private onRemote2Click(this: HTMLElement, event: MouseEvent) {
+		history.pushState({}, "", "/game/remote2");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
+	private onRemote4Click(this: HTMLElement, event: MouseEvent) {
+		history.pushState({}, "", "/game/remote4");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
+	private onTournament4Click(this: HTMLElement, event: MouseEvent) {
+		history.pushState({}, "", "/game/tournament4");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
+	private onTournament8Click(this: HTMLElement, event: MouseEvent) {
+		history.pushState({}, "", "/game/tournament8");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
 }
 
 export class GuestMenuBinder implements ViewEventBinder {
@@ -33,12 +50,44 @@ export class GuestMenuBinder implements ViewEventBinder {
     unbind() {
 		document.getElementById("guest")?.removeEventListener("click", this.onGuestClick);
     }
-    private onGuestClick() {/*fun*/}
+    private onGuestClick() {
+		const username = (document.getElementById("username") as HTMLInputElement | null)?.value;
+		if (!username || username.trim().length === 0) {
+			alert("Please enter a valid username");
+			return;
+		}
+		localStorage.setItem("guestUsername", username);
+		history.pushState({}, "", "/game-menu");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
 }
 
 export class HomeViewBinder implements ViewEventBinder {
-    bind() {}
-    unbind() {}
+    bind() {
+		document.getElementById("login")?.addEventListener("click", this.onLoginClick);
+		document.getElementById("register")?.addEventListener("click", this.onRegisterClick);
+		document.getElementById("guest")?.addEventListener("click", this.onGuestClick);
+	}
+    unbind() {
+		document.getElementById("login")?.removeEventListener("click", this.onLoginClick);
+		document.getElementById("register")?.removeEventListener("click", this.onRegisterClick);
+		document.getElementById("guest")?.removeEventListener("click", this.onGuestClick);
+	}
+	private onLoginClick(this: HTMLElement, event: MouseEvent) {
+		event.preventDefault();
+		history.pushState({}, "", "/login");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
+	private onRegisterClick(this: HTMLElement, event: MouseEvent) {
+		event.preventDefault();
+		history.pushState({}, "", "/register");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
+	private onGuestClick(this: HTMLElement, event: MouseEvent) {
+		event.preventDefault();
+		history.pushState({}, "", "/guest");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
 }
 
 export class LoginViewBinder implements ViewEventBinder {
@@ -46,15 +95,46 @@ export class LoginViewBinder implements ViewEventBinder {
         document.getElementById("login")?.addEventListener("click", this.onLoginClick);
         document.getElementById("google")?.addEventListener("click", this.onGoogleClick);
         document.getElementById("intra42")?.addEventListener("click", this.onIntra42Click);
-	}
+    }
     unbind() {
         document.getElementById("login")?.removeEventListener("click", this.onLoginClick);
-		document.getElementById("google")?.removeEventListener("click", this.onGoogleClick);
-		document.getElementById("intra42")?.removeEventListener("click", this.onIntra42Click);
+        document.getElementById("google")?.removeEventListener("click", this.onGoogleClick);
+        document.getElementById("intra42")?.removeEventListener("click", this.onIntra42Click);
+    }
+    private onLoginClick = async (event: MouseEvent) => {
+        event.preventDefault();
+        const username = (document.getElementById("username") as HTMLInputElement | null)?.value;
+        const password = (document.getElementById("password") as HTMLInputElement | null)?.value;
+        try {
+            const res = await ApiClient.post("/api/authentication/login", { username, password });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ message: "Login failed" }));
+                alert(err.message || "Login failed");
+                return;
+            }
+            const data = await res.json().catch(() => null);
+            if (data?.token) localStorage.setItem("token", data.token);
+            history.pushState({}, "", "/profile");
+            window.dispatchEvent(new PopStateEvent("popstate"));
+        } catch (e) {
+            console.error(e);
+            alert("Network error");
+        }
+    };
+    private onGoogleClick(this: HTMLElement, event: MouseEvent) {
+		const res = ApiClient.get("/api/authentication/google");
+		if (res) {
+			// Rediriger vers l'URL de Google OAuth
+			window.location.href = (res as unknown as { url: string }).url;
+		}
 	}
-    private onLoginClick(this: HTMLElement, event: MouseEvent) {/*fun*/}
-	private onGoogleClick(this: HTMLElement, event: MouseEvent) {/*super fun*/}
-	private onIntra42Click(this: HTMLElement, event: MouseEvent) {/*giga fun*/}
+    private onIntra42Click(this: HTMLElement, event: MouseEvent) {
+		const res = ApiClient.get("/api/authentication/intra-42");
+		if (res) {
+			// Rediriger vers l'URL de Intra42 OAuth
+			window.location.href = (res as unknown as { url: string }).url;
+		}
+	}
 }
 
 export class ProfileViewBinder implements ViewEventBinder {
@@ -64,7 +144,11 @@ export class ProfileViewBinder implements ViewEventBinder {
     unbind() {
 		document.getElementById("logout")?.removeEventListener("click", this.onLogoutClick);
 	}
-    private onLogoutClick() {/*fun*/}
+    private onLogoutClick() {
+		localStorage.removeItem("token");
+		history.pushState({}, "", "/login");
+		window.dispatchEvent(new PopStateEvent("popstate"));
+	}
 }
 
 export class RegisterViewBinder implements ViewEventBinder {
@@ -74,7 +158,33 @@ export class RegisterViewBinder implements ViewEventBinder {
     unbind() {
         document.getElementById("register")?.removeEventListener("click", this.onRegisterClick);
     }
-    private onRegisterClick() {/*fun*/}
+    private onRegisterClick() {
+		const email = (document.getElementById("email") as HTMLInputElement | null)?.value;
+		const username = (document.getElementById("username") as HTMLInputElement | null)?.value;
+		const password = (document.getElementById("password") as HTMLInputElement | null)?.value;
+		const confirmPassword = (document.getElementById("confirmPassword") as HTMLInputElement | null)?.value;
+
+		if (password !== confirmPassword) {
+			alert("Passwords do not match");
+			return;
+		}
+
+		const res = ApiClient.post("/api/authentication/register", { email, username, password })
+			.then(async (res) => {
+				if (!res.ok) {
+					const err = await res.json().catch(() => ({ message: "Registration failed" }));
+					alert(err.message || "Registration failed");
+					return;
+				}
+				alert("Registration successful! Please log in.");
+				history.pushState({}, "", "/login");
+				window.dispatchEvent(new PopStateEvent("popstate"));
+			})
+			.catch((e) => {
+				console.error(e);
+				alert("Network error");
+			});
+	}
 }
 
 export class SettingsViewBinder implements ViewEventBinder {
@@ -84,7 +194,33 @@ export class SettingsViewBinder implements ViewEventBinder {
     unbind() {
 		document.getElementById("update-settings")?.removeEventListener("click", this.updateSettingsClick);
 	}
-    private updateSettingsClick() {/*fun*/}
+    private updateSettingsClick() {
+		const username = (document.getElementById("username") as HTMLInputElement | null)?.value;
+
+		const token = localStorage.getItem("token");
+		if (!token) {
+			alert("Not authenticated");
+			history.pushState({}, "", "/login");
+			window.dispatchEvent(new PopStateEvent("popstate"));
+			return;
+		}
+
+		const res = ApiClient.update("/api/users/me", { username })
+			.then(async (res) => {
+				if (!res.ok) {
+					const err = await res.json().catch(() => ({ message: "Update failed" }));
+					alert(err.message || "Update failed");
+					return;
+				}
+				alert("Settings updated successfully!");
+				history.pushState({}, "", "/profile");
+				window.dispatchEvent(new PopStateEvent("popstate"));
+			})
+			.catch((e) => {
+				console.error(e);
+				alert("Network error");
+			});
+	}
 }
 
 // Fonction principale pour binder selon le path

@@ -30,6 +30,7 @@ export function renderLogin() {
         formDiv2.appendChild(createSubheadingText("Join the realm of shadows with Oauth2"));
         formDiv2.appendChild(createButtonForm("Login with Google", "google"));
         formDiv2.appendChild(createButtonForm("Login with Intra 42", "intra42"));
+
         appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
         appDiv.appendChild(createHeadingText("Lord of Transcendence"));
         appDiv.appendChild(formDiv1);

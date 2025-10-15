@@ -25,7 +25,6 @@ export function renderSettings() {
 		formDiv.appendChild(createSubheadingText("Settings"));
 		formDiv.appendChild(createParagraphText("Change your settings here."));
 		formDiv.appendChild(createInputElement("text", "username", "New Username"));
-		formDiv.appendChild(createInputElement("email", "email", "New Email"));
 		formDiv.appendChild(createButtonForm("UpdateSettings", "update-settings"));
 
 		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));

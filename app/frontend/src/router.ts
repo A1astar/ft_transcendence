@@ -18,15 +18,15 @@ const routeMap: {[key: string]: () => void} = {
     "/game-menu": renderGameMenu,
 };
 
-let currentBinder: ReturnType<typeof bindEvents> | null = null; // stocke le binder courant
+let currentBinder: ReturnType<typeof bindEvents> | null = null; // store current binder
 
 export async function router(path: string): Promise<void> {
-    currentBinder?.unbind(); // unbind des événements de la vue précédente
+    currentBinder?.unbind(); // unbind previous events
 
     const render = routeMap[path];
     if (render) {
         render();
-        currentBinder = bindEvents(path); // bind après rendu
+        currentBinder = bindEvents(path); // bind after rendering
     } else {
         renderNotFound();
         currentBinder = bindEvents(path);
