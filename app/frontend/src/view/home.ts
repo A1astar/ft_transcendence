@@ -19,7 +19,7 @@ export function renderHome() {
 	if (appDiv) {
 		clearDiv(appDiv);
 
-		const formDiv = createFormElement();
+		const formDiv = createFormElement("homeForm");
 		formDiv.appendChild(createSubheadingText("Enter the realm of shadows"));
 		formDiv.appendChild(createButtonLink("/login", "Login"));
 		formDiv.appendChild(createButtonLink("/register", "Register"));

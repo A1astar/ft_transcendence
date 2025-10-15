@@ -20,19 +20,19 @@ export function renderGameMenu() {
 	if (appDiv) {
 		clearDiv(appDiv);
 
-		const LocalGameformDiv = createFormElement();
+		const LocalGameformDiv = createFormElement("localGameForm");
 		LocalGameformDiv.appendChild(createSubheadingText("Local Battle"));
-		LocalGameformDiv.appendChild(createButtonForm("local", "Local"));
+		LocalGameformDiv.appendChild(createButtonForm("Local", "local"));
 
-		const RemoteGameformDiv = createFormElement();
+		const RemoteGameformDiv = createFormElement("remoteGameForm");
 		RemoteGameformDiv.appendChild(createSubheadingText("Remote Battle"));
-		RemoteGameformDiv.appendChild(createButtonForm("Remote2", "Remote 2 players"));
-		RemoteGameformDiv.appendChild(createButtonForm("Remote4", "Remote 4 players"));4
+		RemoteGameformDiv.appendChild(createButtonForm("Remote 2 players", "Remote2"));
+		RemoteGameformDiv.appendChild(createButtonForm("Remote 4 players", "Remote4"));
 
-		const TournamentGameformDiv = createFormElement();
+		const TournamentGameformDiv = createFormElement("tournamentGameForm");
 		TournamentGameformDiv.appendChild(createSubheadingText("Tournament for Middle-earth"));
-		TournamentGameformDiv.appendChild(createButtonForm("Tournament4", "Tournament 4 players"));
-		TournamentGameformDiv.appendChild(createButtonForm("Tournament8", "Tournament 8 players"));
+		TournamentGameformDiv.appendChild(createButtonForm("Tournament 4 players", "Tournament4"));
+		TournamentGameformDiv.appendChild(createButtonForm("Tournament 8 players", "Tournament8"));
 
 		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));

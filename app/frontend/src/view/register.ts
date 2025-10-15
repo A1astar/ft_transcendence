@@ -20,13 +20,13 @@ export function renderRegister() {
 	if (appDiv) {
 		clearDiv(appDiv);
 
-		const formDiv = createFormElement();
+		const formDiv = createFormElement("registerForm");
 		formDiv.appendChild(createSubheadingText("Create your account"));
 		formDiv.appendChild(createInputElement("text", "username", "Username"));
 		formDiv.appendChild(createInputElement("email", "email", "Email"));
 		formDiv.appendChild(createInputElement("password", "password", "Password"));
 		formDiv.appendChild(createInputElement("password", "confirmPassword", "Confirm Password"));
-		formDiv.appendChild(createButtonForm("register", "Register"));
+		formDiv.appendChild(createButtonForm("Register", "register"));
 
 		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));

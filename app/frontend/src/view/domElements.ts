@@ -224,11 +224,11 @@ export function createButtonLink(
 
 export function createButtonForm(
     text: string,
-    name: string
+    id: string
 ): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "submit";
-    button.name = name;
+    button.id = id;
     button.className =
         "px-4 py-2 bg-gradient-to-r from-amber-900 via-amber-700 to-red-900 text-amber-100 \
         rounded-lg font-bold hover:from-amber-700 hover:to-red-800 shadow-lg transition-all \
@@ -238,11 +238,11 @@ export function createButtonForm(
     return button;
 }
 
-export function createFormElement(
+export function createFormElement( id: string,
     position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center"
 ): HTMLFormElement {
     const formEl = document.createElement("form");
-    formEl.action = "login.html";
+    formEl.id = id;
     formEl.method = "POST";
     formEl.className = "flex flex-col gap-5";
 
@@ -276,12 +276,12 @@ export function createFormElement(
 
 export function createInputElement(
     type: string,
-    name: string,
+    id: string,
     placeholder: string,
 ): HTMLInputElement {
     const input = document.createElement("input");
     input.type = type;
-    input.name = name;
+    input.id = id;
     input.placeholder = placeholder;
     input.required = true;
     input.className =

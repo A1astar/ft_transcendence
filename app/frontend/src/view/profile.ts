@@ -20,11 +20,11 @@ export function renderProfile() {
 	if (appDiv) {
 		clearDiv(appDiv);
 
-		const formDiv = createFormElement();
+		const formDiv = createFormElement("profileForm");
 		formDiv.appendChild(createSubheadingText("Your Profile"));
 		formDiv.appendChild(createParagraphText("Username: [username]"));
 		formDiv.appendChild(createParagraphText("Email: [email]"));
-		formDiv.appendChild(createButtonForm("logout", "Logout"));
+		formDiv.appendChild(createButtonForm("Logout", "logout"));
 
 		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));

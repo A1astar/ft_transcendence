@@ -36,7 +36,6 @@ async function main(): Promise<void> {
             document.body.innerHTML = "<h1>Cannot connect to API. Please try again later.</h1>";
             return;
         }
-
         router(window.location.pathname);
     } catch (error) {
         console.error("Error during app initialization:", error);
@@ -44,3 +43,35 @@ async function main(): Promise<void> {
 }
 
 main();
+
+// MVC Model Vue, Controller, Interface
+
+// model:
+
+// User:
+// 	id, email, password, nick
+// Friend:
+//     id, user_id, friend_id
+
+// CRUD Create, Read, Update, delete
+
+// /register (request, response)
+// verif, create(user), response(status)
+
+// /login (req, res)
+// find user(email), bcryptcompare, jwt.sign({id}), res(jwt_token, status)
+
+// /add_friend (req, res)
+// body: {friend_id}
+// create_friend {user_id, friend_id}
+
+// auth_guard
+// [
+//    req.header.authorization = "ez4786wljkedwd.453542413we0e1 "
+//    ...parsing -> decode -> {id}
+// 	findUserById(id) -> user -> req.user
+
+// ]
+// -----------------------
+
+// const findUserById = (id) => db.all("SELECT from user...")

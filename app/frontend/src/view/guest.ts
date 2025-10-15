@@ -20,10 +20,10 @@ export function renderGuestLogin() {
 	if (appDiv) {
 		clearDiv(appDiv);
 
-		const formDiv = createFormElement();
+		const formDiv = createFormElement("guestForm");
 		formDiv.appendChild(createSubheadingText("Join the realm of shadows as guest"));
 		formDiv.appendChild(createInputElement("text", "username", "Pseudo"));
-		formDiv.appendChild(createButtonForm("guest", "Continue as Guest"));
+		formDiv.appendChild(createButtonForm("Continue as Guest", "guest"));
 
 		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));
