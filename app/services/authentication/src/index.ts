@@ -25,11 +25,20 @@ function passwordValid(password: string) {
 
 function logAccount(request: FastifyRequest, database: Database) {
     printRequest(request);
+}
 
+function accountFormatCorrect() : boolean {
+    return true;
 }
 
 function registerAccount(request: FastifyRequest, database: Database) {
+    const requestBody = request.body;
+
+    console.log(request.body);
     printRequest(request);
+    if (accountFormatCorrect())
+        return;
+        // database.addUser(user);
 }
 
 async function manageRequest(fastify: FastifyInstance, database: Database) {
