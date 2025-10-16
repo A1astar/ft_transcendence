@@ -10,6 +10,11 @@ export interface Player {
  
 export class Game {
 	id = randomUUID();
+	mode = '';
+	players = {
+		left: 0,
+		right: 0
+	}
 	width = 800;
 	height = 600;
 	ball = {

@@ -1,22 +1,50 @@
-import Fastify, { FastifyInstance } from 'fastify'
-import chalk from 'chalk'
+import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { Database } from "./database.mjs"
+import chalk from 'chalk';
 
-async function manageRequest(fastify: FastifyInstance) {
-    fastify.all('*', async(request, reply) => {
-        const path = request.raw.url;
+/*
+    --- credential ---
+Credential
+
+    --- authentication ---
+Basic access authentication
+
+    --- authorization ---
+
+*/
+
+function printRequest(request: FastifyRequest) {
+    console.log(request.body);
+}
+
+function passwordValid(password: string) {
+    if (password.length < 12 && password.length > 64)
+        throw new Error("Password must contain a least 12 - 64 character");
+    return true;
+}
+
+function logAccount(request: FastifyRequest, database: Database) {
+    printRequest(request);
+
+}
+
+function registerAccount(request: FastifyRequest, database: Database) {
+    printRequest(request);
+}
+
+async function manageRequest(fastify: FastifyInstance, database: Database) {
+
+    fastify.all('/*', async(request, reply) => { const path = request.raw.url;
 
         switch (path) {
-            case "/":
-                console.log(chalk.red.bold("/"));
+            case "/login":
+                logAccount(request, database);
                 break;
-            case "/auth":
-                console.log(chalk.blue.bold("/authentication"));
+            case "/register":
+                registerAccount(request, database);
                 break;
-            case "/game-orchestration":
-                console.log(chalk.yellow.bold("/game-orchestration"));
-                break;
-            case "/game-engine":
-                console.log(chalk.green.bold("/game-engine"));
+            default:
+                reply.code(404).send({ error: "Route not found "});
                 break;
         }
     });
@@ -29,19 +57,20 @@ async function initAuthenticationService(fastify: FastifyInstance) {
         throw err
     }
     })
+    console.log(chalk.white.bold("Authentication state: ") + chalk.green.bold.italic("running"));
 }
 
 async function start() {
-    const fastify = Fastify({
-        logger: true
-    })
+    // const fastify = Fastify({ logger: true });
+    const fastify = Fastify();
+    const database = new Database();
 
     try {
         initAuthenticationService(fastify);
-        manageRequest(fastify);
+        manageRequest(fastify, database);
 
     } catch (err) {
-        console.log(err);
+        console.error(err);
     }
 }
 

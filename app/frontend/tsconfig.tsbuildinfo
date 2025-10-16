@@ -1,0 +1,1 @@
+{"root":["./src/main.ts","./src/router.ts","./src/view/domElements.ts","./src/view/gameMenu.ts","./src/view/guest.ts","./src/view/home.ts","./src/view/login.ts","./src/view/notFound.ts","./src/view/profile.ts","./src/view/register.ts","./src/view/settings.ts"],"version":"5.9.3"}

@@ -1,0 +1,31 @@
+GET http://localhost:3001/ HTTP/1.1
+Host: localhost:3001
+Content-Type: application/json
+Content-Length: 0
+
+###
+
+POST http://localhost:3001/register HTTP/1.1
+Host: localhost:3001
+Authorization: Basic user:password
+Content-Type: application/json
+Content-Length: 0
+
+{
+    "username": "username",
+    "password": "password",
+    "email": "name@gmail.com"
+}
+
+###
+
+GET http://localhost:3001/login HTTP/1.1
+Host: localhost:3001
+Authorization: Basic user:password
+Content-Type: application/json
+Content-Length: 0
+
+{
+    "username": "username",
+    "password": "password",
+}

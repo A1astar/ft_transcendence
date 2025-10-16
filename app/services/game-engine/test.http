@@ -43,7 +43,7 @@ Content-Type: application/json
 }
 
 ### key release
-POST http://localhost:3003/game-engine/input/test-match-123 HTTP/1.1
+POST http://localhost:3003/api/game-engine/input/test-match-123 HTTP/1.1
 Content-Type: application/json
 
 {
@@ -54,7 +54,7 @@ Content-Type: application/json
 
 
 ### get game state
-POST http://localhost:3003/game-engine/game-state/test-match-123 HTTP/1.1
+POST http://localhost:3003/api/game-engine/game-state/test-match-123 HTTP/1.1
 Content-Type: application/json
 
 {
