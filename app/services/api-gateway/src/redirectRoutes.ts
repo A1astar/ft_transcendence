@@ -13,7 +13,7 @@ function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
 	return Object.fromEntries(
 		Object.entries(reqheaders)
 		.filter(([key,value]) => key.toLowerCase() !== 'host' &&
-		 key.toLowerCase() !== 'content-length' && 
+		 key.toLowerCase() !== 'content-length' &&
 		 typeof value === 'string')
 	);
 };
@@ -53,12 +53,12 @@ export async function routeRequest(fastify: FastifyInstance) {
     fastify.register(fastifyStatic, {
         root: frontendPath,
         prefix: '/',
-        index: ['index.html'],
+        index: ['Index.html'],
         wildcard: false
     });
 
     fastify.get('/*', async (req, reply) => {
-        return reply.sendFile('index.html');
+        return reply.sendFile('Index.html');
     });
 
 }

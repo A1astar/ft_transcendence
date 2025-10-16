@@ -4,11 +4,18 @@ export function clearDiv(Div: HTMLElement | null): void {
     }
 }
 
+export function createBoxDiv(id : string): HTMLDivElement {
+    const boxDiv = document.createElement("div");
+    boxDiv.id = id;
+    boxDiv.className = "bg-gradient-to-br from-gray-800 via-gray-900 to-black p-8 rounded-3xl \
+    shadow-2xl w-96 border-4 border-amber-900/60 backdrop-blur-md ring-2 ring-amber-700/40";
+    return boxDiv;
+}
+
 export function createGifBackgroundDiv(backgroundPath: string): HTMLDivElement {
     const backgroundDiv = document.createElement("div");
     backgroundDiv.className =
-        "flex flex-col justify-center items-center h-screen m-0 \
-    bg-gradient-to-br from-gray-900 via-gray-800 to-black font-serif";
+        "fixed inset-0 m-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black font-serif";
     backgroundDiv.style.background = `url('${backgroundPath}') center center / cover no-repeat fixed`;
     return backgroundDiv;
 }
@@ -59,6 +66,8 @@ export function createLogoElement(
             logoImg.style.right = "1rem";
             break;
         case "center":
+            logoImg.style.display = "block";
+            logoImg.style.margin = "0 auto";
         default:
             break;
     }
@@ -71,8 +80,7 @@ export function createHeadingText(
 ): HTMLHeadingElement {
     const titleH1 = document.createElement("h1");
     titleH1.className =
-        "mb-4 text-7xl font-extrabold text-amber-500 drop-shadow-lg \
-    tracking-widest font-lora italic";
+        "mb-4 text-7xl font-extrabold text-amber-500 drop-shadow-lg tracking-widest font-lora italic";
     titleH1.style.textShadow = "0 2px 12px #ff6600, 0 0px 1px #fff";
     titleH1.textContent = text;
 
