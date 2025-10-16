@@ -1,37 +1,31 @@
-GET http://localhost:3001/
+GET http://localhost:3001/ HTTP/1.1
+Host: localhost:3001
 Content-Type: application/json
+Content-Length: 0
 
 ###
 
-GET http://localhost:3001/auth
+POST http://localhost:3001/register HTTP/1.1
+Host: localhost:3001
+Authorization: Basic user:password
 Content-Type: application/json
-
-###
-
-GET http://localhost:3001/auth/2fa
-Content-Type: application/json
-
-###
-
-GET http://localhost:3001/auth/jwt
-Content-Type: application/json
-
-###
-
-GET http://localhost:3001/auth/oauth2
-Content-Type: application/json
-
-###
-
-GET http://localhost:3001/auth/session
-Content-Type: application/json
-
-###
-
-POST http://localhost:3001/auth
-Content-Type: application/json
+Content-Length: 0
 
 {
-    "username": "usertest",
-    "password": "password"
+    "username": "username",
+    "password": "password",
+    "email": "name@gmail.com"
+}
+
+###
+
+GET http://localhost:3001/login HTTP/1.1
+Host: localhost:3001
+Authorization: Basic user:password
+Content-Type: application/json
+Content-Length: 0
+
+{
+    "username": "username",
+    "password": "password",
 }

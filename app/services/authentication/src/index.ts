@@ -1,52 +1,50 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import * as oauth2 from "./oauth2.js";
-import * as jwt from "./jwt.js";
-import * as vault from "./vault.js";
-import * as twoFA from "./2fa.js";
-import * as session from "./session.js"
-import * as database from "./database.js"
+import { Database } from "./database.mjs"
 import chalk from 'chalk';
 
-function manageLogin(fastify: FastifyInstance) {
-    console.log(chalk.blue.bold("/auth"));
-}
+/*
+    --- credential ---
+Credential
 
-function checkSession(fastify: FastifyInstance) {
+    --- authentication ---
+Basic access authentication
 
-}
+    --- authorization ---
+
+*/
 
 function printRequest(request: FastifyRequest) {
-    console.log("\nheaders:\n" + request.headers);
-    console.log("\nraw-headers:\n");
-    console.log(request.raw.headers);
-    console.log(`\nbody:\n${request.body}\n\n`);
-    console.log(`\nbody:\n${request.body}\n\n`);
-    console.log("\ncookies:\n");
-    console.log(request.cookies);
+    console.log(request.body);
 }
 
-async function manageRequest(fastify: FastifyInstance) {
+function passwordValid(password: string) {
+    if (password.length < 12 && password.length > 64)
+        throw new Error("Password must contain a least 12 - 64 character");
+    return true;
+}
+
+function logAccount(request: FastifyRequest, database: Database) {
+    printRequest(request);
+
+}
+
+function registerAccount(request: FastifyRequest, database: Database) {
+    printRequest(request);
+}
+
+async function manageRequest(fastify: FastifyInstance, database: Database) {
 
     fastify.all('/*', async(request, reply) => { const path = request.raw.url;
-        printRequest(request);
+
         switch (path) {
-            case "/auth":
-                manageLogin(fastify);
+            case "/login":
+                logAccount(request, database);
                 break;
-            case "/auth/2fa":
-                twoFA.manage2FA(fastify);
+            case "/register":
+                registerAccount(request, database);
                 break;
-            case "/auth/jwt":
-                jwt.manageJWT(fastify);
-                break;
-            case "/auth/oauth2":
-                oauth2.manageOauth2(fastify);
-                break;
-            case "/auth/session":
-                session.manageSession(fastify);
-                break;
-            case "/auth/vault":
-                vault.manageVault(fastify);
+            default:
+                reply.code(404).send({ error: "Route not found "});
                 break;
         }
     });
@@ -65,13 +63,14 @@ async function initAuthenticationService(fastify: FastifyInstance) {
 async function start() {
     // const fastify = Fastify({ logger: true });
     const fastify = Fastify();
+    const database = new Database();
 
     try {
         initAuthenticationService(fastify);
-        manageRequest(fastify);
+        manageRequest(fastify, database);
 
     } catch (err) {
-        console.log(err);
+        console.error(err);
     }
 }
 
