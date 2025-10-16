@@ -1,0 +1,22 @@
+{
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --exec tsx src/index.ts",
+    "clean": "rm -r ./dist",
+    "build": "tsc",
+    "start": "npm run build && node dist/index.js"
+  },
+  "dependencies": {
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/oauth2": "^8.1.2",
+    "@fastify/session": "^11.1.0",
+    "@types/node": "^24.7.1",
+    "fastify": "^5.6.1",
+    "fastify-sqlite": "^1.1.0",
+    "node": "^24.9.0",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "chalk": "^5.6.2"
+  }
+}
