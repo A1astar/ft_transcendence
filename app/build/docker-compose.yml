@@ -23,7 +23,7 @@ services:
     restart: "no"
 
   authentication:
-    build: ../services/api-gateway
+    build: ../services/authentication
     ports:
       - "3001"
     networks:
