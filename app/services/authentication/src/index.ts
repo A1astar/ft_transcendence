@@ -32,13 +32,13 @@ function accountFormatCorrect() : boolean {
 }
 
 function registerAccount(request: FastifyRequest, database: Database) {
-    const requestBody = request.body;
+    // const requestBody = request.body;
 
-    console.log(request.body);
+    // console.log(request.body);
     printRequest(request);
     if (accountFormatCorrect())
         return;
-        // database.addUser(user);
+    // database.addUser(user);
 }
 
 async function manageRequest(fastify: FastifyInstance, database: Database) {
@@ -46,10 +46,10 @@ async function manageRequest(fastify: FastifyInstance, database: Database) {
     fastify.all('/*', async(request, reply) => { const path = request.raw.url;
 
         switch (path) {
-            case "/login":
+            case "/auth/login":
                 logAccount(request, database);
                 break;
-            case "/register":
+            case "/auth/register":
                 registerAccount(request, database);
                 break;
             default:
@@ -70,8 +70,107 @@ async function initAuthenticationService(fastify: FastifyInstance) {
 }
 
 async function start() {
-    // const fastify = Fastify({ logger: true });
-    const fastify = Fastify();
+
+    const fastify = Fastify({
+        // AJV options for schema validation
+        ajv: {
+            customOptions: {},
+            plugins: []
+        },
+
+        // Body size limit (bytes)
+        bodyLimit: 1048576,                 // default: 1MB
+
+        // Case sensitivity for routes
+        // caseSensitive: true,                // default: true
+
+        // Connection timeout (milliseconds)
+        connectionTimeout: 0,               // default: 0 (disabled)
+
+        // Disable request logging
+        disableRequestLogging: false,       // default: false
+
+        // Expose HEAD routes for GET routes
+        exposeHeadRoutes: true,             // default: true
+
+        // Force close connections on close
+        forceCloseConnections: false,       // default: false
+
+        // Custom request ID generator
+        // genReqId: (req) => {                // default: incremental counter
+        //     return `req-${Date.now()}-${Math.random()}`;
+        // },
+
+        // HTTP/2 support
+        // http2: false,                       // default: false
+
+        // HTTP/2 session timeout
+        // http2SessionTimeout: 72000,         // default: 72000ms (72s)
+
+        // HTTPS/TLS options
+        // https: undefined,                   // default: undefined (provide { key, cert } for HTTPS)
+
+        // Ignore trailing slashes in routes
+        // ignoreTrailingSlash: false,         // default: false
+
+        // Ignore duplicate slashes in routes
+        // ignoreDuplicateSlashes: false,      // default: false
+
+        // Keep-alive timeout
+        keepAliveTimeout: 72000,            // default: 72000ms (Node.js default)
+
+        // Logging configuration
+        logger: true,                       // default: false (or pino options)
+
+        // Max param length
+        // maxParamLength: 100,                // default: 100
+
+        // Max request headers count
+        maxRequestsPerSocket: 0,            // default: 0 (unlimited)
+
+        // On protocol error behavior
+        // onProtocolError: 'error',           // default: 'error' | 'ignore'
+
+        // Plugin timeout
+        pluginTimeout: 10000,               // default: 10000ms (10s)
+
+        // Query string parser
+        // querystringParser: undefined,       // default: undefined (uses Node's)
+
+        // Request ID header name
+        requestIdHeader: false,             // default: false (or string header name)
+
+        // Request ID log label
+        requestIdLogLabel: 'reqId',         // default: 'reqId'
+
+        // Request timeout
+        requestTimeout: 0,                  // default: 0 (disabled)
+
+        // Return 503 on closing
+        return503OnClosing: true,           // default: true
+
+        // Rewrite URL function
+        rewriteUrl: undefined,              // default: undefined
+
+        // Schema controller
+        schemaController: undefined,        // default: undefined
+
+        // Schema error formatter
+        schemaErrorFormatter: undefined,    // default: undefined
+
+        // Serializer options
+        serializerOpts: {},                 // default: {}
+
+        // Server factory (custom server)
+        serverFactory: undefined,           // default: undefined
+
+        // Trust proxy
+        trustProxy: false,                  // default: false (or true, string, number, function)
+
+        // Versioning options
+        // versioning: undefined,              // default: undefined
+    });
+    // const fastify = Fastify();
     const database = new Database();
 
     try {
