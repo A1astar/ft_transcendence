@@ -8,6 +8,7 @@ export class Database {
     }
 
     addUser(user: User) {
+        // hash passwords
         this.users.set(user.name, user);
     }
 

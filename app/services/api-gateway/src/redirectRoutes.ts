@@ -31,8 +31,10 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: s
 				});
 				const data = await res.text();
 				res.headers.forEach((value, key) => reply.header(key, value));
-				console.log(chalk.blue(req.session.sessionId))
-				console.log(chalk.blue(req.cookies.id))
+                console.log(chalk.bold.white('Session ID:'));
+				console.log(chalk.blue(req.session.sessionId));
+                console.log(chalk.bold.white('Cookie ID:'));
+				console.log(chalk.blue(req.cookies.id));
 				return reply.code(res.status).send(data);
 			}
 			catch (err) {
@@ -46,7 +48,7 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: s
 
 export async function routeRequest(fastify: FastifyInstance) {
 
-	routeServices(fastify, "api/authentication", "http://localhost:3001");
+	routeServices(fastify, "api/auth", "http://localhost:3001");
 	routeServices(fastify, "api/game-orchestration", "http://localhost:3002");
 	routeServices(fastify, "api/game-engine", "http://localhost:3003");
 

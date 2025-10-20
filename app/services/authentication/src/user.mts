@@ -1,3 +1,14 @@
+interface RegisterRequest {
+    name: string;
+    password: string;
+}
+
+interface LoginRequest {
+    name: string;
+    password: string;
+    email: string;
+}
+
 export class User  {
     constructor(id: string, mail: string, name: string, password: string, session: string,
         isActive: boolean

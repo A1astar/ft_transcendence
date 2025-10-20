@@ -9,6 +9,7 @@ POST http://localhost:3001/auth/register HTTP/1.1
 Host: localhost:3001
 Authorization: Basic user:password
 Connection: keep-alive
+Keep-Alive: timeout=5, max=100
 Content-Type: application/json
 Content-Length: 0
 
@@ -24,6 +25,7 @@ GET http://localhost:3001/auth/login HTTP/1.1
 Host: localhost:3001
 Authorization: Basic user:password
 Connection: keep-alive
+Keep-Alive: timeout=5, max=100
 Content-Type: application/json
 Content-Length: 0
 

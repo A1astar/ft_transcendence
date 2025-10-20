@@ -2,18 +2,10 @@ import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import { Database } from "./database.mjs"
 import chalk from 'chalk';
 
-/*
-    --- credential ---
-Credential
-
-    --- authentication ---
-Basic access authentication
-
-    --- authorization ---
-
-*/
-
 function printRequest(request: FastifyRequest) {
+    console.log(chalk.bold.blue('Request:'));
+    console.log(request.method);
+    console.log(request.headers);
     console.log(request.body);
 }
 
@@ -24,6 +16,7 @@ function passwordValid(password: string) {
 }
 
 function logAccount(request: FastifyRequest, database: Database) {
+    console.log(chalk.bold.italic.yellow("Log\n"));
     printRequest(request);
 }
 
@@ -32,9 +25,8 @@ function accountFormatCorrect() : boolean {
 }
 
 function registerAccount(request: FastifyRequest, database: Database) {
-    // const requestBody = request.body;
 
-    // console.log(request.body);
+    console.log(chalk.bold.italic.yellow("Register\n"));
     printRequest(request);
     if (accountFormatCorrect())
         return;
@@ -43,8 +35,9 @@ function registerAccount(request: FastifyRequest, database: Database) {
 
 async function manageRequest(fastify: FastifyInstance, database: Database) {
 
-    fastify.all('/*', async(request, reply) => { const path = request.raw.url;
-
+    fastify.all('/*', async(request, reply) => {
+        const path = request.raw.url;
+        
         switch (path) {
             case "/auth/login":
                 logAccount(request, database);
