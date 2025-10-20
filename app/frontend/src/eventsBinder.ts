@@ -205,7 +205,7 @@ export class SettingsViewBinder implements ViewEventBinder {
 			return;
 		}
 
-		const res = ApiClient.update("/api/users/me", { username })
+		const res = ApiClient.update("/api/authentication/update", { username })
 			.then(async (res) => {
 				if (!res.ok) {
 					const err = await res.json().catch(() => ({ message: "Update failed" }));
