@@ -57,7 +57,7 @@ export class GuestMenuBinder implements ViewEventBinder {
 			return;
 		}
 		localStorage.setItem("guestUsername", username);
-		history.pushState({}, "", "/game-menu");
+		history.pushState({}, "", "/gameMenu");
 		window.dispatchEvent(new PopStateEvent("popstate"));
 	}
 }
@@ -245,7 +245,7 @@ export function bindEvents(path: string) {
 		case "/settings":
 			binder = new SettingsViewBinder();
 			break;
-        case "/game-menu":
+        case "/gameMenu":
             binder = new GameMenuBinder();
             break;
 		// Ajoutez d'autres cas pour chaque vue
