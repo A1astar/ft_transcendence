@@ -15,7 +15,7 @@ const routeMap: {[key: string]: () => void} = {
     "/guest": renderGuestLogin,
     "/profile": renderProfile,
     "/settings": renderSettings,
-    "/game-menu": renderGameMenu,
+    "/gameMenu": renderGameMenu,
 };
 
 let currentBinder: ReturnType<typeof bindEvents> | null = null; // store current binder

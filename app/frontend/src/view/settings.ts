@@ -1,6 +1,6 @@
 import {
     clearDiv,
-	createGifBackgroundDiv,
+	createVideoBackgroundDiv,
     createHeadingText,
     createSubheadingText,
     createParagraphText,
@@ -8,28 +8,27 @@ import {
     createInputElement,
     createLogoElement,
 	createButtonForm,
+	createBoxDiv
 } from "./domElements.js";
 
-const backgroundDiv = document.getElementById("background");
 const appDiv = document.getElementById("app");
 
 export function renderSettings() {
-	if (backgroundDiv) {
-		clearDiv(backgroundDiv);
-		backgroundDiv.appendChild(createGifBackgroundDiv("../../backgrounds/Mordor.gif"));
-	}
 	if (appDiv) {
 		clearDiv(appDiv);
 
 		const formDiv = createFormElement("settingsForm");
-		formDiv.appendChild(createSubheadingText("Settings"));
-		formDiv.appendChild(createParagraphText("Change your settings here."));
-		formDiv.appendChild(createInputElement("text", "username", "New Username"));
-		formDiv.appendChild(createButtonForm("UpdateSettings", "update-settings"));
+		formDiv.appendChild(createInputElement("text", "username", "New Pseudo"));
+		formDiv.appendChild(createButtonForm("Update Settings", "update-settings"));
 
+		const settingBox = createBoxDiv("settingsBox");
+		settingBox.appendChild(createSubheadingText("Settings"));
+		settingBox.appendChild(formDiv);
+
+		appDiv.appendChild(createVideoBackgroundDiv("../backgrounds/Sauron.mp4"));
 		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));
-		appDiv.appendChild(formDiv);
+		appDiv.appendChild(settingBox);
 	}
 }
 

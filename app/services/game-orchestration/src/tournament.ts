@@ -67,7 +67,7 @@ async function eightPlayerTournament() {
 		if (!tournamentQueues.get(tournamentId))
 		{
 			tournamentQueues.set(tournamentId, tournament8Queue);
-		}			
+		}
 		const matchPlayers1 = tournament8Queue.splice(0,2);
 		const match1: Match = createMatch(matchPlayers1, "tournament8", 1, tournamentId);
 		const res1 = await fetch("http://localhost:3003/game-engine/start", {
@@ -171,7 +171,7 @@ async function eightPlayerTourRematch2(tournamentId: string) {
 				body: JSON.stringify(match1)
 			});
 			console.log("Game engine response:", await res1.json());
-			return {status: "game created", tournamentId: tournamentId};		
+			return {status: "game created", tournamentId: tournamentId};
 		}
 		else {
 			return {status: "waiting"}
