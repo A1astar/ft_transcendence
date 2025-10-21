@@ -1,5 +1,6 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Database } from "./database.mjs"
+import { User } from "./user.mjs"
 import chalk from 'chalk';
 
 function printRequest(request: FastifyRequest) {
@@ -17,6 +18,7 @@ function passwordValid(password: string) {
 
 function logAccount(request: FastifyRequest, database: Database) {
     console.log(chalk.bold.italic.yellow("Log\n"));
+    console.log(request.id);
     printRequest(request);
 }
 
@@ -26,18 +28,20 @@ function accountFormatCorrect() : boolean {
 
 function registerAccount(request: FastifyRequest, database: Database) {
 
+    // const newUser = new User;
+
     console.log(chalk.bold.italic.yellow("Register\n"));
     printRequest(request);
     if (accountFormatCorrect())
         return;
-    // database.addUser(user);
+        // database.addUser(user);
 }
 
 async function manageRequest(fastify: FastifyInstance, database: Database) {
 
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;
-        
+
         switch (path) {
             case "/auth/login":
                 logAccount(request, database);
@@ -163,6 +167,7 @@ async function start() {
         // Versioning options
         // versioning: undefined,              // default: undefined
     });
+
     // const fastify = Fastify();
     const database = new Database();
 

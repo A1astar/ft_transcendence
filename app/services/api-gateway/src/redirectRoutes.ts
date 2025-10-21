@@ -43,7 +43,6 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: s
 			}
 		}
 	});
-
 }
 
 export async function routeRequest(fastify: FastifyInstance) {
