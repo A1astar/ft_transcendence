@@ -1,4 +1,6 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import fastifySession from '@fastify/session';
+import fastifyCookie from '@fastify/cookie';
 import { Database } from "./database.mjs"
 import { User } from "./user.mjs"
 import chalk from 'chalk';
@@ -16,25 +18,36 @@ function passwordValid(password: string) {
     return true;
 }
 
-function logAccount(request: FastifyRequest, database: Database) {
-    console.log(chalk.bold.italic.yellow("Log\n"));
-    console.log(request.id);
-    printRequest(request);
-}
-
 function accountFormatCorrect() : boolean {
     return true;
+}
+
+function getRequestHeaders(request: FastifyRequest) {
+    const headers = Object.entries(request.headers);
+    for (let i = 0; headers[i]; ++i) {
+        console.log(headers[i]);
+    }
+    console.log(chalk.bold.white(headers));
+    return headers;
+}
+
+function logAccount(request: FastifyRequest, database: Database) {
+    console.log(chalk.bold.italic.yellow("Log"));
+    console.log(request.id);
+    printRequest(request);
 }
 
 function registerAccount(request: FastifyRequest, database: Database) {
 
     // const newUser = new User;
+    const headers = getRequestHeaders(request);
 
-    console.log(chalk.bold.italic.yellow("Register\n"));
+    console.log(chalk.bold.italic.yellow("Register"));
     printRequest(request);
-    if (accountFormatCorrect())
-        return;
+    if (accountFormatCorrect()) {
         // database.addUser(user);
+        return;
+    }
 }
 
 async function manageRequest(fastify: FastifyInstance, database: Database) {
@@ -56,7 +69,13 @@ async function manageRequest(fastify: FastifyInstance, database: Database) {
     });
 }
 
-async function initAuthenticationService(fastify: FastifyInstance) {
+function initAuthenticationService(fastify: FastifyInstance) {
+    fastify.register(fastifyCookie);
+    fastify.register(fastifySession, {
+        secret: 'a random secret that shoud be longer than length 32',
+        cookie: { secure: false, maxAge: 3600 * 1000 },
+    });
+
     fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
     if (err) {
         fastify.log.error(err)

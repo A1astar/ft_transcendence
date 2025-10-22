@@ -10,6 +10,14 @@ interface LoginRequest {
 }
 
 export class User  {
+    set() {
+
+    }
+
+    get() {
+
+    }
+
     constructor(id: string, mail: string, name: string, password: string, session: string,
         isActive: boolean
     ) {

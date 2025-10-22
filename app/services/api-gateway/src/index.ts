@@ -19,11 +19,11 @@ async function main() {
 
     const fastify = Fastify({ logger: true });
 
-    fastify.register(fastifyCookie);
-    fastify.register(fastifySession, {
-        secret: 'a random secret that shoud be longer than length 32',
-        cookie: { secure: false, maxAge: 3600 * 1000 }, 
-    });
+    // fastify.register(fastifyCookie);
+    // fastify.register(fastifySession, {
+    //     secret: 'a random secret that shoud be longer than length 32',
+    //     cookie: { secure: false, maxAge: 3600 * 1000 },
+    // });
 
     routeRequest(fastify);
 

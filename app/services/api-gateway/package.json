@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "dev": "nodemon --exec tsx src/index.ts",
+    "dev": "npx tsx watch src/index.ts",
     "start": "npx tsc && node dist/index.js"
   },
   "dependencies": {

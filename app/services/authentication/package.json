@@ -1,7 +1,7 @@
 {
   "type": "module",
   "scripts": {
-    "dev": "nodemon --exec tsx src/index.ts",
+    "dev:tsx": "npx tsx watch src",
     "clean": "rm -r ./dist",
     "build": "tsc",
     "start": "npm run build && node dist/index.js"
