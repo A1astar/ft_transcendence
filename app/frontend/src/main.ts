@@ -10,6 +10,8 @@ const API_URL = "http://localhost:3000";
 // 5. Binder les événements globaux (boutons, formulaires, etc.)
 // 6. Autres initialisations (WebSocket, notifications, etc.
 
+console.log("Starting application...");
+
 async function checkApiConnection(): Promise<boolean> {
     try {
         const response = await fetch(API_URL);
