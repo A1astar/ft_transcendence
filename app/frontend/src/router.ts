@@ -1,13 +1,12 @@
-import {renderGameMenu} from "./view/gameMenu.js";
-import {renderGuestLogin} from "./view/guest.js";
-import {renderHome} from "./view/home.js";
-import {renderLogin} from "./view/login.js";
-import {renderRegister} from "./view/register.js";
-import {renderNotFound} from "./view/notFound.js";
-import {renderProfile} from "./view/profile.js";
-import {renderSettings} from "./view/settings.js";
+import {renderGameMenu} from "./view/gameMenuView.js";
+import {renderGuestLogin} from "./view/guestView.js";
+import {renderHome} from "./view/homeView.js";
+import {renderLogin} from "./view/loginView.js";
+import {renderRegister} from "./view/registerView.js";
+import {renderNotFound} from "./view/notFoundView.js";
+import {renderProfile} from "./view/profileView.js";
+import {renderSettings} from "./view/settingsView.js";
 import {bindEvents} from "./eventsBinder.js";
-//import {renderPong} from "./view/pong.js";
 
 type Unmount = () => void;
 type RenderFn = () => void | Unmount;
@@ -23,7 +22,6 @@ const routeMap: {[key: string]: () => void} = {
     "/profile": renderProfile,
     "/settings": renderSettings,
     "/gameMenu": renderGameMenu,
-    //"/pong": renderPong,
 };
 
 export async function router(path: string): Promise<void> {

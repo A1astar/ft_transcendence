@@ -61,9 +61,9 @@ export class GuestMenuBinder implements ViewEventBinder {
         }
         const res = await ApiClient.post("/api/auth/guest-session", {username});
         if (!res.ok) {
-            const err = await res.json().catch(() => ({message: "Guest login failed"}));
-            alert(err.message || "Guest login failed");
-            return;
+           const err = await res.json().catch(() => ({message: "Guest login failed"}));
+           alert(err.message || "Guest login failed");
+           return;
         }
         localStorage.setItem("guestUsername", username);
         history.pushState({}, "", "/gameMenu");
