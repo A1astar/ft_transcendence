@@ -7,6 +7,13 @@ import {renderNotFound} from "./view/notFound.js";
 import {renderProfile} from "./view/profile.js";
 import {renderSettings} from "./view/settings.js";
 import {bindEvents} from "./eventsBinder.js";
+//import {renderPong} from "./view/pong.js";
+
+type Unmount = () => void;
+type RenderFn = () => void | Unmount;
+
+let currentBinder: ReturnType<typeof bindEvents> | null = null;
+let currentUnmount: Unmount | null = null;
 
 const routeMap: {[key: string]: () => void} = {
     "/": renderHome,
@@ -16,17 +23,20 @@ const routeMap: {[key: string]: () => void} = {
     "/profile": renderProfile,
     "/settings": renderSettings,
     "/gameMenu": renderGameMenu,
+    //"/pong": renderPong,
 };
 
-let currentBinder: ReturnType<typeof bindEvents> | null = null; // store current binder
-
 export async function router(path: string): Promise<void> {
-    currentBinder?.unbind(); // unbind previous events
+    currentBinder?.unbind();
+    currentBinder = null;
+
+    currentUnmount?.();
+    currentUnmount = null;
 
     const render = routeMap[path];
     if (render) {
         render();
-        currentBinder = bindEvents(path); // bind after rendering
+        currentBinder = bindEvents(path);
     } else {
         renderNotFound();
         currentBinder = bindEvents(path);

@@ -254,6 +254,9 @@
   .w-full {
     width: 100%;
   }
+  .resize {
+    resize: both;
+  }
   .flex-col {
     flex-direction: column;
   }
