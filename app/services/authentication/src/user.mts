@@ -9,6 +9,10 @@ interface LoginRequest {
     email: string;
 }
 
+// global.
+// window.
+// globalThis
+
 export class User  {
     set() {
 

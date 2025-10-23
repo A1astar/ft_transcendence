@@ -6,10 +6,33 @@ import { User } from "./user.mjs"
 import chalk from 'chalk';
 
 function printRequest(request: FastifyRequest) {
-    console.log(chalk.bold.blue('Request:'));
-    console.log(request.method);
-    console.log(request.headers);
-    console.log(request.body);
+    console.log(chalk.bold.italic.blue('\n----- REQUEST -----'));
+    // console.log(request);
+    // console.log(request.body)
+    // console.log(request.query)
+    // console.log(request.params)
+    // console.log(request.headers)
+    // console.log(request.raw) <---
+    // console.log(request.server) <---
+    // console.log(request.id)
+    // console.log(request.ip)
+    // console.log(request.ips)
+    // console.log(request.host)
+    // console.log(request.hostname)
+    // console.log(request.port)
+    // console.log(request.protocol)
+    // console.log(request.url)
+    // console.log(request.routeOptions.method)
+    // console.log(request.routeOptions.bodyLimit)
+    // console.log(request.routeOptions.method)
+    // console.log(request.routeOptions.url)
+    // console.log(request.routeOptions.attachValidation)
+    // console.log(request.routeOptions.logLevel)
+    // console.log(request.routeOptions.version)
+    // console.log(request.routeOptions.exposeHeadRoute)
+    // console.log(request.routeOptions.prefixTrailingSlash)
+    // console.log(request.routeOptions.logLevel)
+    // request.log.info('some info')
 }
 
 function passwordValid(password: string) {
@@ -22,13 +45,16 @@ function accountFormatCorrect() : boolean {
     return true;
 }
 
-function getRequestHeaders(request: FastifyRequest) {
-    const headers = Object.entries(request.headers);
-    for (let i = 0; headers[i]; ++i) {
-        console.log(headers[i]);
-    }
-    console.log(chalk.bold.white(headers));
-    return headers;
+function getRequestHeaders(request: FastifyRequest) : object {
+    if (!request.headers)
+        return {};
+    return Object.entries(request.headers);
+}
+
+function getRequestBody(request: FastifyRequest) : object {
+    if (!request.body || typeof request.body !== 'object')
+        return {};
+    return Object.entries(request.body);
 }
 
 function logAccount(request: FastifyRequest, database: Database) {
@@ -39,11 +65,14 @@ function logAccount(request: FastifyRequest, database: Database) {
 
 function registerAccount(request: FastifyRequest, database: Database) {
 
+    console.log(chalk.bold.italic.yellow("\n----- REGISTER -----"));
+
     // const newUser = new User;
     const headers = getRequestHeaders(request);
+    const body = getRequestBody(request);
 
-    console.log(chalk.bold.italic.yellow("Register"));
-    printRequest(request);
+    console.log(headers);
+    console.log(body);
     if (accountFormatCorrect()) {
         // database.addUser(user);
         return;
@@ -187,12 +216,11 @@ async function start() {
         // versioning: undefined,              // default: undefined
     });
 
-    // const fastify = Fastify();
     const database = new Database();
 
     try {
-        initAuthenticationService(fastify);
-        manageRequest(fastify, database);
+        await initAuthenticationService(fastify);
+        await manageRequest(fastify, database);
 
     } catch (err) {
         console.error(err);
