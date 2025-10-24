@@ -18,7 +18,7 @@ export async function renderProfile() {
         clearDiv(appDiv);
 
         try {
-            const res = await ApiClient.get("/authentication/userinfo");
+            const res = await ApiClient.get("/api/auth/userinfo");
             if (!res.ok) {
                 throw new Error(`HTTP ${res.status}`);
             }
