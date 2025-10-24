@@ -1,18 +1,37 @@
-import { User } from "./user.mjs"
+import { User, generateId } from "./user.mjs"
+import { UserFormat } from "./format.mjs";
+
 
 export class Database {
     private users: Map<string, User> = new Map();
 
-    async authenticateUser(login: string, password: string) {
+    // getUser(username: string) : User {
+    //     return this.users.get(username);
+    // }
 
+    async authenticateUser(req: UserFormat) : Promise<boolean> {
+        const user = this.users.get(req.name);
+
+        if (!user)
+            return false;
+        // should decode / decrypt first
+        if (user.password == req.password)
+            return false;
+        return true;
     }
 
-    addUser(user: User) {
-        // hash passwords
+    addUser(req: UserFormat) {
+        let user = new User(req.name, req.password);
+
         this.users.set(user.name, user);
     }
 
-    deleteUser(user: User) {
+    deleteUser(req: UserFormat) {
+        const user = this.users.get(req.name);
+
+        if (!user)
+            return;
+
         this.users.delete(user.name);
     }
 }

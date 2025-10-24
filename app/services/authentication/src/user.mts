@@ -1,42 +1,25 @@
-interface RegisterRequest {
-    name: string;
-    password: string;
-}
-
-interface LoginRequest {
-    name: string;
-    password: string;
-    email: string;
-}
-
 // global.
 // window.
 // globalThis
 
-export class User  {
-    set() {
+export function* generateId() : Generator<number> {
+    let id = 1;
 
+    while (true) {
+        yield id;
+        ++id;
     }
+}
 
-    get() {
-
-    }
-
-    constructor(id: string, mail: string, name: string, password: string, session: string,
-        isActive: boolean
-    ) {
-        this.id = id;
-        this.mail = mail;
+export class User {
+    // constructor(id: number, mail: string, name: string, password: string, session: string,
+    //     isActive: boolean
+    constructor(name: string, password: string)
+    {
         this.name = name;
         this.password = password;
-        this.session = session;
-        this.isActive = false;
     }
 
-    id: string;
-    mail: string;
     name: string;
     password: string;
-    session: string;
-    isActive: boolean;
 }

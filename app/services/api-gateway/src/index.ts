@@ -1,8 +1,8 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
-import chalk from 'chalk';
 import { routeRequest } from "./redirectRoutes.js";
+import chalk from 'chalk';
 
 async function initAPIGateway(fastify: FastifyInstance) {
     fastify.listen({ port: 3000, host: "0.0.0.0" }, function (err, address) {
@@ -19,11 +19,11 @@ async function main() {
 
     const fastify = Fastify({ logger: true });
 
-    // fastify.register(fastifyCookie);
-    // fastify.register(fastifySession, {
-    //     secret: 'a random secret that shoud be longer than length 32',
-    //     cookie: { secure: false, maxAge: 3600 * 1000 },
-    // });
+    fastify.register(fastifyCookie);
+    fastify.register(fastifySession, {
+        secret: 'a random secret that shoud be longer than length 32',
+        cookie: { secure: false, maxAge: 3600 * 1000 },
+    });
 
     routeRequest(fastify);
 

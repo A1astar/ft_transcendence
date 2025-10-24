@@ -2,7 +2,9 @@ import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify'
 import fastifySession from '@fastify/session';
 import fastifyCookie from '@fastify/cookie';
 import { Database } from "./database.mjs"
+import { userFormatCorrect, RegisterFormat } from './format.mjs';
 import { User } from "./user.mjs"
+import "./format.mjs"
 import chalk from 'chalk';
 
 function printRequest(request: FastifyRequest) {
@@ -35,16 +37,6 @@ function printRequest(request: FastifyRequest) {
     // request.log.info('some info')
 }
 
-function passwordValid(password: string) {
-    if (password.length < 12 && password.length > 64)
-        throw new Error("Password must contain a least 12 - 64 character");
-    return true;
-}
-
-function accountFormatCorrect() : boolean {
-    return true;
-}
-
 function getRequestHeaders(request: FastifyRequest) : object {
     if (!request.headers)
         return {};
@@ -58,8 +50,7 @@ function getRequestBody(request: FastifyRequest) : object {
 }
 
 function logAccount(request: FastifyRequest, database: Database) {
-    console.log(chalk.bold.italic.yellow("Log"));
-    console.log(request.id);
+    console.log(chalk.bold.italic.yellow("----- LOGIN -----"));
     printRequest(request);
 }
 
@@ -67,16 +58,11 @@ function registerAccount(request: FastifyRequest, database: Database) {
 
     console.log(chalk.bold.italic.yellow("\n----- REGISTER -----"));
 
-    // const newUser = new User;
     const headers = getRequestHeaders(request);
-    const body = getRequestBody(request);
+    const userInfo = getRequestBody(request) as RegisterFormat;
 
-    console.log(headers);
-    console.log(body);
-    if (accountFormatCorrect()) {
-        // database.addUser(user);
-        return;
-    }
+    if (userFormatCorrect(userInfo))
+        database.addUser(userInfo);
 }
 
 async function manageRequest(fastify: FastifyInstance, database: Database) {
@@ -107,14 +93,14 @@ function initAuthenticationService(fastify: FastifyInstance) {
 
     fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
     if (err) {
-        fastify.log.error(err)
-        throw err
+        fastify.log.error(err);
+        throw err;
     }
     })
     console.log(chalk.white.bold("Authentication state: ") + chalk.green.bold.italic("running"));
 }
 
-async function start() {
+function start() {
 
     const fastify = Fastify({
         // AJV options for schema validation
@@ -219,8 +205,8 @@ async function start() {
     const database = new Database();
 
     try {
-        await initAuthenticationService(fastify);
-        await manageRequest(fastify, database);
+        initAuthenticationService(fastify);
+        manageRequest(fastify, database);
 
     } catch (err) {
         console.error(err);

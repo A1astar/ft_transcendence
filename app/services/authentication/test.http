@@ -16,7 +16,6 @@ Content-Length: 0
 {
     "username": "username",
     "password": "password",
-    "email": "name@gmail.com"
 }
 
 ###

@@ -4,7 +4,7 @@ import cors from "@fastify/cors";
 // import { Player, Match, queues } from "./objects.js";
 import { localMatch } from "./local.js";
 import { remoteMatch2, remoteMatch4 } from "./remote.js";
-import { tournamentMatch4, tournamentMatch8 } from "./tournament.js";
+import { tournamentMatch } from "./tournament.js";
 import { testMatch } from "./api-test.js";
 
 
@@ -19,8 +19,7 @@ async function start() {
   localMatch(fastify);
   remoteMatch2(fastify);
   remoteMatch4(fastify);
-  tournamentMatch4(fastify);
-  tournamentMatch8(fastify);
+  tournamentMatch(fastify);
   testMatch(fastify);
 
   try {

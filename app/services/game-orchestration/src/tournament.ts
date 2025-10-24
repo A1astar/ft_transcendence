@@ -1,15 +1,27 @@
 import { FastifyInstance } from "fastify";
-import { Player, MatchRequest, Match, queues, tournamentQueues, tournament4Queue, tournament8Queue } from "./objects.js";
+import { Player, MatchRequest, Match, queues, tournamentQueues } from "./objects.js";
 import { createMatch } from "./utils.js"
 import { randomUUID } from "crypto";
 
+async function startMatch(match: Match) {
+  const res = await fetch("http://localhost:3003/game-engine/start", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(match),
+  });
+  return res.json();
+}
 
-export async function tournamentMatch4(fastify: FastifyInstance) {
-  fastify.post("/api/game-orchestration/tournament4", async(request, reply) => {
+export async function tournamentMatch(fastify: FastifyInstance) {
+  fastify.post("/api/game-orchestration/tournament", async(request, reply) => {
 	const matchRequest = request.body as MatchRequest;
-	const tournamentId = matchRequest.tournamentId;
-	tournament4Queue.push(matchRequest.player)
+	const mode = matchRequest.mode;
+	if (!queues[mode])
+			queues[mode] = [];
+	const tournamentSize = mode === "tournament4" ? 4 : 8;
+	let tournamentId = matchRequest.tournamentId;
 
+<<<<<<< HEAD
 	if (matchRequest.tournamentRound == 1)
 		return(fourPlayerTournament());
 	else if (matchRequest.tournamentRound == 2)
@@ -150,17 +162,21 @@ async function eightPlayerTourRematch1(tournamentId: string) {
 		});
 		console.log("Game engine response:", await res2.json());
 		return {status: "game created", tournamentId: tournamentId};
+=======
+	if (!tournamentId || !tournamentQueues.has(tournamentId)) {
+		queues[mode].push(matchRequest.player);
+		if (queues[mode].length >= tournamentSize) {
+			tournamentId = randomUUID();
+			tournamentQueues.set(tournamentId, [...queues[mode]]);
+			queues[mode] = [];
+>>>>>>> origin/feature/remote-player
 		}
 		else {
 			return {status: "waiting"};
 		}
 	}
-}
-
-async function eightPlayerTourRematch2(tournamentId: string) {
-	if (!tournamentQueues.get(tournamentId))
-		return {status: "error"};
 	else {
+<<<<<<< HEAD
 		const queue = tournamentQueues.get(tournamentId);
 		if (queue && queue.length == 2) {
 			const matchPlayers1 = queue.splice(0,2);
@@ -176,5 +192,24 @@ async function eightPlayerTourRematch2(tournamentId: string) {
 		else {
 			return {status: "waiting"}
 		}
+=======
+		tournamentQueues.get(tournamentId)!.push(matchRequest.player);
+>>>>>>> origin/feature/remote-player
 	}
+	const queue = tournamentQueues.get(tournamentId)!;
+	const requiredPlayer = tournamentSize / Math.pow(2, matchRequest.tournamentRound - 1);
+	const matchCount = requiredPlayer / 2;
+
+	console.log(queue.length, requiredPlayer, tournamentId);
+	if (queue.length >= requiredPlayer) {
+		for (let i = 0; i < matchCount; ++i) {
+			const players = queue.splice(0, 2);
+			const match = createMatch(players, matchRequest.mode, matchRequest.tournamentRound, tournamentId);
+			await startMatch(match);
+		}
+		return {status: "game created", tournamentId: tournamentId};
+	}
+	console.log(queue);
+	return {status: "waiting"};
+	})
 }

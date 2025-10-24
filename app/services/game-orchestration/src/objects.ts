@@ -23,9 +23,13 @@ export const queues = {
 	local: [] as Player[],
 	remote2: [] as Player[],
 	remote4: [] as Player[],
+    tournament4: [] as Player[],
+    tournament8: []	as Player[]
 }
 
-export const tournament4Queue: Player[] = [];
-export const tournament8Queue: Player[] = [];
+export const tournamentWaitingQueues: Record<string, Player[]> = {
+    tournament4: [] as Player[],
+    tournament8: []	as Player[]
+};
 
 export const tournamentQueues: Map<string, Player[]> = new Map<string, Player[]>();
