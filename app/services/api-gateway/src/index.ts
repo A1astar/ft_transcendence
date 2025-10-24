@@ -22,7 +22,7 @@ async function main() {
     fastify.register(fastifyCookie);
     fastify.register(fastifySession, {
         secret: 'a random secret that shoud be longer than length 32',
-        cookie: { secure: false, maxAge: 3600 * 1000 }, 
+        cookie: { secure: false, maxAge: 3600 * 1000 },
     });
 
     routeRequest(fastify);
