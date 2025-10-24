@@ -7,12 +7,9 @@ import {renderNotFound} from "./view/notFoundView.js";
 import {renderProfile} from "./view/profileView.js";
 import {renderSettings} from "./view/settingsView.js";
 import {bindEvents} from "./eventsBinder.js";
-
-type Unmount = () => void;
-type RenderFn = () => void | Unmount;
+import {renderGame} from "./view/gameView.js";
 
 let currentBinder: ReturnType<typeof bindEvents> | null = null;
-let currentUnmount: Unmount | null = null;
 
 const routeMap: {[key: string]: () => void} = {
     "/": renderHome,
@@ -22,14 +19,12 @@ const routeMap: {[key: string]: () => void} = {
     "/profile": renderProfile,
     "/settings": renderSettings,
     "/gameMenu": renderGameMenu,
+    "/game": renderGame,
 };
 
 export async function router(path: string): Promise<void> {
     currentBinder?.unbind();
     currentBinder = null;
-
-    currentUnmount?.();
-    currentUnmount = null;
 
     const render = routeMap[path];
     if (render) {

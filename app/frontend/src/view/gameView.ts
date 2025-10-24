@@ -30,7 +30,6 @@
 // const canvas = document.getElementById("renderCanvas");
 // const engine = new BABYLON.Engine(canvas as HTMLCanvasElement, true);
 
-
 //  async function createScene(): Promise<BABYLON.Scene> {
 //     const engine = new BABYLON.Engine(canvas as HTMLCanvasElement);
 //     var scene = new BABYLON.Scene(engine);
@@ -116,3 +115,30 @@
 // window.addEventListener("resize", function () {
 //     engine.resize();
 // });
+
+import {
+    clearDiv,
+    createVideoBackgroundDiv,
+    createHeadingText,
+    createSubheadingText,
+    createParagraphText,
+    createFormElement,
+    createInputElement,
+    createLogoElement,
+    createButtonForm,
+    createBoxDiv,
+} from "./utils.js";
+
+const appDiv = document.getElementById("app");
+
+export function renderGame() {
+    if (appDiv) {
+        clearDiv(appDiv);
+
+        const canvas = document.createElement("canvas");
+        canvas.style.cssText = "width:100%;height:100%;display:block";
+
+        appDiv.appendChild(createHeadingText("Hello"));
+        appDiv.appendChild(canvas);
+    }
+}
