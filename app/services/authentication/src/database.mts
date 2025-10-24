@@ -1,5 +1,6 @@
 import { User, generateId } from "./user.mjs"
 import { UserFormat } from "./format.mjs";
+import sqlitePlugin from '@fastify/sqlite';
 
 
 export class Database {

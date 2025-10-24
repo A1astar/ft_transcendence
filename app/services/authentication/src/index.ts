@@ -1,10 +1,9 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import fastifySession from '@fastify/session';
 import fastifyCookie from '@fastify/cookie';
-import { Database } from "./database.mjs"
+import { Database } from "./database.mjs";
 import { userFormatCorrect, RegisterFormat } from './format.mjs';
-import { User } from "./user.mjs"
-import "./format.mjs"
+import { User } from "./user.mjs";
 import chalk from 'chalk';
 
 function printRequest(request: FastifyRequest) {
