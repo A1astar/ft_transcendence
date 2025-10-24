@@ -5,7 +5,7 @@ export interface ViewEventBinder {
     unbind(): void;
 }
 
-export class GameMenuBinder implements ViewEventBinder {
+export class GameMenuViewBinder implements ViewEventBinder {
     bind() {
         document.getElementById("local")?.addEventListener("click", this.onLocalClick);
         document.getElementById("Remote2")?.addEventListener("click", this.onRemote2Click);
@@ -46,7 +46,7 @@ export class GameMenuBinder implements ViewEventBinder {
     }
 }
 
-export class GuestMenuBinder implements ViewEventBinder {
+export class GuestViewBinder implements ViewEventBinder {
     bind() {
         document.getElementById("guest")?.addEventListener("click", this.onGuestClick);
     }
@@ -231,6 +231,15 @@ export class SettingsViewBinder implements ViewEventBinder {
     }
 }
 
+export class GameViewBinder implements ViewEventBinder {
+    bind(): void {
+
+    }
+    unbind(): void {
+
+    }
+}
+
 export function bindEvents(path: string) {
     let binder: ViewEventBinder | null = null;
     switch (path) {
@@ -244,7 +253,7 @@ export function bindEvents(path: string) {
             binder = new RegisterViewBinder();
             break;
         case "/guest":
-            binder = new GuestMenuBinder();
+            binder = new GuestViewBinder();
             break;
         case "/profile":
             binder = new ProfileViewBinder();
@@ -253,8 +262,10 @@ export function bindEvents(path: string) {
             binder = new SettingsViewBinder();
             break;
         case "/gameMenu":
-            binder = new GameMenuBinder();
+            binder = new GameMenuViewBinder();
             break;
+        case "/game":
+            binder = new GameViewBinder()
         // Add more cases as needed
         default:
             binder = null;
