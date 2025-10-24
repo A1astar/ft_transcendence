@@ -26,6 +26,7 @@ export async function router(path: string): Promise<void> {
     currentBinder?.unbind();
     currentBinder = null;
 
+    console.log(path);
     const render = routeMap[path];
     if (render) {
         render();
