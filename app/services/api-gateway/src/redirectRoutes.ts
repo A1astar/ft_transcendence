@@ -53,12 +53,12 @@ export async function routeRequest(fastify: FastifyInstance) {
     fastify.register(fastifyStatic, {
         root: frontendPath,
         prefix: '/',
-        index: ['Index.html'],
+        index: ['index.html'],
         wildcard: false
     });
 
     fastify.get('/*', async (req, reply) => {
-        return reply.sendFile('Index.html');
+        return reply.sendFile('index.html');
     });
 
 }
