@@ -123,7 +123,7 @@ export class LoginViewBinder implements ViewEventBinder {
             }
             const data = await res.json().catch(() => null);
             if (data?.token) localStorage.setItem("token", data.token);
-            history.pushState({}, "", "/profile");
+            history.pushState({}, "", "/gameMenu");
             window.dispatchEvent(new PopStateEvent("popstate"));
         } catch (e) {
             console.error(e);
