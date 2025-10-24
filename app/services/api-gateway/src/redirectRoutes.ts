@@ -13,7 +13,7 @@ function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
 	return Object.fromEntries(
 		Object.entries(reqheaders)
 		.filter(([key,value]) => key.toLowerCase() !== 'host' &&
-		 key.toLowerCase() !== 'content-length' && 
+		 key.toLowerCase() !== 'content-length' &&
 		 typeof value === 'string')
 	);
 };
@@ -46,7 +46,7 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: s
 
 export async function routeRequest(fastify: FastifyInstance) {
 
-	routeServices(fastify, "api/authentication", "http://localhost:3001");
+	routeServices(fastify, "api/auth", "http://localhost:3001");
 	routeServices(fastify, "api/game-orchestration", "http://localhost:3002");
 	routeServices(fastify, "api/game-engine", "http://localhost:3003");
 
