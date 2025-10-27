@@ -1,4 +1,7 @@
 {
+  "name": "@ft_transcendence/authentication",
+  "version": "1.0.0",
+  "description": "Game-orchestration service of transcendence pong game.",
   "type": "module",
   "scripts": {
     "dev:tsx": "npx tsx watch src",

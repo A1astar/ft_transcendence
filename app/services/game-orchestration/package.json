@@ -1,7 +1,7 @@
 {
-  "name": "42-transcendence",
+  "name": "@ft_transcendence/game-orchestration",
   "version": "1.0.0",
-  "description": "Final project of 42 common core that aim to implement a full a web app of Pong game.",
+  "description": "Game-orchestration service of transcendence pong game.",
   "main": "index.js",
   "directories": {
     "doc": "docs"
