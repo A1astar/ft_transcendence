@@ -5,6 +5,7 @@ import fastifyStatic from '@fastify/static';
 import { fileURLToPath } from 'url';
 import path from 'path';
 import chalk from 'chalk';
+<<<<<<< HEAD
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +56,9 @@ async function routeRequest(fastify: FastifyInstance) {
     });
 
 }
+=======
+import { routeRequest } from "./redirectRoutes.js";
+>>>>>>> dev
 
 async function initAPIGateway(fastify: FastifyInstance) {
     fastify.listen({ port: 3000, host: "0.0.0.0" }, function (err, address) {
@@ -77,8 +81,12 @@ async function main() {
         cookie: { secure: false, maxAge: 3600 * 1000 },
     });
 
+<<<<<<< HEAD
+=======
+    routeRequest(fastify);
+
+>>>>>>> dev
     try {
-        await routeRequest(fastify);
         await initAPIGateway(fastify);
     } catch (err) {
         console.log(err);
