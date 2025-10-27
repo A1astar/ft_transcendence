@@ -9,11 +9,7 @@ import {
     createLogoElement,
 	createButtonForm,
 	createBoxDiv
-<<<<<<< HEAD:app/frontend/src/view/settings.ts
-} from "./domElements.js";
-=======
 } from "./utils.js";
->>>>>>> dev:app/frontend/src/view/settingsView.ts
 
 const appDiv = document.getElementById("app");
 
@@ -29,13 +25,8 @@ export function renderSettings() {
 		settingBox.appendChild(createSubheadingText("Settings"));
 		settingBox.appendChild(formDiv);
 
-<<<<<<< HEAD:app/frontend/src/view/settings.ts
-		appDiv.appendChild(createVideoBackgroundDiv("../backgrounds/Sauron.mp4"));
-		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
-=======
 		appDiv.appendChild(createVideoBackgroundDiv("../public/backgrounds/Sauron.mp4"));
 		appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
->>>>>>> dev:app/frontend/src/view/settingsView.ts
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));
 		appDiv.appendChild(settingBox);
 	}
@@ -101,10 +92,3 @@ export function renderSettings() {
 // 		}
 // 		const register ...
 // 	friend_service:
-
-
-
-
-
-
-

@@ -9,11 +9,7 @@ import {
 	createButtonForm,
 	createInputElement,
 	createBoxDiv
-<<<<<<< HEAD:app/frontend/src/view/register.ts
-} from "./domElements.js";
-=======
 } from "./utils.js";
->>>>>>> dev:app/frontend/src/view/registerView.ts
 
 const appDiv = document.getElementById("app");
 
@@ -33,13 +29,8 @@ export function renderRegister() {
 		registerBoxDiv.appendChild(createSubheadingText("Create your account"));
 		registerBoxDiv.appendChild(formDiv);
 
-<<<<<<< HEAD:app/frontend/src/view/register.ts
-		appDiv.appendChild(createVideoBackgroundDiv("../../backgrounds/Gandalf.mp4"));
-		appDiv.appendChild(createLogoElement("../icons/sauron.png", "Barad-dûr Logo"));
-=======
 		appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
 		appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
->>>>>>> dev:app/frontend/src/view/registerView.ts
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));
 		appDiv.appendChild(registerBoxDiv);
 	}
