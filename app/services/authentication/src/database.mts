@@ -36,3 +36,7 @@ export class Database {
         this.users.delete(user.name);
     }
 }
+
+export class SQliteDatabase  {
+
+}

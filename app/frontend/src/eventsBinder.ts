@@ -5,7 +5,7 @@ export interface ViewEventBinder {
     unbind(): void;
 }
 
-export class GameMenuBinder implements ViewEventBinder {
+export class GameMenuViewBinder implements ViewEventBinder {
     bind() {
         document.getElementById("local")?.addEventListener("click", this.onLocalClick);
         document.getElementById("Remote2")?.addEventListener("click", this.onRemote2Click);
@@ -46,7 +46,7 @@ export class GameMenuBinder implements ViewEventBinder {
     }
 }
 
-export class GuestMenuBinder implements ViewEventBinder {
+export class GuestViewBinder implements ViewEventBinder {
     bind() {
         document.getElementById("guest")?.addEventListener("click", this.onGuestClick);
     }
@@ -61,9 +61,15 @@ export class GuestMenuBinder implements ViewEventBinder {
         }
         const res = await ApiClient.post("/api/auth/guest-session", {username});
         if (!res.ok) {
+<<<<<<< HEAD
             const err = await res.json().catch(() => ({message: "Guest login failed"}));
             alert(err.message || "Guest login failed");
             return;
+=======
+           const err = await res.json().catch(() => ({message: "Guest login failed"}));
+           alert(err.message || "Guest login failed");
+           return;
+>>>>>>> dev
         }
         localStorage.setItem("guestUsername", username);
         history.pushState({}, "", "/gameMenu");
@@ -123,7 +129,7 @@ export class LoginViewBinder implements ViewEventBinder {
             }
             const data = await res.json().catch(() => null);
             if (data?.token) localStorage.setItem("token", data.token);
-            history.pushState({}, "", "/profile");
+            history.pushState({}, "", "/gameMenu");
             window.dispatchEvent(new PopStateEvent("popstate"));
         } catch (e) {
             console.error(e);
@@ -229,6 +235,18 @@ export class SettingsViewBinder implements ViewEventBinder {
                 alert("Network error");
             });
     }
+<<<<<<< HEAD
+=======
+}
+
+export class GameViewBinder implements ViewEventBinder {
+    bind(): void {
+
+    }
+    unbind(): void {
+
+    }
+>>>>>>> dev
 }
 
 export function bindEvents(path: string) {
@@ -244,7 +262,11 @@ export function bindEvents(path: string) {
             binder = new RegisterViewBinder();
             break;
         case "/guest":
+<<<<<<< HEAD
             binder = new GuestMenuBinder();
+=======
+            binder = new GuestViewBinder();
+>>>>>>> dev
             break;
         case "/profile":
             binder = new ProfileViewBinder();
@@ -253,12 +275,23 @@ export function bindEvents(path: string) {
             binder = new SettingsViewBinder();
             break;
         case "/gameMenu":
+<<<<<<< HEAD
             binder = new GameMenuBinder();
             break;
         // Add more cases as needed
         default:
             binder = null;
             break;
+=======
+            binder = new GameMenuViewBinder();
+            break;
+        case "/game":
+            binder = new GameViewBinder()
+        // Add more cases as needed
+        default:
+            binder = null;
+            break;
+>>>>>>> dev
     }
     binder?.bind();
     return binder;

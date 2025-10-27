@@ -1,12 +1,15 @@
-import {renderGameMenu} from "./view/gameMenu.js";
-import {renderGuestLogin} from "./view/guest.js";
-import {renderHome} from "./view/home.js";
-import {renderLogin} from "./view/login.js";
-import {renderRegister} from "./view/register.js";
-import {renderNotFound} from "./view/notFound.js";
-import {renderProfile} from "./view/profile.js";
-import {renderSettings} from "./view/settings.js";
+import {renderGameMenu} from "./view/gameMenuView.js";
+import {renderGuestLogin} from "./view/guestView.js";
+import {renderHome} from "./view/homeView.js";
+import {renderLogin} from "./view/loginView.js";
+import {renderRegister} from "./view/registerView.js";
+import {renderNotFound} from "./view/notFoundView.js";
+import {renderProfile} from "./view/profileView.js";
+import {renderSettings} from "./view/settingsView.js";
 import {bindEvents} from "./eventsBinder.js";
+import {renderGame} from "./view/gameView.js";
+
+let currentBinder: ReturnType<typeof bindEvents> | null = null;
 
 const routeMap: {[key: string]: () => void} = {
     "/": renderHome,
@@ -16,17 +19,18 @@ const routeMap: {[key: string]: () => void} = {
     "/profile": renderProfile,
     "/settings": renderSettings,
     "/gameMenu": renderGameMenu,
+    "/game": renderGame,
 };
 
-let currentBinder: ReturnType<typeof bindEvents> | null = null; // store current binder
-
 export async function router(path: string): Promise<void> {
-    currentBinder?.unbind(); // unbind previous events
+    currentBinder?.unbind();
+    currentBinder = null;
 
+    console.log(path);
     const render = routeMap[path];
     if (render) {
         render();
-        currentBinder = bindEvents(path); // bind after rendering
+        currentBinder = bindEvents(path);
     } else {
         renderNotFound();
         currentBinder = bindEvents(path);
