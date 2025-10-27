@@ -19,8 +19,10 @@ down:
 	docker-compose -f $(COMPOSE_FILE) down --rmi local
 
 local:
-	cd build
-	./build.sh
+	cd build && ./build.sh local
+
+lclean:
+	cd buld && ./build.sh lclean
 
 clean: down
 
