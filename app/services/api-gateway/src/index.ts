@@ -1,6 +1,9 @@
 import Fastify, { FastifyInstance } from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifySession from '@fastify/session';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'url';
+import path from 'path';
 import chalk from 'chalk';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -39,7 +42,6 @@ async function routeRequest(fastify: FastifyInstance) {
     //             break;
     //     }
     // });
-    fastify.
 
     fastify.register(fastifyStatic, {
         root: frontendPath,
@@ -74,13 +76,6 @@ async function main() {
         secret: 'a random secret that shoud be longer than length 32',
         cookie: { secure: false, maxAge: 3600 * 1000 },
     });
-
-    routeRequest(fastify);
-
-    try {
-    // const fastify = Fastify({ logger: true });
-    const fastify = Fastify({ });
-    // const fastify = Fastify();
 
     try {
         await routeRequest(fastify);
