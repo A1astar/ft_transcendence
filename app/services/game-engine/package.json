@@ -1,27 +1,14 @@
 {
-  "name": "42-transcendence",
+  "name": "@ft_transcendence/game-engine",
   "version": "1.0.0",
-  "description": "Final project of 42 common core that aim to implement a full a web app of Pong game.",
-  "main": "index.js",
-  "directories": {
-    "doc": "docs"
-  },
-  "scripts": {
-    "dev": "nodemon --exec tsx src/index.ts",
-    "start": "npx tsc && node dist/index.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/A1astar/ft_transcendence.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/A1astar/ft_transcendence/issues"
-  },
-  "homepage": "https://github.com/A1astar/ft_transcendence#readme",
+  "private": true,
+  "description": "Game engine service of transcendence app.",
   "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "npx tsc && node dist/index.js",
+    "dev": "nodemon --exec tsx src/index.ts"
+  },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
     "@fastify/websocket": "^11.2.0",
@@ -32,6 +19,7 @@
     "@types/node": "^24.6.0",
     "@types/ws": "^8.18.1",
     "nodemon": "^3.1.10",
+    "sort-package-json": "^2.15.1",
     "ts-node": "^10.9.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"

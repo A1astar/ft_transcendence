@@ -1,13 +1,15 @@
 {
   "name": "@ft_transcendence/authentication",
   "version": "1.0.0",
-  "description": "Game-orchestration service of transcendence pong game.",
+  "private": true,
+  "description": "Game-orchestration service of transcendence app.",
   "type": "module",
+  "main": "index.js",
   "scripts": {
-    "dev:tsx": "npx tsx watch src",
-    "clean": "rm -r ./dist",
+    "start": "npm run build && node dist/index.js",
     "build": "tsc",
-    "start": "npm run build && node dist/index.js"
+    "clean": "rm -r ./dist",
+    "dev:tsx": "npx tsx watch src"
   },
   "dependencies": {
     "@fastify/jwt": "^10.0.0",
@@ -20,6 +22,7 @@
     "typescript": "^5.9.3"
   },
   "devDependencies": {
-    "chalk": "^5.6.2"
+    "chalk": "^5.6.2",
+    "sort-package-json": "^3.4.0"
   }
 }

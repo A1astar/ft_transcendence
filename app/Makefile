@@ -21,8 +21,8 @@ down:
 local:
 	cd build && ./build.sh local
 
-lclean:
-	cd buld && ./build.sh lclean
+local-clean:
+	cd build && ./build.sh local-clean
 
 clean: down
 

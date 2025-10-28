@@ -16,11 +16,11 @@ directories=(
 if [ $# -gt 0 ]; then
     case "$1" in
         "local")
-            cmd="npm install"
+            cmd="npm install && npx sort-package-json"
         ;;
 
-        "lclean")
-            cmd="npm clean"
+        "local-clean")
+            cmd="rm -rf node_modules package-lock.json"
         ;;
     esac
 fi
