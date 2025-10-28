@@ -15,7 +15,11 @@ directories=(
 
 if [ $# -gt 0 ]; then
     case "$1" in
-        "local")
+        "local-run")
+            cmd="npm start"
+        ;;
+
+        "local-build")
             cmd="npm install && npx sort-package-json"
         ;;
 

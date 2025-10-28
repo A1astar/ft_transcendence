@@ -18,8 +18,11 @@ up:
 down:
 	docker-compose -f $(COMPOSE_FILE) down --rmi local
 
-local:
-	cd build && ./build.sh local
+local-run:
+	cd build && ./build.sh run
+
+local-build:
+	cd build && ./build.sh local-build
 
 local-clean:
 	cd build && ./build.sh local-clean
