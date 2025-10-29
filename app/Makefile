@@ -19,7 +19,7 @@ down:
 	docker-compose -f $(COMPOSE_FILE) down --rmi local
 
 local-run:
-	cd build && ./build.sh run
+	cd build && ./build.sh local-run
 
 local-build:
 	cd build && ./build.sh local-build

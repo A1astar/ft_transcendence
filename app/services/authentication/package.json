@@ -2,7 +2,7 @@
   "name": "@ft_transcendence/authentication",
   "version": "1.0.0",
   "private": true,
-  "description": "Game-orchestration service of transcendence app.",
+  "description": "Authentication service of transcendence app.",
   "type": "module",
   "main": "index.js",
   "scripts": {
