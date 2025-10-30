@@ -6,10 +6,10 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "npm run build && node dist/index.js",
     "build": "tsc",
-    "watch": "npx tsx watch src",
-    "clean": "rm -r dist"
+    "clean": "rm -r dist",
+    "start": "npm run build && node dist/index.js",
+    "watch": "npx tsx watch src"
   },
   "dependencies": {
     "@fastify/jwt": "^10.0.0",
