@@ -4,7 +4,7 @@ import fastifySession from '@fastify/session';
 import fastifyStatic from '@fastify/static';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import chalk from 'chalk';
+import color from 'chalk';
 import { routeRequest } from "./redirectRoutes.js";
 
 async function initAPIGateway(fastify: FastifyInstance) {
@@ -15,7 +15,7 @@ async function initAPIGateway(fastify: FastifyInstance) {
         }
     })
 
-    console.log(chalk.white.bold("API Gateway state: ") + chalk.green.bold.italic("running"));
+    console.log(color.white.bold("API Gateway state: ") + color.green.bold.italic("running"));
 }
 
 // Start server

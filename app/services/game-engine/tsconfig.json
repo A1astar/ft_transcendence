@@ -6,11 +6,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "outDir": "./dist",
-    "rootDir": "./src"
+    "outDir": "dist",
+    "rootDir": "src"
   },
-  "tsx": {
-    "outDir": "./dist",
-    "rootDir": "./src"
-  }
 }

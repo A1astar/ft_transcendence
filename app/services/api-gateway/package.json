@@ -4,6 +4,7 @@
   "description": "API gateway service of transcendence app.",
   "type": "module",
   "scripts": {
+    "clean": "rm -rf dist",
     "dev": "npx tsx watch src/index.ts",
     "start": "npx tsc && node dist/index.js"
   },

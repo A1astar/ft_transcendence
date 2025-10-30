@@ -24,7 +24,7 @@ if [ $# -gt 0 ]; then
         ;;
 
         "local-clean")
-            cmd="rm -rf node_modules package-lock.json"
+            cmd="npm run clean && rm -rf node_modules package-lock.json"
         ;;
     esac
 fi

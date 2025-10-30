@@ -1,0 +1,83 @@
+// Top-Level Properties
+
+// {
+//   "compilerOptions": {},     // Compiler settings
+//   "include": [],             // Files to include
+//   "exclude": [],             // Files to exclude
+//   "files": [],               // Explicit file list
+//   "extends": "",             // Inherit from another config
+//   "references": [],          // Project references
+//   "compileOnSave": false,    // Compile on save in IDEs
+//   "typeAcquisition": {},     // Automatic type acquisition
+//   "watchOptions": {}         // File watching configuration
+// }
+
+{
+  "compilerOptions": {
+    /* Language and Environment */
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "jsx": "preserve",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "useDefineForClassFields": true,
+
+    /* Modules */
+    "module": "ES2020",
+    "moduleResolution": "bundler",
+    "baseUrl": "./",
+    "paths": {},
+    "rootDir": "src",
+    "rootDirs": [],
+    "typeRoots": ["./node_modules/@types"],
+    "types": [],
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": false,
+
+    /* JavaScript Support */
+    "allowJs": false,
+    "checkJs": false,
+
+    /* Emit */
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "outDir": "dist",
+    "removeComments": false,
+    "noEmit": false,
+    "importHelpers": true,
+    "downlevelIteration": true,
+
+    /* Interop Constraints */
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "preserveSymlinks": false,
+
+    /* Type Checking */
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+
+    /* Completeness */
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": false
+  },
+
+  /* Project Structure */
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+}

@@ -9,7 +9,7 @@
     "start": "npx tsc && node dist/index.js",
     "build": "tsc",
     "watch": "npx tsx watch src",
-    "clean": "rm -r ./dist"
+    "clean": "rm -r dist"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",
