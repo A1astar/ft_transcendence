@@ -1,5 +1,5 @@
 import {router} from "./router.js";
-import chalk from 'chalk';
+import color from 'chalk';
 
 const API_URL = "http://localhost:3000";
 

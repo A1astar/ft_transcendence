@@ -1,13 +1,15 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import fastifySession from '@fastify/session';
+import session from '@fastify/session';
 import fastifyCookie from '@fastify/cookie';
-import { Database } from "./database.mjs";
-import { userFormatCorrect, RegisterFormat } from './format.mjs';
-import { User } from "./user.mjs";
-import chalk from 'chalk';
+import Database from "./database.js";
+import { userFormatCorrect, RegisterFormat } from './format.js';
+import BetterSQLite3Database from "better-sqlite3"
+import { User } from "./user.js";
+import HashiCorpVault from 'node-vault';
+import color from 'chalk';
 
 function printRequest(request: FastifyRequest) {
-    console.log(chalk.bold.italic.blue('\n----- REQUEST -----'));
+    console.log(color.bold.italic.blue('\n----- REQUEST -----'));
     // console.log(request);
     // console.log(request.body)
     // console.log(request.query)
@@ -49,13 +51,13 @@ function getRequestBody(request: FastifyRequest) : object {
 }
 
 function logAccount(request: FastifyRequest, database: Database) {
-    console.log(chalk.bold.italic.yellow("----- LOGIN -----"));
+    console.log(color.bold.italic.yellow("----- LOGIN -----"));
     printRequest(request);
 }
 
 function registerAccount(request: FastifyRequest, database: Database) {
 
-    console.log(chalk.bold.italic.yellow("\n----- REGISTER -----"));
+    console.log(color.bold.italic.yellow("\n----- REGISTER -----"));
 
     const headers = getRequestHeaders(request);
     const userInfo = getRequestBody(request) as RegisterFormat;
@@ -85,7 +87,7 @@ async function manageRequest(fastify: FastifyInstance, database: Database) {
 
 function initAuthenticationService(fastify: FastifyInstance) {
     fastify.register(fastifyCookie);
-    fastify.register(fastifySession, {
+    fastify.register(session, {
         secret: 'a random secret that shoud be longer than length 32',
         cookie: { secure: false, maxAge: 3600 * 1000 },
     });
@@ -96,7 +98,7 @@ function initAuthenticationService(fastify: FastifyInstance) {
         throw err;
     }
     })
-    console.log(chalk.white.bold("Authentication state: ") + chalk.green.bold.italic("running"));
+    console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
 }
 
 function start() {
@@ -201,7 +203,79 @@ function start() {
         // versioning: undefined,              // default: undefined
     });
 
+    const vault = HashiCorpVault({
+        // API version
+        apiVersion: 'v1',                    // default: 'v1' (can be 'v1' or 'v2')
+
+        // Vault server endpoint
+        endpoint: 'http://vault:8200',       // default: process.env.VAULT_ADDR || 'http://127.0.0.1:8200'
+
+        // Authentication token
+        token: 'your-vault-token',           // default: process.env.VAULT_TOKEN
+
+        // Namespace (Vault Enterprise feature)
+        namespace: 'admin',                  // default: undefined
+
+        // Path prefix for all requests
+        pathPrefix: '',                      // default: '' (e.g., '/v1' is added automatically)
+
+
+        // Custom request options (passed to 'request' library)
+        requestOptions: {
+            // Request timeout (milliseconds)
+            timeout: 10000,                      // default: 10000 (10 seconds)
+
+            // TLS/SSL options
+            ca: undefined,                     // CA certificate
+            cert: undefined,                   // Client certificate
+            key: undefined,                    // Client key
+            rejectUnauthorized: true,          // default: true (verify SSL certificates)
+
+            // Proxy settings
+            proxy: undefined,                  // HTTP proxy URL
+
+            // Keep-alive
+            forever: false,                    // default: false (use keep-alive)
+
+            // Other HTTP options
+            headers: {},                       // Custom headers
+            agentOptions: {},                  // HTTP agent options
+        },
+
+        // Mustache-style templating for paths
+        mustache: undefined,                 // default: undefined
+
+        // Debug mode (logs requests)
+        debug: undefined,                    // default: undefined
+
+        // Custom status codes to treat as success
+        noCustomHTTPVerbs: false,            // default: false
+
+        // Custom HTTP client
+        rpInitialized: undefined,            // default: undefined (uses 'request-promise')
+    });
+
     const database = new Database();
+    const betterSQLite3 = new BetterSQLite3Database("database.db", {
+        // Read-only mode
+        readonly: false,                    // default: false
+
+        // File must exist (throws error if not)
+        fileMustExist: false,              // default: false
+
+        // Connection timeout (milliseconds)
+        timeout: 5000,                     // default: 5000ms
+
+        // Verbose mode - logs SQL statements
+        verbose: undefined,                // default: undefined (or function to log)
+        // verbose: console.log,           // Example: log all SQL
+
+        // Native binding options
+        nativeBinding: undefined,          // default: undefined (path to native module)
+    });
+
+    betterSQLite3.exec(`
+    `);
 
     try {
         initAuthenticationService(fastify);

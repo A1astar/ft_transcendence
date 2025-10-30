@@ -1,4 +1,4 @@
-import { User } from "./user.mjs"
+import { User } from "./user.js"
 
 export interface RegisterFormat {
     name: string;

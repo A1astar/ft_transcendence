@@ -6,22 +6,26 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
+    "start": "npm run build && node dist/index.js",
     "build": "tsc",
-    "clean": "rm -r ./dist",
-    "dev:tsx": "npx tsx watch src",
-    "start": "npm run build && node dist/index.js"
+    "watch": "npx tsx watch src",
+    "clean": "rm -r ./dist"
   },
   "dependencies": {
     "@fastify/jwt": "^10.0.0",
     "@fastify/oauth2": "^8.1.2",
     "@fastify/session": "^11.1.0",
-    "@types/node": "^24.7.1",
+    "better-sqlite3": "^12.4.1",
     "fastify": "^5.6.1",
-    "fastify-sqlite": "^1.1.0",
     "node": "^24.9.0",
+    "node-vault": "^0.10.9",
     "typescript": "^5.9.3"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/eslint": "^9.6.1",
+    "@types/node": "^24.7.1",
+    "@types/node-vault": "^0.9.13",
     "chalk": "^5.6.2",
     "sort-package-json": "^3.4.0"
   }

@@ -9,8 +9,4 @@
         "outDir": "./dist",
         "rootDir": "./src"
     },
-    "ts-node": {
-        "outDir": "./dist",
-        "rootDir": "./src"
-    },
 }

@@ -6,8 +6,10 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon --exec tsx src/index.ts",
-    "start": "npx tsc && node dist/index.js"
+    "start": "npx tsc && node dist/index.js",
+    "build": "tsc",
+    "watch": "npx tsx watch src",
+    "clean": "rm -r ./dist"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",

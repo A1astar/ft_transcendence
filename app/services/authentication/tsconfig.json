@@ -1,20 +1,12 @@
 {
-    "compilerOptions": {
-        "target": "ES2022",
-        "module": "ESNext",
-        "moduleResolution": "node",
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
-        "strict": true,
-        "outDir": "./dist",
-        "rootDir": "./src"
-    },
-    "tsx": {
-        "outDir": "./dist",
-        "rootDir": "./src"
-    },
-    "ts-node": {
-        "outDir": "./dist",
-        "rootDir": "./src"
-    },
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
 }
