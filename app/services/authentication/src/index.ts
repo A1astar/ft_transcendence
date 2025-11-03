@@ -252,7 +252,7 @@ function start() {
         noCustomHTTPVerbs: false,            // default: false
 
         // Custom HTTP client
-        rpInitialized: undefined,            // default: undefined (uses 'request-promise')
+        // rpInitialized: undefined,            // default: undefined (uses 'request-promise')
     });
 
     const database = new Database();

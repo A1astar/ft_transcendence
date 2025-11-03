@@ -7,7 +7,7 @@ import path from 'path';
 import color from 'chalk';
 import { routeRequest } from "./redirectRoutes.js";
 
-async function initAPIGateway(fastify: FastifyInstance) {
+async function initGateway(fastify: FastifyInstance) {
     fastify.listen({ port: 3000, host: "0.0.0.0" }, function (err, address) {
         if (err) {
             fastify.log.error(err)
@@ -32,7 +32,7 @@ async function main() {
     routeRequest(fastify);
 
     try {
-        await initAPIGateway(fastify);
+        await initGateway(fastify);
     } catch (err) {
         console.log(err);
     }

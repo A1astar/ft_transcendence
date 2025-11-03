@@ -6,11 +6,12 @@ project_dir=$(cd .. && pwd)
 service_dir=$project_dir/services
 
 directories=(
+    "$project_dir/"
     "$project_dir/frontend"
-    "$project_dir/services/api-gateway"
     "$project_dir/services/authentication"
     "$project_dir/services/game-engine"
     "$project_dir/services/game-orchestration"
+    "$project_dir/services/gateway"
 )
 
 if [ $# -gt 0 ]; then
