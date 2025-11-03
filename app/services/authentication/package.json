@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -r dist",
+    "clean": "rm -rf dist",
     "start": "npm run build && node dist/index.js",
     "watch": "npx tsx watch src"
   },
