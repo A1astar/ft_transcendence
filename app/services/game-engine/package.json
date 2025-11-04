@@ -6,7 +6,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "clean": "rm -rf dist",
     "start": "npx tsc && node dist/index.js",
     "watch": "npx tsx watch src"

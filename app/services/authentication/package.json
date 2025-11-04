@@ -6,7 +6,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "clean": "rm -rf dist",
     "start": "npm run build && npx node dist/index.js",
     "watch": "npx tsx watch src"
@@ -17,16 +17,9 @@
     "@fastify/session": "^11.1.0",
     "@types/request": "^2.48.13",
     "better-sqlite3": "^12.4.1",
-    "fastify": "^5.6.1",
-    "node": "^24.9.0",
-    "node-vault": "^0.10.9",
-    "typescript": "^5.9.3"
+    "node-vault": "^0.10.9"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/eslint": "^9.6.1",
-    "@types/node": "^24.7.1",
-    "chalk": "^5.6.2",
-    "sort-package-json": "^3.4.0"
+    "@types/better-sqlite3": "^7.6.13"
   }
 }
