@@ -23,8 +23,8 @@
     "allowUnreachableCode": false,
 
     /* Modules */
-    "module": "ES2020",
-    "moduleResolution": "bundler",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     // "baseUrl": "./",
     // "paths": {},
     // "rootDir": "./",
@@ -83,9 +83,9 @@
     "jsx": "preserve",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "jsxFactory": "React.createElement",
-    "jsxFragmentFactory": "React.Fragment",
-    "jsxImportSource": "react",
+    // "jsxFactory": "React.createElement",
+    // "jsxFragmentFactory": "React.Fragment",
+    // "jsxImportSource": "react",
     "useDefineForClassFields": true,
 
     /* Completeness */

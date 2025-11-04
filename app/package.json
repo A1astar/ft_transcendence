@@ -13,13 +13,13 @@
     "build:all": "npm run build --workspaces",
     "dev:all": "npm run dev --workspaces",
     "install:all": "npm install",
-    "start:all": "concurrently \"npm:start:authentication\" \" ",
+    "start:all": "concurrently \"npm:start:*\"",
     "start:frontend": "npm run start -w @ft_transcendence/frontend",
     "start:authentication": "npm run start -w @ft_transcendence/authentication",
     "start:game-engine": "npm run start -w @ft_transcendence/game-engine",
     "start:game-orchestration": "npm run start -w @ft_transcendence/game-orchestration",
     "start:gateway": "npm run start -w @ft_transcendence/gateway",
-    "clean": ""
+    "clean": "rm -rf node_modules && npm run clean --workspaces --if-present"
   },
   "dependencies": {
     "chalk": "^5.6.2",
