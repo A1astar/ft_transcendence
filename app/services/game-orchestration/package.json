@@ -6,21 +6,12 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "npx tsc && node dist/index.js",
     "build": "tsc",
-    "watch": "npx tsx watch src",
-    "clean": "rm -r ./dist"
+    "clean": "rm -rf dist",
+    "start": "npx tsc && node dist/index.js",
+    "watch": "npx tsx watch src"
   },
   "dependencies": {
-    "@fastify/cors": "^11.1.0",
-    "chalk": "^5.6.2",
-    "fastify": "^5.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^24.6.0",
-    "sort-package-json": "^2.15.1",
-    "ts-node": "^10.9.2",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "@fastify/cors": "^11.1.0"
   }
 }

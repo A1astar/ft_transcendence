@@ -4,10 +4,10 @@ import fastifySession from '@fastify/session';
 import fastifyStatic from '@fastify/static';
 import { fileURLToPath } from 'url';
 import path from 'path';
-import chalk from 'chalk';
+import color from 'chalk';
 import { routeRequest } from "./redirectRoutes.js";
 
-async function initAPIGateway(fastify: FastifyInstance) {
+async function initGateway(fastify: FastifyInstance) {
     fastify.listen({ port: 3000, host: "0.0.0.0" }, function (err, address) {
         if (err) {
             fastify.log.error(err)
@@ -15,7 +15,7 @@ async function initAPIGateway(fastify: FastifyInstance) {
         }
     })
 
-    console.log(chalk.white.bold("API Gateway state: ") + chalk.green.bold.italic("running"));
+    console.log(color.white.bold("API Gateway state: ") + color.green.bold.italic("running"));
 }
 
 // Start server
@@ -32,7 +32,7 @@ async function main() {
     routeRequest(fastify);
 
     try {
-        await initAPIGateway(fastify);
+        await initGateway(fastify);
     } catch (err) {
         console.log(err);
     }

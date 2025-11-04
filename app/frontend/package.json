@@ -8,6 +8,8 @@
   "scripts": {
     "build": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css --minify",
     "dev": "npm run ts && npm run tw ",
+    "start": "npm run build",
+    "clean": "rm -rf dist",
     "tw": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
     "tsx": "npx run tsx watch src",
     "ts": "tsc -w",
@@ -15,16 +17,11 @@
   },
   "dependencies": {
     "@babylonjs/core": "^8.33.2",
-    "@babylonjs/gui": "^8.33.2",
-    "chalk": "^5.6.2",
-    "tsx": "^4.20.6"
+    "@babylonjs/gui": "^8.33.2"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.16",
     "http-server": "^14.1.1",
-    "npm-run-all": "^4.1.5",
-    "sort-package-json": "^2.15.1",
-    "tailwindcss": "^4.1.16",
-    "typescript": "^5.9.3"
+    "tailwindcss": "^4.1.16"
   }
 }

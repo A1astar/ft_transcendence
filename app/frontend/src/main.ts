@@ -21,7 +21,7 @@ async function main(): Promise<void> {
             document.body.innerHTML = "<h1>Cannot connect to API. Please try again later.</h1>";
             return;
         }
-        // console.log(chalk.white.bold("Frontend state: ") + chalk.green.bold.italic("connected"));
+        console.log(color.white.bold("Frontend state: ") + color.green.bold.italic("connected"));
         router(window.location.pathname);
     } catch (error) {
         console.error("Error during app initialization:", error);
