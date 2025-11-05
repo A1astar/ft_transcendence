@@ -1,6 +1,6 @@
 IMAGE = reverse-proxy \
 		authentication \
-        api-gateway \
+        gateway \
         game-orchestration
 
 IMAGE := $(addprefix transcendence-, $(IMAGE))
