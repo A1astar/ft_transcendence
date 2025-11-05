@@ -2,17 +2,17 @@ name: transcendence
 
 services:
   reverse-proxy:
-    build: ../reverse-proxy/
+    build: ../infrastructure/reverse-proxy/
     ports:
       - "8080:80"
     networks:
       - microservices-network
     depends_on:
-      - api-gateway
+      - gateway
     restart: "no"
 
-  api-gateway:
-    build: ../services/api-gateway
+  gateway:
+    build: ../services/gateway
     ports:
       - "3000"
     networks:
@@ -28,21 +28,23 @@ services:
       - "3001"
     networks:
       - microservices-network
-      - vault-network
+      # - vault-network
     restart: "no"
     depends_on:
       - hashicorp-vault
+    # depends_on:
+    #   -hashicorp-vault
 
-  hashicorp-vault:
-    build: ../infrastructure/hashicorp-vault
-    ports:
-      - "8200"
-    networks:
-      - vault-network
-    volumes:
-      - vault-data:/vault/data
-      - ./vault-config:/vault/config
-    restart: unless-stopped
+  # hashicorp-vault:
+  #   build: ../infrastructure/hashicorp-vault
+  #   ports:
+  #     - "8200"
+  #   networks:
+  #     - vault-network
+  #   volumes:
+  #     - vault-data:/vault/data
+  #     - ./vault-config:/vault/config
+  #   restart: unless-stopped
 
   game-orchestration:
     build: ../services/game-orchestration
@@ -56,20 +58,20 @@ networks:
   microservices-network:
     driver: bridge
 
-  vault-network:
-    driver: bridge
-    internal: true
+  # vault-network:
+  #   driver: bridge
+  #   internal: true
 
-  monitoring-network:
-    driver: bridge
-    internal: true
+  # monitoring-network:
+  #   driver: bridge
+  #   internal: true
 
-  logging-network:
-    driver: bridge
-    internal: true
+  # logging-network:
+  #   driver: bridge
+  #   internal: true
 
-volumes:
-  vault-data:
-  prometheus-data:
-  grafana-data:
-  elasticsearch-data:
+# volumes:
+#   vault-data:
+#   prometheus-data:
+#   grafana-data:
+#   elasticsearch-data:
