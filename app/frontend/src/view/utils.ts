@@ -68,6 +68,7 @@ export function createLogoElement(
         case "center":
             logoImg.style.display = "block";
             logoImg.style.margin = "0 auto";
+            break;
         default:
             break;
     }

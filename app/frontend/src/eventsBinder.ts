@@ -265,7 +265,8 @@ export function bindEvents(path: string) {
             binder = new GameMenuViewBinder();
             break;
         case "/game":
-            binder = new GameViewBinder()
+            binder = new GameViewBinder();
+            break;
         // Add more cases as needed
         default:
             binder = null;

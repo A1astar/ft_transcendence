@@ -17,19 +17,18 @@ directories=(
 if [ $# -gt 0 ]; then
     case "$1" in
         "local-run")
-            cmd="npm start"
+            cd $project_dir && npm run start:all
         ;;
 
         "local-build")
-            cmd="npm install && npx sort-package-json"
+            cd $project_dir && npm install && npm run build:all
         ;;
 
         "local-clean")
-            cmd="npm run clean && rm -rf node_modules package-lock.json"
+            cd $project_dir && npm run clean
+            for directory in "${directories[@]}"; do
+                cd $directory && rm -rf node_modules package-lock.json
+            done
         ;;
     esac
 fi
-
-for directory in "${directories[@]}"; do
-    cd $directory && bash -c "$cmd"
-done

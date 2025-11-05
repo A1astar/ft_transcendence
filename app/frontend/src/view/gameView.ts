@@ -1,5 +1,6 @@
 const canvas = document.getElementById("renderCanvas");
 
+import * as BABYLON from '@babylonjs/core';
 import {
     clearDiv,
     createVideoBackgroundDiv,

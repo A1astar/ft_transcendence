@@ -40,8 +40,8 @@
     "customConditions": [],
 
     /* Emit */
-    // "declaration": true,
-    // "declarationMap": true,
+    "declaration": false,
+    "declarationMap": false,
     "emitDeclarationOnly": false,
     "sourceMap": true,
     "inlineSourceMap": false,
@@ -60,8 +60,7 @@
     "stripInternal": false,
     "noEmitHelpers": false,
     "noEmitOnError": false,
-    "preserveConstEnums": true,
-    // "declarationDir": "",
+  "preserveConstEnums": true,
     "preserveValueImports": false,
 
     /* JavaScript Support */
@@ -77,16 +76,16 @@
     "preserveSymlinks": false,
     "forceConsistentCasingInFileNames": true,
 
-    /* Language and Environment */
+    // /* Language and Environment */
     "target": "ES2022",
-    "lib": ["ES2022"],
+    // "lib": ["ES2020", "DOM"],
     // "jsx": "preserve",
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
+    // "experimentalDecorators": true,
+    // "emitDecoratorMetadata": true,
     // "jsxFactory": "React.createElement",
     // "jsxFragmentFactory": "React.Fragment",
     // "jsxImportSource": "react",
-    "useDefineForClassFields": true,
+    // "useDefineForClassFields": true,
 
     /* Completeness */
     "skipDefaultLibCheck": false,

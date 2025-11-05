@@ -45,6 +45,18 @@ services:
   #     - vault-data:/vault/data
   #     - ./vault-config:/vault/config
   #   restart: unless-stopped
+      - hashicorp-vault
+
+  hashicorp-vault:
+    build: ../infrastructure/hashicorp-vault
+    ports:
+      - "8200"
+    networks:
+      - vault-network
+    volumes:
+      - vault-data:/vault/data
+      - ./vault-config:/vault/config
+    restart: unless-stopped
 
   game-orchestration:
     build: ../services/game-orchestration
