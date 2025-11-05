@@ -8,7 +8,7 @@
   "scripts": {
     "build": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css --minify",
     "dev": "npm run ts && npm run tw ",
-    "start": "npm run build",
+    "start": "npm run build && npm run serve",
     "clean": "rm -rf dist",
     "tw": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
     "tsx": "npx run tsx watch src",

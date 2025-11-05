@@ -1,6 +1,5 @@
-const canvas = document.getElementById("renderCanvas");
+declare const BABYLON: any; // Global BABYLON from CDN
 
-import * as BABYLON from '@babylonjs/core';
 import {
     clearDiv,
     createVideoBackgroundDiv,

@@ -15,7 +15,7 @@ async function initGateway(fastify: FastifyInstance) {
         }
     })
 
-    console.log(color.white.bold("API Gateway state: ") + color.green.bold.italic("running"));
+    console.log(color.green.bold("API Gateway Service running on port 3000"));
 }
 
 // Start server
