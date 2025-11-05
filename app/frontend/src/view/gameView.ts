@@ -67,33 +67,31 @@ export function renderGame() {
     if (appDiv) {
         clearDiv(appDiv);
 
+        // Get the game ID from session storage
+        const gameId = sessionStorage.getItem('currentGameId');
+        if (!gameId) {
+            console.error('No game ID found');
+            return;
+        }
+
         const canvas = document.createElement("canvas");
-      //  canvas.style.cssText = "width:100%;height:100%;display:block";
         canvas.height = 1080;
         canvas.width = 1920;
 
         const engine = new BABYLON.Engine(canvas, true);
         const scene = new BABYLON.Scene(engine);
 
-        const groundMaterial = new BABYLON.StandardMaterial("groundMaterial");
-        groundMaterial.diffuseTexture = new BABYLON.Texture("../../public/textures/pongTable.png");
+        // Create all game objects first
+        const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+        groundMaterial.diffuseTexture = new BABYLON.Texture("../../public/textures/pongTable.png", scene);
 
-        //const wallMaterial = new BABYLON.StandardMaterial("wallMaterial");
-        //wallMaterial.diffuseTexture = new BABYLON.Texture("textures/speckles.jpg");
-
-        const wallMaterial = new BABYLON.StandardMaterial("wallMaterial");
+        const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
         wallMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
 
-        //const ballMaterial = new BABYLON.StandardMaterial("ballMaterial");
-        //ballMaterial.diffuseTexture = new BABYLON.Texture("textures/fire.png");
-
-        const ballMaterial = new BABYLON.StandardMaterial("ballMaterial");
+        const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
         ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
 
-        //const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial");
-        //paddleMaterial.diffuseTexture = new BABYLON.Texture("textures/rock.png");
-
-        const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial");
+        const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
         paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
 
         const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
@@ -101,7 +99,7 @@ export function renderGame() {
 
         const ball = BABYLON.MeshBuilder.CreateSphere(
             "sphere",
-            {diameter: 0.35, segments: 128},
+            {diameter: 0.35, segments: 16},  // Reduced segments for better performance
             scene,
         );
         ball.material = ballMaterial;
@@ -120,26 +118,97 @@ export function renderGame() {
         const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
         leftWall.material = wallMaterial;
         scaling3DMesh(leftWall, 0.25, 0.5, 10);
-        update3DMeshPos(leftWall, 10, 0, 0);
+        update3DMeshPos(leftWall, -10, 0, 0);  // Flip X coordinate
 
         const rightWall = BABYLON.MeshBuilder.CreateBox("rightWall", {}, scene);
         rightWall.material = wallMaterial;
         scaling3DMesh(rightWall, 0.25, 0.5, 10);
-        update3DMeshPos(rightWall, -10, 0, 0);
+        update3DMeshPos(rightWall, 10, 0, 0);   // Flip X coordinate
 
         const leftPaddle = BABYLON.MeshBuilder.CreateBox("leftPaddle", {}, scene);
         leftPaddle.material = paddleMaterial;
-        scaling3DMesh(leftPaddle, 0.25, 0.5, 2);
+        scaling3DMesh(leftPaddle, 0.25, 0.5, 2);  // Using exact game dimensions
         update3DMeshPos(leftPaddle, -8, 0, 0);
 
         const rightPaddle = BABYLON.MeshBuilder.CreateBox("rightPaddle", {}, scene);
         rightPaddle.material = paddleMaterial;
-        scaling3DMesh(rightPaddle, 0.25, 0.5, 2);
+        scaling3DMesh(rightPaddle, 0.25, 0.5, 2);  // Using exact game dimensions
         update3DMeshPos(rightPaddle, 8, 0, 0);
 
         createCamera(scene, canvas);
-        //createSkybox(scene);
         createLight(scene);
+
+        // Connect to WebSocket
+        const ws = new WebSocket(`ws://localhost:3003/api/game-engine/${gameId}`);
+        
+        // Set up keyboard controls
+        const handleKeyDown = (event: KeyboardEvent) => {
+            const key = event.key.toLowerCase();
+            if (['w', 's', 'p', 'l'].includes(key)) {
+                ws.send(JSON.stringify({
+                    type: 'keyPress',
+                    key: key
+                }));
+            }
+        };
+
+        const handleKeyUp = (event: KeyboardEvent) => {
+            const key = event.key.toLowerCase();
+            if (['w', 's', 'p', 'l'].includes(key)) {
+                ws.send(JSON.stringify({
+                    type: 'keyRelease',
+                    key: key
+                }));
+            }
+        };
+
+        ws.onopen = () => {
+            console.log('Connected to game engine');
+            document.addEventListener('keydown', handleKeyDown);
+            document.addEventListener('keyup', handleKeyUp);
+        };
+
+        ws.onmessage = (event) => {
+            const message = JSON.parse(event.data);
+            // console.log('Received game state:', message);
+            
+            if (message.error) {
+                console.error('Game engine error:', message.error);
+                return;
+            }
+            
+            if (message.type === 'gameState') {
+                const gameState = message.data;
+                // console.log('Game state data:', gameState);
+
+                // Update ball position
+                if (ball && gameState.ball) {
+                    // Flip X coordinate to match camera view
+                    update3DMeshPos(ball, -gameState.ball.x, 0.25, gameState.ball.y);
+                }
+
+                // Update paddles position
+                if (leftPaddle && gameState.paddles && gameState.paddles.left) {
+                    // Flip X coordinate to match camera view
+                    update3DMeshPos(leftPaddle, -gameState.paddles.left.x, 0, gameState.paddles.left.y);
+                }
+                if (rightPaddle && gameState.paddles && gameState.paddles.right) {
+                    // Flip X coordinate to match camera view
+                    update3DMeshPos(rightPaddle, -gameState.paddles.right.x, 0, gameState.paddles.right.y);
+                }
+
+                // Update score if you have score elements
+                if (gameState.score) {
+                    // console.log('Score:', gameState.score);
+                }
+            }
+        };
+
+        ws.onclose = () => {
+            console.log('Disconnected from game engine');
+            document.removeEventListener('keydown', handleKeyDown);
+            document.removeEventListener('keyup', handleKeyUp);
+        };
 
         const render = () => scene.render();
         engine.runRenderLoop(render);

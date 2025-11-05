@@ -19,6 +19,7 @@ const routeMap: {[key: string]: () => void} = {
     "/profile": renderProfile,
     "/settings": renderSettings,
     "/gameMenu": renderGameMenu,
+    "/game/local": renderGame,
     "/game": renderGame,
 };
 
