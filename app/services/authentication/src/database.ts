@@ -1,5 +1,6 @@
 import { User, generateId } from "./user.js"
 import { UserFormat } from "./format.js";
+import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3"
 
 export default class Database {
     private users: Map<string, User> = new Map();
@@ -33,6 +34,29 @@ export default class Database {
 
         this.users.delete(user.name);
     }
+}
+
+export function initSQLite3Database(betterSQLite3: BetterSQLite3Database) : void {
+    betterSQLite3 = new BetterSQLite3("database.db", {
+        // Read-only mode
+        readonly: false,                    // default: false
+
+        // File must exist (throws error if not)
+        fileMustExist: false,              // default: false
+
+        // Connection timeout (milliseconds)
+        timeout: 5000,                     // default: 5000ms
+
+        // Verbose mode - logs SQL statements
+        verbose: undefined,                // default: undefined (or function to log)
+        // verbose: console.log,           // Example: log all SQL
+
+        // Native binding options
+        nativeBinding: undefined,          // default: undefined (path to native module)
+    });
+
+    betterSQLite3.exec(`
+    `);
 }
 
 /*

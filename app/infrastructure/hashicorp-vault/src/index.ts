@@ -1,77 +1,5 @@
-import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import session from '@fastify/session';
-import fastifyCookie from '@fastify/cookie';
-import Database from "./database.js";
-import { userFormatCorrect, RegisterFormat } from './format.js';
-import { printRequest } from './print.js';
-import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3"
-import { User } from "./user.js";
+import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import HashiCorpVault from 'node-vault';
-import color from 'chalk';
-
-
-function getRequestHeaders(request: FastifyRequest) : object {
-    if (!request.headers)
-        return {};
-    return Object.entries(request.headers);
-}
-
-function getRequestBody(request: FastifyRequest) : object {
-    if (!request.body || typeof request.body !== 'object')
-        return {};
-    return Object.entries(request.body);
-}
-
-function logAccount(request: FastifyRequest, database: Database) {
-    console.log(color.bold.italic.yellow("----- LOGIN -----"));
-    printRequest(request);
-}
-
-function registerAccount(request: FastifyRequest, database: Database) {
-
-    console.log(color.bold.italic.yellow("\n----- REGISTER -----"));
-
-    const headers = getRequestHeaders(request);
-    const userInfo = getRequestBody(request) as RegisterFormat;
-
-    if (userFormatCorrect(userInfo))
-        database.addUser(userInfo);
-}
-
-async function manageRequest(fastify: FastifyInstance, database: Database) {
-
-    fastify.all('/*', async(request, reply) => {
-        const path = request.raw.url;
-
-        switch (path) {
-            case "/auth/login":
-                logAccount(request, database);
-                break;
-            case "/auth/register":
-                registerAccount(request, database);
-                break;
-            default:
-                reply.code(404).send({ error: "Route not found "});
-                break;
-        }
-    });
-}
-
-function initAuthenticationService(fastify: FastifyInstance) : void {
-    fastify.register(fastifyCookie);
-    fastify.register(session, {
-        secret: 'a random secret that shoud be longer than length 32',
-        cookie: { secure: false, maxAge: 3600 * 1000 },
-    });
-
-    fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
-    if (err) {
-        fastify.log.error(err);
-        throw err;
-    }
-    })
-    console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
-}
 
 function main() {
 
@@ -227,12 +155,10 @@ function main() {
         // rpInitialized: undefined,            // default: undefined (uses 'request-promise')
     });
 
-    const database = new Database();
 
     try {
-        initAuthenticationService(fastify);
         // initSQLite3Database(betterSQLite3);
-        manageRequest(fastify, database);
+        manageRequest(fastify, vault);
 
     } catch (err) {
         console.error(err);

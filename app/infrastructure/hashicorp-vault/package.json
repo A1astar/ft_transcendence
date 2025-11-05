@@ -1,8 +1,8 @@
 {
-  "name": "@ft_transcendence/authentication",
+  "name": "@ft_transcendence/hashicorp-vault",
   "version": "1.0.0",
   "private": true,
-  "description": "Authentication service of transcendence app.",
+  "description": "HashiCorp vault of transcendence app.",
   "type": "module",
   "main": "index.js",
   "scripts": {

@@ -22,6 +22,7 @@ if [ $# -gt 0 ]; then
             fi
             cd $project_dir && npm run start:all
         ;;
+
         "local-watch")
             if [ ! -d node_modules ]; then
                 npm install
