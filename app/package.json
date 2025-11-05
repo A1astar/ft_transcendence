@@ -11,20 +11,23 @@
   ],
   "scripts": {
     "build:all": "npm run build --workspaces",
-    "dev:all": "npm run dev --workspaces",
-    "install:all": "npm install",
-    "start:all": "concurrently \"npm:start:authentication\" \" ",
+    "dev:all": "concurrently --names \"frontend,auth,game-engine,game-orch,gateway\" -c \"blue,green,red,yellow,magenta\" \"npm:dev:frontend\" \"npm:dev:authentication\" \"npm:dev:game-engine\" \"npm:dev:game-orchestration\" \"npm:dev:gateway\"",
+    "dev:frontend": "npm run dev -w @ft_transcendence/frontend",
+    "dev:authentication": "npm run dev -w @ft_transcendence/authentication",
+    "dev:game-engine": "npm run dev -w @ft_transcendence/game-engine",
+    "dev:game-orchestration": "npm run dev -w @ft_transcendence/game-orchestration",
+    "dev:gateway": "npm run dev -w @ft_transcendence/gateway",
+    "start:all": "concurrently --names \"frontend,auth,game-engine,game-orch,gateway\" -c \"blue,green,red,yellow,magenta\" \"npm:start:frontend\" \"npm:start:authentication\" \"npm:start:game-engine\" \"npm:start:game-orchestration\" \"npm:start:gateway\"",
     "start:frontend": "npm run start -w @ft_transcendence/frontend",
     "start:authentication": "npm run start -w @ft_transcendence/authentication",
     "start:game-engine": "npm run start -w @ft_transcendence/game-engine",
     "start:game-orchestration": "npm run start -w @ft_transcendence/game-orchestration",
     "start:gateway": "npm run start -w @ft_transcendence/gateway",
-    "clean": ""
+    "clean": "npm run clean --workspaces"
   },
   "dependencies": {
     "chalk": "^5.6.2",
-    "fastify": "^5.6.1",
-    "node": "^25.1.0"
+    "fastify": "^5.6.1"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",

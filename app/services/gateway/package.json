@@ -5,10 +5,10 @@
   "description": "API gateway service of transcendence app.",
   "type": "module",
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
     "clean": "rm -rf dist",
-    "start": "npm install && npm build && node dist/index.js",
-    "watch": "npx tsx watch src/index.ts"
+    "start": "npm run build && node dist/index.js",
+    "watch": "tsx watch src/index.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

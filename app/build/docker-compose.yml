@@ -31,7 +31,7 @@ services:
       - vault-network
     restart: "no"
     depends_on:
-      -hashicorp-vault
+      - hashicorp-vault
 
   hashicorp-vault:
     build: ../infrastructure/hashicorp-vault

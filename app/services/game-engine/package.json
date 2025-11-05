@@ -6,10 +6,10 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
     "clean": "rm -rf dist",
-    "start": "npx tsc && node dist/index.js",
-    "watch": "npx tsx watch src"
+    "start": "npm run build && node dist/index.js",
+    "watch": "tsx watch src"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",

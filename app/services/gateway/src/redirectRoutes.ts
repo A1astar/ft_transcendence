@@ -38,7 +38,7 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: s
                 console.log(color.bold.white('Session ID:'));
 				console.log(color.blue(req.session.sessionId));
                 console.log(color.bold.white('Cookie ID:'));
-				console.log(color.blue(req.cookies.id));
+				console.log(color.blue(req.cookies['id']));
 				return reply.code(res.status).send(data);
 			}
 			catch (err) {

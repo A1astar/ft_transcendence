@@ -50,5 +50,6 @@ export async function apiGetGameState(fastify: FastifyInstance, games: Map<strin
 			score: (game.score),
 		};		
 	}
+	return { error: "Game not found" };
 	});
 }
