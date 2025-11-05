@@ -11,20 +11,19 @@
   ],
   "scripts": {
     "build:all": "npm run build --workspaces",
+    "clean": "",
     "dev:all": "npm run dev --workspaces",
     "install:all": "npm install",
     "start:all": "concurrently \"npm:start:authentication\" \" ",
-    "start:frontend": "npm run start -w @ft_transcendence/frontend",
     "start:authentication": "npm run start -w @ft_transcendence/authentication",
+    "start:frontend": "npm npm run start -w @ft_transcendence/frontend",
     "start:game-engine": "npm run start -w @ft_transcendence/game-engine",
     "start:game-orchestration": "npm run start -w @ft_transcendence/game-orchestration",
-    "start:gateway": "npm run start -w @ft_transcendence/gateway",
-    "clean": ""
+    "start:gateway": "npm run prestart && npm run start -w @ft_transcendence/gateway"
   },
   "dependencies": {
     "chalk": "^5.6.2",
-    "fastify": "^5.6.1",
-    "node": "^25.1.0"
+    "fastify": "^5.6.1"
   },
   "devDependencies": {
     "@types/node": "^24.10.0",

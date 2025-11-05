@@ -7,7 +7,7 @@
   "scripts": {
     "build": "npx tsc",
     "clean": "rm -rf dist",
-    "start": "npm install && npm build && node dist/index.js",
+    "start": "npm run build && node dist/index.js",
     "watch": "npx tsx watch src/index.ts"
   },
   "dependencies": {

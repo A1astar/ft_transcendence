@@ -11,8 +11,8 @@
     "noImplicitThis": true,
     "useUnknownInCatchVariables": true,
     "alwaysStrict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
     "exactOptionalPropertyTypes": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
@@ -23,7 +23,7 @@
     "allowUnreachableCode": false,
 
     /* Modules */
-    "module": "ES2020",
+    "module": "ES2022",
     "moduleResolution": "bundler",
     // "baseUrl": "./",
     // "paths": {},
@@ -40,8 +40,8 @@
     "customConditions": [],
 
     /* Emit */
-    "declaration": true,
-    "declarationMap": true,
+    // "declaration": true,
+    // "declarationMap": true,
     "emitDeclarationOnly": false,
     "sourceMap": true,
     "inlineSourceMap": false,
@@ -60,8 +60,8 @@
     "stripInternal": false,
     "noEmitHelpers": false,
     "noEmitOnError": false,
-    "preserveConstEnums": false,
-    "declarationDir": "",
+    "preserveConstEnums": true,
+    // "declarationDir": "",
     "preserveValueImports": false,
 
     /* JavaScript Support */
@@ -78,14 +78,14 @@
     "forceConsistentCasingInFileNames": true,
 
     /* Language and Environment */
-    "target": "ES2020",
-    "lib": ["ES2020", "DOM"],
-    "jsx": "preserve",
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    // "jsx": "preserve",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
-    "jsxFactory": "React.createElement",
-    "jsxFragmentFactory": "React.Fragment",
-    "jsxImportSource": "react",
+    // "jsxFactory": "React.createElement",
+    // "jsxFragmentFactory": "React.Fragment",
+    // "jsxImportSource": "react",
     "useDefineForClassFields": true,
 
     /* Completeness */
