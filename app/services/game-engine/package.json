@@ -1,0 +1,21 @@
+{
+  "name": "@ft_transcendence/game-engine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Game engine service of transcendence app.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "npm run build && node dist/index.js",
+    "watch": "tsx watch src"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@fastify/websocket": "^11.2.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.1"
+  }
+}

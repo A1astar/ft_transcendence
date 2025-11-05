@@ -1,0 +1,11 @@
+Model Information:
+* title:	Scanned Minas Tirith Model (Lord of the Rings)
+* source:	https://sketchfab.com/3d-models/scanned-minas-tirith-model-lord-of-the-rings-512b6293f38540be963dcdcbfd8bc7c5
+* author:	3Digify (https://sketchfab.com/3digify)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Scanned Minas Tirith Model (Lord of the Rings)" (https://sketchfab.com/3d-models/scanned-minas-tirith-model-lord-of-the-rings-512b6293f38540be963dcdcbfd8bc7c5) by 3Digify (https://sketchfab.com/3digify) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

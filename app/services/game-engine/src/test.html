@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pong Test</title>
+</head>
+<body>
+    <canvas id="game" width="800" height="600" style="border: 1px solid black;"></canvas>
+    <div id="status">Starting game...</div>
+    <div id="score">Score: 0 - 0</div>
+    
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const statusDiv = document.getElementById('status');
+        const scoreDiv = document.getElementById('score');
+        let ws;
+        
+        // ✅ First start the game, THEN connect WebSocket
+        async function startGameAndConnect() {
+            try {
+                // Start the game via HTTP
+                const response = await fetch('http://localhost:3003/game-engine/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: 'test-match-123',
+                        players: [],
+                        mode: 'remote2'
+                    })
+                });
+                
+                const gameData = await response.json();
+                console.log('Game started:', gameData);
+                statusDiv.textContent = 'Game started, connecting...';
+                
+                // Now connect to WebSocket
+                ws = new WebSocket('ws://localhost:3003/game-engine/test-match-123');
+                
+                ws.onopen = () => {
+                    statusDiv.textContent = 'Connected and playing!';
+                    console.log('Connected to game');
+                };
+                
+                ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    console.log('Received:', data);
+                    
+                    if (data.type === 'gameState') {
+                        drawGame(data.data);
+                        updateScore(data.data.score);
+                    }
+                };
+                
+                ws.onerror = (error) => {
+                    statusDiv.textContent = 'Connection Error!';
+                    console.error('WebSocket error:', error);
+                };
+                
+                ws.onclose = () => {
+                    statusDiv.textContent = 'Disconnected';
+                    console.log('Connection closed');
+                };
+                
+            } catch (error) {
+                console.error('Failed to start game:', error);
+                statusDiv.textContent = 'Failed to start game';
+            }
+        }
+        
+        // Draw game state
+        function drawGame(game) {
+            // Clear canvas
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw paddles
+            ctx.fillStyle = 'white';
+            ctx.fillRect(game.paddles.left.x, game.paddles.left.y, 
+                        game.paddles.left.width, game.paddles.left.height);
+            ctx.fillRect(game.paddles.right.x, game.paddles.right.y, 
+                        game.paddles.right.width, game.paddles.right.height);
+            
+            // Draw ball
+            ctx.beginPath();
+            ctx.arc(game.ball.x, game.ball.y, game.ball.radius, 0, 2 * Math.PI);
+            ctx.fill();
+        }
+        
+        function updateScore(score) {
+            scoreDiv.textContent = `Score: ${score.left} - ${score.right}`;
+        }
+        
+        // Send key events
+        document.addEventListener('keydown', (event) => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'keyPress',
+                    key: event.key
+                }));
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'keyRelease',
+                    key: event.key
+                }));
+            }
+        });
+        
+        // Start everything when page loads
+        startGameAndConnect();
+    </script>
+</body>
+</html>

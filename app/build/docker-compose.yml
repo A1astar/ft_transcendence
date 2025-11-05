@@ -1,4 +1,4 @@
-name: ft_transcendence
+name: transcendence
 
 services:
   reverse-proxy:
@@ -6,7 +6,7 @@ services:
     ports:
       - "8080:80"
     networks:
-      - app-network
+      - microservices-network
     depends_on:
       - api-gateway
     restart: "no"
@@ -14,23 +14,62 @@ services:
   api-gateway:
     build: ../services/api-gateway
     ports:
-      - "3001"
+      - "3000"
     networks:
-      - app-network
+      - microservices-network
     depends_on:
+      - authentication
       - game-orchestration
     restart: "no"
 
+  authentication:
+    build: ../services/authentication
+    ports:
+      - "3001"
+    networks:
+      - microservices-network
+      - vault-network
+    restart: "no"
+    depends_on:
+      - hashicorp-vault
+
+  hashicorp-vault:
+    build: ../infrastructure/hashicorp-vault
+    ports:
+      - "8200"
+    networks:
+      - vault-network
+    volumes:
+      - vault-data:/vault/data
+      - ./vault-config:/vault/config
+    restart: unless-stopped
+
   game-orchestration:
-    build: ../services/game_orchestration
+    build: ../services/game-orchestration
     ports:
       - "3002"
     networks:
-      - app-network
+      - microservices-network
     restart: "no"
 
-# volumes:
-
 networks:
-  app-network:
+  microservices-network:
     driver: bridge
+
+  vault-network:
+    driver: bridge
+    internal: true
+
+  monitoring-network:
+    driver: bridge
+    internal: true
+
+  logging-network:
+    driver: bridge
+    internal: true
+
+volumes:
+  vault-data:
+  prometheus-data:
+  grafana-data:
+  elasticsearch-data:

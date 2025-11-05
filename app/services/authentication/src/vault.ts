@@ -1,0 +1,1 @@
+import vault from 'node-vault'

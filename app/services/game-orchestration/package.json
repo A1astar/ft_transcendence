@@ -1,0 +1,17 @@
+{
+  "name": "@ft_transcendence/game-orchestration",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Game-orchestration service of transcendence pong game.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "npm run build && node dist/index.js",
+    "watch": "tsx watch src"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0"
+  }
+}

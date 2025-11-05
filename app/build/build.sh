@@ -5,28 +5,30 @@ set -e
 project_dir=$(cd .. && pwd)
 service_dir=$project_dir/services
 
+directories=(
+    "$project_dir/"
+    "$project_dir/frontend"
+    "$project_dir/services/authentication"
+    "$project_dir/services/game-engine"
+    "$project_dir/services/game-orchestration"
+    "$project_dir/services/gateway"
+)
+
 if [ $# -gt 0 ]; then
     case "$1" in
-        "api-gateway")
-            services="$service_dir/api-gateway"
+        "local-run")
+            cd $project_dir && npm run start:all
         ;;
-        "game-orchestration")
-            "$service_dir/game-orchestration"
+
+        "local-build")
+            cd $project_dir && npm install && npm run build:all
         ;;
-        default)
-            services=(
-                "$service_dir/api-gateway"
-                "$service_dir/game-orchestration"
-            )
+
+        "local-clean")
+            cd $project_dir && npm run clean
+            for directory in "${directories[@]}"; do
+                cd $directory && rm -rf node_modules package-lock.json
+            done
         ;;
     esac
 fi
-
-# until our docker-compose is implemented:
-for service in "${services[@]}"; do
-    # docker build $service/Dockerfile.node -t ft_transcendence-api-gateway
-    echo $service
-    cd $service
-    npm install
-    npx node index.js &
-done

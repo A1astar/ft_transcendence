@@ -1,0 +1,27 @@
+{
+  "name": "@ft_transcendence/frontend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Frontend of transcendence app.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css --minify",
+    "dev": "npm run ts && npm run tw ",
+    "start": "npm run build",
+    "clean": "rm -rf dist",
+    "tw": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
+    "tsx": "npx run tsx watch src",
+    "ts": "tsc -w",
+    "serve": "http-server . -c-1 -p 8443 --ssl --cert certs/self.crt --key certs/self.key"
+  },
+  "dependencies": {
+    "@babylonjs/core": "^8.33.2",
+    "@babylonjs/gui": "^8.33.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.1.16",
+    "http-server": "^14.1.1",
+    "tailwindcss": "^4.1.16"
+  }
+}
