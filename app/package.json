@@ -20,10 +20,15 @@
     "start:all": "concurrently --names \"frontend,auth,game-engine,game-orch,gateway\" -c \"blue,green,red,yellow,magenta\" \"npm:start:frontend\" \"npm:start:authentication\" \"npm:start:game-engine\" \"npm:start:game-orchestration\" \"npm:start:gateway\"",
     "start:frontend": "npm run start -w @ft_transcendence/frontend",
     "start:authentication": "npm run start -w @ft_transcendence/authentication",
-    "start:hashicorp-vault": "npm run start -w @ft_transcendence/hashicorp-vault",
     "start:game-engine": "npm run start -w @ft_transcendence/game-engine",
     "start:game-orchestration": "npm run start -w @ft_transcendence/game-orchestration",
     "start:gateway": "npm run start -w @ft_transcendence/gateway",
+    "watch:all": "concurrently --names \"frontend,auth,game-engine,game-orch,gateway\" -c \"blue,green,red,yellow,magenta\" \"npm:start:frontend\" \"npm:watch:authentication\" \"npm:watch:game-engine\" \"npm:watch:game-orchestration\" \"npm:watch:gateway\"",
+    "watch:frontend": "npm run start -w @ft_transcendence/frontend",
+    "watch:authentication": "npm run watch -w @ft_transcendence/authentication",
+    "watch:game-engine": "npm run watch -w @ft_transcendence/game-engine",
+    "watch:game-orchestration": "npm run watch -w @ft_transcendence/game-orchestration",
+    "watch:gateway": "npm run watch -w @ft_transcendence/gateway",
     "clean": "npm run clean --workspaces"
   },
   "dependencies": {

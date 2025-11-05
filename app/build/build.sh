@@ -17,7 +17,16 @@ directories=(
 if [ $# -gt 0 ]; then
     case "$1" in
         "local-run")
+            if [ ! -d node_modules ]; then
+                npm install
+            fi
             cd $project_dir && npm run start:all
+        ;;
+        "local-watch")
+            if [ ! -d node_modules ]; then
+                npm install
+            fi
+            cd $project_dir && npm run watch:all
         ;;
 
         "local-build")
