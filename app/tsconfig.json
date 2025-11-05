@@ -60,7 +60,7 @@
     "stripInternal": false,
     "noEmitHelpers": false,
     "noEmitOnError": false,
-  "preserveConstEnums": true,
+    "preserveConstEnums": true,
     "preserveValueImports": false,
 
     /* JavaScript Support */

@@ -9,10 +9,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendPath = path.join(__dirname, '../../../frontend');
 
-console.log(color.bold.white(__filename));
-console.log(color.bold.white(__dirname));
-console.log(color.bold.white(frontendPath));
-
 function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
 	return Object.fromEntries(
 		Object.entries(reqheaders)
