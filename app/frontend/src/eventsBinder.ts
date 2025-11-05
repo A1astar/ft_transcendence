@@ -1,4 +1,5 @@
 import {ApiClient} from "./apiService.js";
+import {renderGame} from "./view/gameView.js";
 
 export interface ViewEventBinder {
     bind(): void;
@@ -24,24 +25,87 @@ export class GameMenuViewBinder implements ViewEventBinder {
             .getElementById("Tournament8")
             ?.removeEventListener("click", this.onTournament8Click);
     }
-    private onLocalClick(this: HTMLElement, event: MouseEvent) {
-        history.pushState({}, "", "/game/local");
-        window.dispatchEvent(new PopStateEvent("popstate"));
+    private onLocalClick = async (event: MouseEvent) => {
+        event.preventDefault();
+
+        const guestUsername = localStorage.getItem("guestUsername");
+        
+        // First match request for player 1
+        const matchRequest1 = {
+            player: {
+                alias: guestUsername || "guest"
+            },
+            mode: "local" as const,
+            tournamentRound: 0
+        };
+
+        // Second match request for player 2
+        const matchRequest2 = {
+            player: {
+                alias: "guest"
+            },
+            mode: "local" as const,
+            tournamentRound: 0
+        };
+
+        try {
+            // Send first player
+            const res1 = await fetch("http://localhost:3002/api/game-orchestration/local", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(matchRequest1)
+            });
+
+            if (!res1.ok) throw new Error('First player request failed');
+            
+            // Send second player
+            const res2 = await fetch("http://localhost:3002/api/game-orchestration/local", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(matchRequest2)
+            });
+
+            if (!res2.ok) throw new Error('Second player request failed');
+
+            // Get the match data from the second response
+            const match = await res2.json();
+            
+            // Store the match ID in sessionStorage for the game view
+            sessionStorage.setItem('currentGameId', match.id);
+            
+            // Render game view
+            renderGame();
+            
+            // Update URL
+            history.pushState({}, "", "/game/local");
+            window.dispatchEvent(new PopStateEvent("popstate"));
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Failed to start local game");
+        }
     }
     private onRemote2Click(this: HTMLElement, event: MouseEvent) {
-        history.pushState({}, "", "/game/remote2");
+        event.preventDefault();
+        history.pushState({}, "", "/api/game-orchestration/remote2");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
     private onRemote4Click(this: HTMLElement, event: MouseEvent) {
-        history.pushState({}, "", "/game/remote4");
+        event.preventDefault();
+        history.pushState({}, "", "/api/game-orchestration/remote4");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
     private onTournament4Click(this: HTMLElement, event: MouseEvent) {
-        history.pushState({}, "", "/game/tournament4");
+        event.preventDefault();
+        history.pushState({}, "", "/api/game-orchestration/tournament");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
     private onTournament8Click(this: HTMLElement, event: MouseEvent) {
-        history.pushState({}, "", "/game/tournament8");
+        event.preventDefault();
+        history.pushState({}, "", "/api/game-orchestration/tournament");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
 }
@@ -54,21 +118,28 @@ export class GuestViewBinder implements ViewEventBinder {
         document.getElementById("guest")?.removeEventListener("click", this.onGuestClick);
     }
     private onGuestClick = async () => {
-        const username = (document.getElementById("username") as HTMLInputElement | null)?.value;
-        if (!username || username.trim().length === 0) {
-            alert("Please enter a valid username");
-            return;
+        try {
+            const username = (document.getElementById("username") as HTMLInputElement | null)?.value;
+            if (!username || username.trim().length === 0) {
+                alert("Please enter a valid username");
+                return;
+            }
+
+            // const res = await ApiClient.post("/api/auth/guest-session", {username});
+            // if (!res.ok) {
+            //     const err = await res.json().catch(() => ({message: "Guest login failed"}));
+            //     alert(err.message || "Guest login failed");
+            //     return;
+            // }
+
+            localStorage.setItem("guestUsername", username);
+            history.pushState({}, "", "/gameMenu");
+            window.dispatchEvent(new PopStateEvent("popstate"));
+        } catch (error) {
+            console.error('Guest login error:', error);
+            alert("Network error - Cannot connect to authentication service");
         }
-        const res = await ApiClient.post("/api/auth/guest-session", {username});
-        if (!res.ok) {
-           const err = await res.json().catch(() => ({message: "Guest login failed"}));
-           alert(err.message || "Guest login failed");
-           return;
-        }
-        localStorage.setItem("guestUsername", username);
-        history.pushState({}, "", "/gameMenu");
-        window.dispatchEvent(new PopStateEvent("popstate"));
-    };
+    }
 }
 
 export class HomeViewBinder implements ViewEventBinder {
@@ -263,6 +334,9 @@ export function bindEvents(path: string) {
             break;
         case "/gameMenu":
             binder = new GameMenuViewBinder();
+            break;
+        case "/game/local":
+            binder = new GameViewBinder();
             break;
         case "/game":
             binder = new GameViewBinder();
