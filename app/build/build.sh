@@ -14,23 +14,45 @@ directories=(
     "$project_dir/services/gateway"
 )
 
+checkNodeVersion()
+{
+    if ! command nvm &> /dev/null; then
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+        source "$HOME/.$(basename "$SHELL")rc"
+    fi
+
+    if ! node --version | grep "24.11.0"; then
+        nvm install 24.11.0
+        nvm use 24.11.0
+    fi
+}
+
+checkPackageInstallation()
+{
+    if [ ! -d node_modules ]; then
+        npm install
+    fi
+}
+
 if [ $# -gt 0 ]; then
+
+
     case "$1" in
         "local-run")
-            if [ ! -d node_modules ]; then
-                npm install
-            fi
+            checkNodeVersion
+            checkPackageInstallation
             cd $project_dir && npm run start:all
         ;;
 
         "local-watch")
-            if [ ! -d node_modules ]; then
-                npm install
-            fi
+            checkNodeVersion
+            checkPackageInstallation
             cd $project_dir && npm run watch:all
         ;;
 
         "local-build")
+            checkNodeVersion
+            checkPackageInstallation
             cd $project_dir && npm install && npm run build:all
         ;;
 

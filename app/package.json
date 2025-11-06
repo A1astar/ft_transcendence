@@ -11,12 +11,6 @@
   ],
   "scripts": {
     "build:all": "npm run build --workspaces",
-    "dev:all": "concurrently --names \"frontend,auth,game-engine,game-orch,gateway\" -c \"blue,green,red,yellow,magenta\" \"npm:dev:frontend\" \"npm:dev:authentication\" \"npm:dev:game-engine\" \"npm:dev:game-orchestration\" \"npm:dev:gateway\"",
-    "dev:frontend": "npm run dev -w @ft_transcendence/frontend",
-    "dev:authentication": "npm run dev -w @ft_transcendence/authentication",
-    "dev:game-engine": "npm run dev -w @ft_transcendence/game-engine",
-    "dev:game-orchestration": "npm run dev -w @ft_transcendence/game-orchestration",
-    "dev:gateway": "npm run dev -w @ft_transcendence/gateway",
     "start:all": "concurrently --names \"frontend,auth,game-engine,game-orch,gateway\" -c \"blue,green,red,yellow,magenta\" \"npm:start:frontend\" \"npm:start:authentication\" \"npm:start:game-engine\" \"npm:start:game-orchestration\" \"npm:start:gateway\"",
     "start:frontend": "npm run start -w @ft_transcendence/frontend",
     "start:authentication": "npm run start -w @ft_transcendence/authentication",

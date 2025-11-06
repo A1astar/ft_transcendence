@@ -17,6 +17,8 @@ export function renderGuestLogin() {
 		clearDiv(appDiv);
 
 		const formDiv = createFormElement("guestForm");
+		formDiv.method = "GET";
+		formDiv.action = "/gameMenu";
 		formDiv.appendChild(createInputElement("text", "username", "Pseudo"));
 		formDiv.appendChild(createButtonForm("Continue as Guest", "guest"));
 

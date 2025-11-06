@@ -15,18 +15,18 @@ export class Game {
 		left: 0,
 		right: 0
 	}
-	width = 800;
-	height = 600;
+	width = 20;     // Full scene width
+	height = 10;    // Scene height (-5 to 5)
 	ball = {
-		x: 400,
-		y: 300,
-		vx: 4,
-		vy: 3,
-		radius: 10
+		x: 0,       // Center of scene (-10 to 10)
+		y: 0,       // Center of scene (-5 to 5)
+		vx: 0.08,    // Ball velocity X
+		vy: 0.08,    // Ball velocity Y
+		radius: 0.35
 	};
 	paddles = {
-		left: { x: 30, y: 250, width: 10, height: 100, speed: 10 },
-		right: { x: 760, y: 250, width: 10, height: 100, speed: 10 }
+		left: { x: -8, y: 0, width: 0.25, height: 2, speed: 0.15 },
+		right: { x: 8, y: 0, width: 0.25, height: 2, speed: 0.15 }
 	};
 	score = { left: 0, right: 0 };
 	paddleMovement = {
@@ -37,7 +37,7 @@ export class Game {
 	};
 
 	reset() {
-		this.ball.x = 400;
-		this.ball.y = 300;
+		this.ball.x = 0;
+		this.ball.y = 0;
 	}
 }
