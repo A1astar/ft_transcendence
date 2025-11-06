@@ -12,7 +12,7 @@ import chalk from 'chalk';
 // Start server
 async function start() {
 
-  const fastify = Fastify({ logger: true });
+  const fastify = Fastify({ logger: false });
 
   // Enable CORS (allow connections from frontend or other services)
   fastify.register(cors, {origin: "*"});

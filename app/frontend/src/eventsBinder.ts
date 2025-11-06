@@ -1,113 +1,9 @@
 import {ApiClient} from "./apiService.js";
-import {renderGame} from "./view/gameView.js";
+import {GameMenuViewBinder} from "./gameMenuViewBinder.js"
 
 export interface ViewEventBinder {
     bind(): void;
     unbind(): void;
-}
-
-export class GameMenuViewBinder implements ViewEventBinder {
-    bind() {
-        document.getElementById("local")?.addEventListener("click", this.onLocalClick);
-        document.getElementById("Remote2")?.addEventListener("click", this.onRemote2Click);
-        document.getElementById("Remote4")?.addEventListener("click", this.onRemote4Click);
-        document.getElementById("Tournament4")?.addEventListener("click", this.onTournament4Click);
-        document.getElementById("Tournament8")?.addEventListener("click", this.onTournament8Click);
-    }
-    unbind() {
-        document.getElementById("local")?.removeEventListener("click", this.onLocalClick);
-        document.getElementById("Remote2")?.removeEventListener("click", this.onRemote2Click);
-        document.getElementById("Remote4")?.removeEventListener("click", this.onRemote4Click);
-        document
-            .getElementById("Tournament4")
-            ?.removeEventListener("click", this.onTournament4Click);
-        document
-            .getElementById("Tournament8")
-            ?.removeEventListener("click", this.onTournament8Click);
-    }
-    private onLocalClick = async (event: MouseEvent) => {
-        event.preventDefault();
-
-        const guestUsername = localStorage.getItem("guestUsername");
-        
-        // First match request for player 1
-        const matchRequest1 = {
-            player: {
-                alias: guestUsername || "guest"
-            },
-            mode: "local" as const,
-            tournamentRound: 0
-        };
-
-        // Second match request for player 2
-        const matchRequest2 = {
-            player: {
-                alias: "guest"
-            },
-            mode: "local" as const,
-            tournamentRound: 0
-        };
-
-        try {
-            // Send first player
-            const res1 = await fetch("http://localhost:3002/api/game-orchestration/local", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(matchRequest1)
-            });
-
-            if (!res1.ok) throw new Error('First player request failed');
-            
-            // Send second player
-            const res2 = await fetch("http://localhost:3002/api/game-orchestration/local", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(matchRequest2)
-            });
-
-            if (!res2.ok) throw new Error('Second player request failed');
-
-            // Get the match data from the second response
-            const match = await res2.json();
-            
-            // Store the match ID in sessionStorage for the game view
-            sessionStorage.setItem('currentGameId', match.id);
-            
-            // Render game view
-            renderGame();
-            
-            // Update URL
-            history.pushState({}, "", "/game/local");
-            window.dispatchEvent(new PopStateEvent("popstate"));
-        } catch (error) {
-            console.error("Error:", error);
-            alert("Failed to start local game");
-        }
-    }
-    private onRemote2Click(this: HTMLElement, event: MouseEvent) {
-        event.preventDefault();
-        history.pushState({}, "", "/api/game-orchestration/remote2");
-        window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-    private onRemote4Click(this: HTMLElement, event: MouseEvent) {
-        event.preventDefault();
-        history.pushState({}, "", "/api/game-orchestration/remote4");
-        window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-    private onTournament4Click(this: HTMLElement, event: MouseEvent) {
-        event.preventDefault();
-        history.pushState({}, "", "/api/game-orchestration/tournament");
-        window.dispatchEvent(new PopStateEvent("popstate"));
-    }
-    private onTournament8Click(this: HTMLElement, event: MouseEvent) {
-        event.preventDefault();
-        history.pushState({}, "", "/api/game-orchestration/tournament");
-        window.dispatchEvent(new PopStateEvent("popstate"));
-    }
 }
 
 export class GuestViewBinder implements ViewEventBinder {
@@ -335,12 +231,12 @@ export function bindEvents(path: string) {
         case "/gameMenu":
             binder = new GameMenuViewBinder();
             break;
-        case "/game/local":
-            binder = new GameViewBinder();
-            break;
-        case "/game":
-            binder = new GameViewBinder();
-            break;
+        // case "/game/local":
+        //     binder = new GameViewBinder();
+        //     break;
+        // case "/game":
+        //     binder = new GameViewBinder();
+        //     break;
         // Add more cases as needed
         default:
             binder = null;

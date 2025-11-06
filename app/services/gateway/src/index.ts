@@ -21,7 +21,7 @@ async function initGateway(fastify: FastifyInstance) {
 // Start server
 async function main() {
 
-    const fastify = Fastify({ logger: true });
+    const fastify = Fastify({ logger: false });
 
     fastify.register(fastifyCookie);
     fastify.register(fastifySession, {

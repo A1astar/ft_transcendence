@@ -216,7 +216,7 @@ export function renderGame() {
         const onResize = () => engine.resize();
         window.addEventListener("resize", onResize);
 
-        appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
+        // appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
         appDiv.appendChild(canvas);
     }
 }
