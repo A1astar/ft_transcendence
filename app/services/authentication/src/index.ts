@@ -1,13 +1,14 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import session from '@fastify/session';
+import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3"
 import fastifyCookie from '@fastify/cookie';
-import Database from "./database.js";
+// import HashiCorpVault from 'node-vault';
+import session from '@fastify/session';
+import color from 'chalk';
+
 import { userFormatCorrect, RegisterFormat } from './format.js';
 import { printRequest } from './print.js';
-import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3"
+import Database from "./database.js";
 import { User } from "./user.js";
-import HashiCorpVault from 'node-vault';
-import color from 'chalk';
 
 
 function getRequestHeaders(request: FastifyRequest) : object {
@@ -174,59 +175,6 @@ function main() {
         // Versioning options
         // versioning: undefined,              // default: undefined
     });
-
-    const vault = HashiCorpVault({
-        // API version
-        apiVersion: 'v1',                    // default: 'v1' (can be 'v1' or 'v2')
-
-        // Vault server endpoint
-        endpoint: 'http://vault:8200',       // default: process.env.VAULT_ADDR || 'http://127.0.0.1:8200'
-
-        // Authentication token
-        token: 'your-vault-token',           // default: process.env.VAULT_TOKEN
-
-        // Namespace (Vault Enterprise feature)
-        namespace: 'admin',                  // default: undefined
-
-        // Path prefix for all requests
-        pathPrefix: '',                      // default: '' (e.g., '/v1' is added automatically)
-
-
-        // Custom request options (passed to 'request' library)
-        requestOptions: {
-            // Request timeout (milliseconds)
-            timeout: 10000,                      // default: 10000 (10 seconds)
-
-            // TLS/SSL options
-            ca: undefined,                     // CA certificate
-            cert: undefined,                   // Client certificate
-            key: undefined,                    // Client key
-            rejectUnauthorized: true,          // default: true (verify SSL certificates)
-
-            // Proxy settings
-            proxy: undefined,                  // HTTP proxy URL
-
-            // Keep-alive
-            forever: false,                    // default: false (use keep-alive)
-
-            // Other HTTP options
-            headers: {},                       // Custom headers
-            agentOptions: {},                  // HTTP agent options
-        },
-
-        // Mustache-style templating for paths
-        mustache: undefined,                 // default: undefined
-
-        // Debug mode (logs requests)
-        debug: undefined,                    // default: undefined
-
-        // Custom status codes to treat as success
-        noCustomHTTPVerbs: false,            // default: false
-
-        // Custom HTTP client
-        // rpInitialized: undefined,            // default: undefined (uses 'request-promise')
-    });
-
     const database = new Database();
 
     try {
