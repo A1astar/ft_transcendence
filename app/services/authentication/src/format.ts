@@ -5,16 +5,6 @@ export interface RegisterFormat {
     password: string;
 }
 
-export interface LoginFormat {
-    name: string;
-    password: string;
-}
-
-export interface DeleteFormat {
-    name: string;
-    password: string;
-}
-
 export interface UserFormat {
     name: string;
     password: string;

@@ -1,15 +1,16 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3"
+import fastifySession from '@fastify/session';
 import fastifyCookie from '@fastify/cookie';
 // import HashiCorpVault from 'node-vault';
-import session from '@fastify/session';
+import crypto from 'crypto';
 import color from 'chalk';
 
-import { userFormatCorrect, RegisterFormat } from './format.js';
+import { userFormatCorrect, RegisterFormat, UserFormat } from './format.js';
+import { initFastifyInstance } from './init.js';
 import { printRequest } from './print.js';
 import Database from "./database.js";
 import { User } from "./user.js";
-
 
 function getRequestHeaders(request: FastifyRequest) : object {
     if (!request.headers)
@@ -23,12 +24,23 @@ function getRequestBody(request: FastifyRequest) : object {
     return Object.entries(request.body);
 }
 
-function logAccount(request: FastifyRequest, database: Database) {
-    console.log(color.bold.italic.yellow("----- LOGIN -----"));
-    printRequest(request);
+function printSession(request: FastifyRequest) {
+    console.log(color.bold.white('Session ID:'));
+    console.log(color.blue(request.session.sessionId));
+    console.log(color.bold.white('Cookie ID:'));
+    console.log(color.blue(request.cookies['id']));
 }
 
-function registerAccount(request: FastifyRequest, database: Database) {
+function logAccount(request: FastifyRequest, reply: FastifyReply, database: Database) {
+    console.log(color.bold.italic.yellow("----- LOGIN -----"));
+    console.log(color.red('Raw body:'), JSON.stringify(request.body, null, 2));
+    const user = request.body as UserFormat;
+
+    console.log(color.bold.blue('username: ') + user.name);
+    console.log(color.bold.blue('password: ') + user.password);
+}
+
+function registerAccount(request: FastifyRequest, reply: FastifyReply, database: Database) {
 
     console.log(color.bold.italic.yellow("\n----- REGISTER -----"));
 
@@ -39,17 +51,47 @@ function registerAccount(request: FastifyRequest, database: Database) {
         database.addUser(userInfo);
 }
 
+function registerOAuth(path: string, request: FastifyRequest, reply: FastifyReply, database: Database) {
+    let provider;
+    const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
+
+    if (oauthMatch) {
+        provider = oauthMatch[1];
+        console.log(color.bold.blue(provider));
+    }
+
+    switch (provider) {
+        case 'google':
+            console.log(color.bold.cyan('google'));
+            break;
+        case 'linkedin':
+            console.log(color.bold.cyan('linkedin'));
+            break;
+        case 'github':
+            console.log(color.bold.cyan('github'));
+            break;
+        default:
+            reply.code(409).send({ error: "Wrong oauth provider." });
+    }
+}
+
 async function manageRequest(fastify: FastifyInstance, database: Database) {
 
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;
+        console.log(request.body);
+        console.log(color.bold.blue(path));
 
         switch (path) {
-            case "/auth/login":
-                logAccount(request, database);
+            case "/api/auth/login":
+                logAccount(request, reply, database);
                 break;
-            case "/auth/register":
-                registerAccount(request, database);
+            case "/api/auth/register":
+                registerAccount(request, reply, database);
+                break;
+            case path?.startsWith('/api/auth/oauth/'):
+                if (path)
+                    registerOAuth(path, request, reply, database);
                 break;
             default:
                 reply.code(404).send({ error: "Route not found "});
@@ -58,11 +100,15 @@ async function manageRequest(fastify: FastifyInstance, database: Database) {
     });
 }
 
-function initAuthenticationService(fastify: FastifyInstance) : void {
+async function initAuthenticationService(fastify: FastifyInstance) : Promise<void> {
     fastify.register(fastifyCookie);
-    fastify.register(session, {
-        secret: 'a random secret that shoud be longer than length 32',
-        cookie: { secure: false, maxAge: 3600 * 1000 },
+    fastify.register(fastifySession, {
+        secret: crypto.randomBytes(32).toString('hex'),
+        cookie: {
+            secure: false,
+            httpOnly: true,
+            maxAge: 3600 * 1000
+        },
     });
 
     fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
@@ -74,116 +120,24 @@ function initAuthenticationService(fastify: FastifyInstance) : void {
     console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
 }
 
+function initDatabase() {
+    return new Database();
+}
+
 function main() {
 
-    const fastify = Fastify({
-        // AJV options for schema validation
-        ajv: {
-            customOptions: {},
-            plugins: []
-        },
-
-        // Body size limit (bytes)
-        bodyLimit: 1048576,                 // default: 1MB
-
-        // Case sensitivity for routes
-        // caseSensitive: true,                // default: true
-
-        // Connection timeout (milliseconds)
-        connectionTimeout: 0,               // default: 0 (disabled)
-
-        // Disable request logging
-        disableRequestLogging: false,       // default: false
-
-        // Expose HEAD routes for GET routes
-        exposeHeadRoutes: true,             // default: true
-
-        // Force close connections on close
-        forceCloseConnections: false,       // default: false
-
-        // Custom request ID generator
-        // genReqId: (req) => {                // default: incremental counter
-        //     return `req-${Date.now()}-${Math.random()}`;
-        // },
-
-        // HTTP/2 support
-        // http2: false,                       // default: false
-
-        // HTTP/2 session timeout
-        // http2SessionTimeout: 72000,         // default: 72000ms (72s)
-
-        // HTTPS/TLS options
-        // https: undefined,                   // default: undefined (provide { key, cert } for HTTPS)
-
-        // Ignore trailing slashes in routes
-        // ignoreTrailingSlash: false,         // default: false
-
-        // Ignore duplicate slashes in routes
-        // ignoreDuplicateSlashes: false,      // default: false
-
-        // Keep-alive timeout
-        keepAliveTimeout: 72000,            // default: 72000ms (Node.js default)
-
-        // Logging configuration
-        logger: true,                       // default: false (or pino options)
-
-        // Max param length
-        // maxParamLength: 100,                // default: 100
-
-        // Max request headers count
-        maxRequestsPerSocket: 0,            // default: 0 (unlimited)
-
-        // On protocol error behavior
-        // onProtocolError: 'error',           // default: 'error' | 'ignore'
-
-        // Plugin timeout
-        pluginTimeout: 10000,               // default: 10000ms (10s)
-
-        // Query string parser
-        // querystringParser: undefined,       // default: undefined (uses Node's)
-
-        // Request ID header name
-        requestIdHeader: false,             // default: false (or string header name)
-
-        // Request ID log label
-        requestIdLogLabel: 'reqId',         // default: 'reqId'
-
-        // Request timeout
-        requestTimeout: 0,                  // default: 0 (disabled)
-
-        // Return 503 on closing
-        return503OnClosing: true,           // default: true
-
-        // Rewrite URL function
-        rewriteUrl: undefined,              // default: undefined
-
-        // Schema controller
-        schemaController: undefined,        // default: undefined
-
-        // Schema error formatter
-        schemaErrorFormatter: undefined,    // default: undefined
-
-        // Serializer options
-        serializerOpts: {},                 // default: {}
-
-        // Server factory (custom server)
-        serverFactory: undefined,           // default: undefined
-
-        // Trust proxy
-        trustProxy: false,                  // default: false (or true, string, number, function)
-
-        // Versioning options
-        // versioning: undefined,              // default: undefined
-    });
-    const database = new Database();
+    const fastify = initFastifyInstance();
+    const database = initDatabase();
 
     try {
         initAuthenticationService(fastify);
+        // await initAuthenticationService(fastify).then(manageRequest(fastify, database)):
         // initSQLite3Database(betterSQLite3);
         manageRequest(fastify, database);
 
     } catch (err) {
         console.error(err);
+        process.exit(1);
     }
 }
 

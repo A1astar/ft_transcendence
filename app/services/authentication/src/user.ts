@@ -14,14 +14,18 @@ export function* generateId() : Generator<number> {
 }
 
 export class User {
-    // constructor(id: number, mail: string, name: string, password: string, session: string,
-    //     isActive: boolean
-    constructor(name: string, password: string)
+    name: string;
+    email: string;
+    password: string;
+
+    // get printUser(user: User) {
+    //     console.log(user.name + user.email);
+    // }
+
+    constructor(name: string, password: string, email: string)
     {
         this.name = name;
+        this.email = email;
         this.password = password;
     }
-
-    name: string;
-    password: string;
 }

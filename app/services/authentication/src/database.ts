@@ -5,20 +5,28 @@ import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3
 export default class Database {
     private users: Map<string, User> = new Map();
 
-    // getUser(username: string) : User {
-    //     return this.users.get(username);
-    // }
-
     async authenticateUser(req: UserFormat) : Promise<boolean> {
         const user = this.users.get(req.name);
 
         if (!user)
             return false;
+
         // should decode / decrypt first
         if (user.password == req.password)
             return false;
+
         return true;
     }
+
+    async registerUser(req: UserFormat)
+
+    getUser(username: string) : User | undefined {
+        return this.users.get(username);
+    }
+
+    // getAllUsers(): User[] {
+
+    // }
 
     addUser(req: UserFormat) {
         let user = new User(req.name, req.password);
@@ -56,6 +64,16 @@ export function initSQLite3Database(betterSQLite3: BetterSQLite3Database) : void
     });
 
     betterSQLite3.exec(`
+            CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            email TEXT,
+            created_at INTEGER DEFAULT (strftime('%s', 'now'))
+        );
+
+        CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
+        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     `);
 }
 
