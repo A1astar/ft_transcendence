@@ -2,12 +2,22 @@ import { User } from "./user.js"
 
 export interface RegisterFormat {
     name: string;
+    email: string;
     password: string;
 }
 
 export interface UserFormat {
+    id: number;
     name: string;
-    password: string;
+    email: string;
+    passwordHash: string;
+}
+
+export interface Session {
+    sessoinID: number;
+    userID: number;
+    createdAt: Date;
+    expiresAt: Date;
 }
 
 function passwordValid(password: string) : boolean {
@@ -17,7 +27,8 @@ function passwordValid(password: string) : boolean {
 }
 
 function usernameValid(username: string) : boolean {
-    // if (username.length == 0 && /^[a-zA-Z0-9])
+    if (username.length === 0 || !/^[a-zA-Z0-9_]+$/.test(username))
+        throw new Error("Username must contain only alphanumeric characters");
     return true;
 }
 

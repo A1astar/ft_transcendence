@@ -4,6 +4,7 @@ import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3
 
 export default class Database {
     private users: Map<string, User> = new Map();
+    private sessions: Map<string, User> = new Map();
 
     async authenticateUser(req: UserFormat) : Promise<boolean> {
         const user = this.users.get(req.name);
@@ -27,9 +28,9 @@ export default class Database {
     }
 
     addUser(req: UserFormat) {
-        let user = new User(req.name, req.password);
+        // let user = new User(req.name, req.password);
 
-        this.users.set(user.name, user);
+        // this.users.set(user.name, user);
     }
 
     deleteUser(req: UserFormat) {
