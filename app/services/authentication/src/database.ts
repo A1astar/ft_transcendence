@@ -18,15 +18,13 @@ export default class Database {
         return true;
     }
 
-    async registerUser(req: UserFormat)
+    async registerUser(req: UserFormat) {
+
+    }
 
     getUser(username: string) : User | undefined {
         return this.users.get(username);
     }
-
-    // getAllUsers(): User[] {
-
-    // }
 
     addUser(req: UserFormat) {
         let user = new User(req.name, req.password);
