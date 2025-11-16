@@ -27,10 +27,6 @@ export default class Database {
         return this.users.get(username);
     }
 
-    // getAllUsers(): User[] {
-
-    // }
-
     addUser(req: UserFormat) {
         // let user = new User(req.name, req.password);
 

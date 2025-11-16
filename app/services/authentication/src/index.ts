@@ -64,8 +64,8 @@ function registerOAuth(path: string, request: FastifyRequest, reply: FastifyRepl
         case 'google':
             console.log(color.bold.cyan('google'));
             break;
-        case 'linkedin':
-            console.log(color.bold.cyan('linkedin'));
+        case 'intra42':
+            console.log(color.bold.cyan('intra42'));
             break;
         case 'github':
             console.log(color.bold.cyan('github'));
