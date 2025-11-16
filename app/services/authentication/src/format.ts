@@ -32,9 +32,9 @@ function usernameValid(username: string) : boolean {
     return true;
 }
 
-export function userFormatCorrect(user: UserFormat) : boolean {
+// export function userFormatCorrect(user: UserFormat) : boolean {
 
-    if (usernameValid(user.name) && passwordValid(user.password))
-        return true;
-    return false;
-}
+//     if (usernameValid(user.name) && passwordValid(user.password))
+//         return true;
+//     return false;
+// }

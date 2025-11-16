@@ -13,7 +13,7 @@ export default class Database {
             return false;
 
         // should decode / decrypt first
-        if (user.password == req.password)
+        if (user.password == req.passwordHash)
             return false;
 
         return true;

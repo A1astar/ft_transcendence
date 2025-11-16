@@ -6,7 +6,7 @@ import fastifyCookie from '@fastify/cookie';
 import crypto from 'crypto';
 import color from 'chalk';
 
-import { userFormatCorrect, RegisterFormat, UserFormat } from './format.js';
+import { RegisterFormat, UserFormat } from './format.js';
 import { initFastifyInstance } from './init.js';
 import { printRequest } from './print.js';
 import Database from "./database.js";
@@ -37,7 +37,7 @@ function logAccount(request: FastifyRequest, reply: FastifyReply, database: Data
     const user = request.body as UserFormat;
 
     console.log(color.bold.blue('username: ') + user.name);
-    console.log(color.bold.blue('password: ') + user.password);
+    console.log(color.bold.blue('password: ') + user.passwordHash);
 }
 
 function registerAccount(request: FastifyRequest, reply: FastifyReply, database: Database) {
