@@ -161,7 +161,7 @@ export function renderGame(match : any) {
 
         // Connect to WebSocket
         const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${gameId}`);
-        
+
         // Set up keyboard controls
         const handleKeyDown = (event: KeyboardEvent) => {
             const key = event.key.toLowerCase();
