@@ -25,28 +25,16 @@ function updateScore(GameState: any) {
         GameState.score.right++;
 }
 
-function displayScore(matchInfos: any, appDiv: HTMLElement, GameState: any) {
+function displayScore(appDiv : HTMLElement, GameState : any) {
     let scoreBoard = document.getElementById("scoreBoard");
 
-    if (!scoreBoard) {
+    if(!scoreBoard) {
         scoreBoard = createBoxDiv("scoreBoard");
-        scoreBoard.appendChild(
-            createSubheadingText(
-                `${matchInfos.players[0].alias}: \
-        ${GameState.score.left} - ${matchInfos.players[1].alias}: ${GameState.score.right}`,
-                "center",
-            ),
-        );
+        scoreBoard.appendChild(createSubheadingText(`: ${GameState.score.left} - Player2: ${GameState.score.right}`, "center"));
         appDiv.appendChild(scoreBoard);
     }
     scoreBoard.innerHTML = "";
-    scoreBoard.appendChild(
-        createSubheadingText(
-            `${matchInfos.players[0].alias}: \
-    ${GameState.score.left} - ${matchInfos.players[1].alias}: ${GameState.score.right}`,
-            "center",
-        ),
-    );
+    scoreBoard.appendChild(createSubheadingText(`Player1: ${GameState.score.left} - Player2: ${GameState.score.right}`, "center"));
     appDiv.appendChild(scoreBoard);
 }
 
@@ -94,7 +82,7 @@ function createSkybox(scene: any) {
     skybox.infiniteDistance = true;
 }
 
-export function renderGame(matchInfos: any) {
+export function renderGame(match : any) {
     if (appDiv) {
         clearDiv(appDiv);
 
