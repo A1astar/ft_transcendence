@@ -22,8 +22,11 @@ function updateScore(GameState : any) {
         GameState.score.right++;
 }
 
-function displayScore(GameState : any) {
-
+function displayScore(appDiv : HTMLElement, GameState : any) {
+    clearDiv(document.getElementById("scoreBoard"));
+    const scoreBoard = createBoxDiv("scoreBoard");
+    scoreBoard.appendChild(createSubheadingText(`Player1: ${GameState.score.left} - Player2: ${GameState.score.right}`));
+    appDiv.appendChild(scoreBoard);
 }
 
 function createCamera(scene: any, canvas: HTMLCanvasElement) {
@@ -211,7 +214,7 @@ export function renderGame() {
                 // Update score if you have score elements
                 if (gameState.score) {
                     updateScore(gameState);
-                    displayScore(gameState);
+                    displayScore(appDiv, gameState);
                     // console.log('Score:', gameState.score);
                 }
             }
