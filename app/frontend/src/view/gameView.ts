@@ -16,6 +16,26 @@ import {
 
 const appDiv = document.getElementById("app");
 
+function updateScore(GameState : any) {
+    if(GameState.ball.x == -10)
+        GameState.score.left++;
+    if(GameState.ball.x == 10)
+        GameState.score.right++;
+}
+
+function displayScore(appDiv : HTMLElement, GameState : any) {
+    let scoreBoard = document.getElementById("scoreBoard");
+
+    if(!scoreBoard) {
+        scoreBoard = createBoxDiv("scoreBoard");
+        scoreBoard.appendChild(createSubheadingText(`: ${GameState.score.left} - Player2: ${GameState.score.right}`, "center"));
+        appDiv.appendChild(scoreBoard);
+    }
+    scoreBoard.innerHTML = "";
+    scoreBoard.appendChild(createSubheadingText(`Player1: ${GameState.score.left} - Player2: ${GameState.score.right}`, "center"));
+    appDiv.appendChild(scoreBoard);
+}
+
 function createCamera(scene: any, canvas: HTMLCanvasElement) {
     const camera = new BABYLON.FreeCamera(
         "camera1",
@@ -64,7 +84,7 @@ function createSkybox(scene: any) {
     skybox.infiniteDistance = true;
 }
 
-export function renderGame() {
+export function renderGame(match : any) {
     if (appDiv) {
         clearDiv(appDiv);
 
@@ -172,12 +192,12 @@ export function renderGame() {
         ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
             // console.log('Received game state:', message);
-            
+
             if (message.error) {
                 console.error('Game engine error:', message.error);
                 return;
             }
-            
+
             if (message.type === 'gameState') {
                 const gameState = message.data;
                 // console.log('Game state data:', gameState);
@@ -200,6 +220,8 @@ export function renderGame() {
 
                 // Update score if you have score elements
                 if (gameState.score) {
+                    updateScore(gameState);
+                    displayScore(appDiv, gameState);
                     // console.log('Score:', gameState.score);
                 }
             }
