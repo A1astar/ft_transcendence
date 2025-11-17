@@ -24,6 +24,8 @@ export class GameMenuViewBinder implements ViewEventBinder {
     }
 
     // local game
+
+    // local game
     private onLocalClick = async (event: MouseEvent) => {
         event.preventDefault();
         const guestUsername = localStorage.getItem("guestUsername");
@@ -73,6 +75,8 @@ export class GameMenuViewBinder implements ViewEventBinder {
     }
 
     // remote game
+
+    // remote game
     private showWaitingPopup() {
         const popup = document.createElement('div');
         popup.id = 'waitingPopup';
@@ -103,6 +107,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
         }
     }
     private async pollForMatch2(signal: AbortSignal, matchRequest: any): Promise<any> {
+    private async pollForMatch2(signal: AbortSignal, matchRequest: any): Promise<any> {
         const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/status?alias=${encodeURIComponent(matchRequest.player.alias)}`, {
             method: "GET",
             headers: {
@@ -117,6 +122,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
         if (match.status === 'waiting') {
             // Wait for 1 second before polling again
             await new Promise(resolve => setTimeout(resolve, 1000));
+            return this.pollForMatch2(signal, matchRequest);
             return this.pollForMatch2(signal, matchRequest);
         }
         return match;
@@ -165,6 +171,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
 
             let match;
             if (initialResponse.status === 'waiting') {
+                match = await this.pollForMatch2(signal, matchRequest);
                 match = await this.pollForMatch2(signal, matchRequest);
             } else {
                 match = initialResponse;
@@ -303,11 +310,15 @@ export class GameMenuViewBinder implements ViewEventBinder {
     }
 
     // tournament 4
+
+    // tournament 4
     private onTournament4Click(this: HTMLElement, event: MouseEvent) {
         event.preventDefault();
         history.pushState({}, "", "/game/tournament/4");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
+
+    // tournament 8
 
     // tournament 8
     private onTournament8Click(this: HTMLElement, event: MouseEvent) {
