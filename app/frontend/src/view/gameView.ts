@@ -15,6 +15,17 @@ import {
 
 const appDiv = document.getElementById("app");
 
+function updateScore(GameState : any) {
+    if(GameState.ball.x == -10)
+        GameState.score.left++;
+    if(GameState.ball.x == 10)
+        GameState.score.right++;
+}
+
+function displayScore(GameState : any) {
+
+}
+
 function createCamera(scene: any, canvas: HTMLCanvasElement) {
     const camera = new BABYLON.FreeCamera(
         "camera1",
@@ -140,7 +151,7 @@ export function renderGame() {
 
         // Connect to WebSocket
         const ws = new WebSocket(`ws://localhost:3003/api/game-engine/${gameId}`);
-        
+
         // Set up keyboard controls
         const handleKeyDown = (event: KeyboardEvent) => {
             const key = event.key.toLowerCase();
@@ -171,12 +182,12 @@ export function renderGame() {
         ws.onmessage = (event) => {
             const message = JSON.parse(event.data);
             // console.log('Received game state:', message);
-            
+
             if (message.error) {
                 console.error('Game engine error:', message.error);
                 return;
             }
-            
+
             if (message.type === 'gameState') {
                 const gameState = message.data;
                 // console.log('Game state data:', gameState);
@@ -199,6 +210,8 @@ export function renderGame() {
 
                 // Update score if you have score elements
                 if (gameState.score) {
+                    updateScore(gameState);
+                    displayScore(gameState);
                     // console.log('Score:', gameState.score);
                 }
             }
