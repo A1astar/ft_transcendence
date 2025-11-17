@@ -57,9 +57,9 @@ export class GameMenuViewBinder implements ViewEventBinder {
             if (!res2.ok) throw new Error('Second player request failed');
             const match = await res2.json();
             sessionStorage.setItem('currentGameId', match.id);
-            
+
             // Render game view
-            renderGame();
+            renderGame(match);
             history.pushState({}, "", "/game/local");
             window.dispatchEvent(new PopStateEvent("popstate"));
         } catch (error) {
@@ -104,10 +104,10 @@ export class GameMenuViewBinder implements ViewEventBinder {
             },
             signal
         });
-        
+
         if (!res.ok) throw new Error('Failed to check match status');
         const match = await res.json();
-        
+
         if (match.status === 'waiting') {
             // Wait for 1 second before polling again
             await new Promise(resolve => setTimeout(resolve, 1000));
@@ -119,7 +119,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
     private onRemote2Click = async (event: MouseEvent) => {
         event.preventDefault();
         const guestUsername = localStorage.getItem("guestUsername");
-        
+
         const matchRequest = {
             player: {
                 alias: guestUsername || "guest"
@@ -131,7 +131,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
         // Show waiting popup
         const waitingPopup = this.showWaitingPopup();
         const cancelButton = waitingPopup.querySelector('#cancelMatchmaking');
-        
+
         // Create an AbortController to handle cancellation
         const controller = new AbortController();
         const signal = controller.signal;
@@ -154,9 +154,9 @@ export class GameMenuViewBinder implements ViewEventBinder {
             });
 
             if (!res.ok) throw new Error('Failed to join queue');
-            
+
             const initialResponse = await res.json();
-            
+
             let match;
             if (initialResponse.status === 'waiting') {
                 match = await this.pollForMatch(signal, matchRequest);
@@ -169,7 +169,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
 
             // Start the game
             sessionStorage.setItem('currentGameId', match.id);
-            renderGame();
+            renderGame(match);
             history.pushState({}, "", "/game/remote2");
             window.dispatchEvent(new PopStateEvent("popstate"));
         } catch (error: unknown) {

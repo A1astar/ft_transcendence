@@ -23,9 +23,15 @@ function updateScore(GameState : any) {
 }
 
 function displayScore(appDiv : HTMLElement, GameState : any) {
-    clearDiv(document.getElementById("scoreBoard"));
-    const scoreBoard = createBoxDiv("scoreBoard");
-    scoreBoard.appendChild(createSubheadingText(`Player1: ${GameState.score.left} - Player2: ${GameState.score.right}`));
+    let scoreBoard = document.getElementById("scoreBoard");
+
+    if(!scoreBoard) {
+        scoreBoard = createBoxDiv("scoreBoard");
+        scoreBoard.appendChild(createSubheadingText(`: ${GameState.score.left} - Player2: ${GameState.score.right}`, "center"));
+        appDiv.appendChild(scoreBoard);
+    }
+    scoreBoard.innerHTML = "";
+    scoreBoard.appendChild(createSubheadingText(`Player1: ${GameState.score.left} - Player2: ${GameState.score.right}`, "center"));
     appDiv.appendChild(scoreBoard);
 }
 
@@ -77,7 +83,7 @@ function createSkybox(scene: any) {
     skybox.infiniteDistance = true;
 }
 
-export function renderGame() {
+export function renderGame(match : any) {
     if (appDiv) {
         clearDiv(appDiv);
 
