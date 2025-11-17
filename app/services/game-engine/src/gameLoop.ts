@@ -56,7 +56,9 @@ export function broadcastGameState(gameId: string, game: Game, connections: Set<
 			ball: { x: game.ball.x, y: game.ball.y },
 			paddles: {
 				left: { x: game.paddles.left.x, y: game.paddles.left.y },
-				right: { x: game.paddles.right.x, y: game.paddles.right.y }
+				right: { x: game.paddles.right.x, y: game.paddles.right.y },
+				up: { x: game.paddles.up.x, y: game.paddles.up.y },
+				down: { x: game.paddles.down.x, y: game.paddles.down.y }
 			},
 			score: game.score
 		}

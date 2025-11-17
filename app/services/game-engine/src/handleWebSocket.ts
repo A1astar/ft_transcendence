@@ -4,13 +4,19 @@ import chalk from 'chalk';
 
 
 function resolvePlayerSide(game: Game): 'left' | 'right' | 'up' | 'down' | '' {
-    if (game.mode === 'remote2' && game.players.left === 0) {
+    if ((game.mode === 'remote2' || game.mode === 'remote4') && game.players.left === 0) {
         game.players.left = 1;
         return 'left';
-    } else if (game.mode === 'remote2' && game.players.left !== 0 && game.players.right === 0) {
+    } else if ((game.mode === 'remote2' || game.mode === 'remote4') && game.players.left !== 0 && game.players.right === 0) {
         game.players.right = 1;
         return 'right';
-    }
+    } else if (game.mode === 'remote4' && game.players.up === 0) {
+		game.players.up = 1;
+		return 'up';
+	} else if (game.mode === 'remote4' && game.players.down === 0) {
+		game.players.down = 1;
+		return 'down';
+	}
     return '';
 }
 
@@ -29,8 +35,26 @@ function keyMovements(game: Game, connection: any, playerside: 'left' | 'right' 
 					else if (key == 'p' && playerside === 'right')
 						game.paddleMovement.rightUp = true;
 					else if (key == 'l' && playerside === 'right')
-						game.paddleMovement.rightDown = true;					
+						game.paddleMovement.rightDown = true;
 				}
+				else if (game.mode === 'remote4') {
+					if (key == 'w' && playerside === 'left')
+						game.paddleMovement.leftUp = true;
+					else if (key == 's' && playerside === 'left')
+						game.paddleMovement.leftDown = true;
+					else if (key == 'p' && playerside === 'right')
+						game.paddleMovement.rightUp = true;
+					else if (key == 'l' && playerside === 'right')
+						game.paddleMovement.rightDown = true;
+					else if (key == 'w' && playerside === 'up')
+						game.paddleMovement.upLeft = true;
+					else if (key == 's' && playerside === 'up')
+						game.paddleMovement.upRight = true;
+					else if (key == 'p' && playerside === 'down')
+						game.paddleMovement.downRight = true;
+					else if (key == 'l' && playerside === 'down')
+						game.paddleMovement.downLeft = true;
+					}
 				else {
 					if (key == 'w')
 						game.paddleMovement.leftUp = true;
@@ -39,7 +63,7 @@ function keyMovements(game: Game, connection: any, playerside: 'left' | 'right' 
 					else if (key == 'p')
 						game.paddleMovement.rightUp = true;
 					else if (key == 'l')
-						game.paddleMovement.rightDown = true;						
+						game.paddleMovement.rightDown = true;
 				}
 			}
 			else if (type === 'keyRelease') {
@@ -51,8 +75,26 @@ function keyMovements(game: Game, connection: any, playerside: 'left' | 'right' 
 					else if (key == 'p' && playerside === 'right')
 						game.paddleMovement.rightUp = false;
 					else if (key == 'l' && playerside === 'right')
-						game.paddleMovement.rightDown = false;					
+						game.paddleMovement.rightDown = false;
 				}
+				else if (game.mode === 'remote4') {
+					if (key == 'w' && playerside === 'left')
+						game.paddleMovement.leftUp = false;
+					else if (key == 's' && playerside === 'left')
+						game.paddleMovement.leftDown = false;
+					else if (key == 'p' && playerside === 'right')
+						game.paddleMovement.rightUp = false;
+					else if (key == 'l' && playerside === 'right')
+						game.paddleMovement.rightDown = false;
+					else if (key == 'w' && playerside === 'up')
+						game.paddleMovement.upLeft = false;
+					else if (key == 's' && playerside === 'up')
+						game.paddleMovement.upRight = false;
+					else if (key == 'p' && playerside === 'down')
+						game.paddleMovement.downRight = false;
+					else if (key == 'l' && playerside === 'down')
+						game.paddleMovement.downLeft = false;
+					}
 				else {
 					if (key == 'w')
 						game.paddleMovement.leftUp = false;
@@ -61,7 +103,7 @@ function keyMovements(game: Game, connection: any, playerside: 'left' | 'right' 
 					else if (key == 'p')
 						game.paddleMovement.rightUp = false;
 					else if (key == 'l')
-						game.paddleMovement.rightDown = false;						
+						game.paddleMovement.rightDown = false;
 				}
 			}
 		} catch (error) {

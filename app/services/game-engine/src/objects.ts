@@ -13,7 +13,9 @@ export class Game {
 	mode = '';
 	players = {
 		left: 0,
-		right: 0
+		right: 0,
+		up:0,
+		down:0
 	}
 	width = 20;     // Full scene width
 	height = 10;    // Scene height (-5 to 5)
@@ -26,16 +28,21 @@ export class Game {
 	};
 	paddles = {
 		left: { x: -8, y: 0, width: 0.25, height: 2, speed: 0.15 },
-		right: { x: 8, y: 0, width: 0.25, height: 2, speed: 0.15 }
+		right: { x: 8, y: 0, width: 0.25, height: 2, speed: 0.15 },
+		up: { x: 0, y: 4, width: 2, height: 0.25, speed: 0.15 },
+		down: { x: 0, y: -4, width: 2, height: 0.25, speed: 0.15 }
 	};
-	score = { left: 0, right: 0 };
+	score = { left: 0, right: 0, up: 0, down: 0 };
 	paddleMovement = {
 		leftUp: false,
 		leftDown: false,
 		rightUp: false,
-		rightDown: false
+		rightDown: false,
+		upLeft: false,
+		upRight: false,
+		downLeft: false,
+		downRight: false
 	};
-
 	reset() {
 		this.ball.x = 0;
 		this.ball.y = 0;
