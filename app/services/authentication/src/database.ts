@@ -1,36 +1,22 @@
-import { User, generateId } from "./user.js"
+import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
+import { User, generateId } from "./user.js";
 import { UserFormat } from "./format.js";
-import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3"
 
 export default class Database {
     private users: Map<string, User> = new Map();
     private sessions: Map<string, User> = new Map();
 
-    async authenticateUser(req: UserFormat) : Promise<boolean> {
+    authenticateUser(req: UserFormat) : void {
         const user = this.users.get(req.name);
-
         if (!user)
-            return false;
-
-        // should decode / decrypt first
-        if (user.password == req.passwordHash)
-            return false;
-
-        return true;
+            throw new Error();
     }
 
-    async registerUser(req: UserFormat) {
-
+    registerUser(req: UserFormat) : void {
     }
 
     getUser(username: string) : User | undefined {
         return this.users.get(username);
-    }
-
-    addUser(req: UserFormat) {
-        // let user = new User(req.name, req.password);
-
-        // this.users.set(user.name, user);
     }
 
     deleteUser(req: UserFormat) {
@@ -43,8 +29,8 @@ export default class Database {
     }
 }
 
-export function initSQLite3Database(betterSQLite3: BetterSQLite3Database) : void {
-    betterSQLite3 = new BetterSQLite3("database.db", {
+export function initSQLite3Database(database: BetterSQLite3Database) : BetterSQLite3Database {
+    database = new BetterSQLite3("database.db", {
         // Read-only mode
         readonly: false,                    // default: false
 
@@ -62,7 +48,7 @@ export function initSQLite3Database(betterSQLite3: BetterSQLite3Database) : void
         nativeBinding: undefined,          // default: undefined (path to native module)
     });
 
-    betterSQLite3.exec(`
+    database.exec(`
             CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             name TEXT UNIQUE NOT NULL,
@@ -74,6 +60,7 @@ export function initSQLite3Database(betterSQLite3: BetterSQLite3Database) : void
         CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
         CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     `);
+    return database;
 }
 
 /*

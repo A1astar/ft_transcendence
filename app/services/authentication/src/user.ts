@@ -1,9 +1,3 @@
-// import SQlite from 'better-sqlite3'
-
-// global.
-// window.
-// globalThis
-
 export function* generateId() : Generator<number> {
     let id = 1;
 

@@ -1,13 +1,16 @@
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3"
+import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
+
 import fastifySession from '@fastify/session';
 import fastifyCookie from '@fastify/cookie';
+
 // import HashiCorpVault from 'node-vault';
+
 import crypto from 'crypto';
 import color from 'chalk';
 
 import { RegisterFormat, UserFormat } from './format.js';
-import { initFastifyInstance } from './init.js';
+import { initFastifyInstance, initAuthenticationService } from './init.js';
 import { printRequest } from './print.js';
 import Database from "./database.js";
 import { User } from "./user.js";
@@ -26,9 +29,9 @@ function getRequestBody(request: FastifyRequest) : object {
 
 function printSession(request: FastifyRequest) {
     console.log(color.bold.white('Session ID:'));
-    console.log(color.blue(request.session.sessionId));
+    // console.log(color.blue(request.session.sessionId));
     console.log(color.bold.white('Cookie ID:'));
-    console.log(color.blue(request.cookies['id']));
+    // console.log(color.blue(request.cookies['id']));
 }
 
 function logAccount(request: FastifyRequest, reply: FastifyReply, database: Database) {
@@ -46,9 +49,6 @@ function registerAccount(request: FastifyRequest, reply: FastifyReply, database:
 
     const headers = getRequestHeaders(request);
     const userInfo = getRequestBody(request) as RegisterFormat;
-
-    if (userFormatCorrect(userInfo))
-        database.addUser(userInfo);
 }
 
 function registerOAuth(path: string, request: FastifyRequest, reply: FastifyReply, database: Database) {
@@ -89,7 +89,7 @@ async function manageRequest(fastify: FastifyInstance, database: Database) {
             case "/api/auth/register":
                 registerAccount(request, reply, database);
                 break;
-            case path?.startsWith('/api/auth/oauth/'):
+            case path?.startsWith('/api/auth/oauth'):
                 if (path)
                     registerOAuth(path, request, reply, database);
                 break;
@@ -100,40 +100,12 @@ async function manageRequest(fastify: FastifyInstance, database: Database) {
     });
 }
 
-async function initAuthenticationService(fastify: FastifyInstance) : Promise<void> {
-    fastify.register(fastifyCookie);
-    fastify.register(fastifySession, {
-        secret: crypto.randomBytes(32).toString('hex'),
-        cookie: {
-            secure: false,
-            httpOnly: true,
-            maxAge: 3600 * 1000
-        },
-    });
-
-    fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
-    if (err) {
-        fastify.log.error(err);
-        throw err;
-    }
-    })
-    console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
-}
-
-function initDatabase() {
-    return new Database();
-}
-
-function main() {
-
-    const fastify = initFastifyInstance();
-    const database = initDatabase();
-
+async function main() {
     try {
+        const fastify = initFastifyInstance();
+        const database = new Database();
         initAuthenticationService(fastify);
-        // await initAuthenticationService(fastify).then(manageRequest(fastify, database)):
-        // initSQLite3Database(betterSQLite3);
-        manageRequest(fastify, database);
+        await manageRequest(fastify, database);
 
     } catch (err) {
         console.error(err);
