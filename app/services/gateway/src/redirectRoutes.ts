@@ -9,6 +9,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendPath = path.join(__dirname, '../../../frontend');
 
+// Get server host from request (since we're connecting to remote servers)
+function getServerHostFromRequest(req: any): string {
+    const host = req.headers.host;
+    if (host) {
+        const hostname = host.split(':')[0];
+        return hostname;
+    }
+    
+    return 'localhost';
+}
+
 function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
 	return Object.fromEntries(
 		Object.entries(reqheaders)
@@ -16,14 +27,17 @@ function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
 		 key.toLowerCase() !== 'content-length' &&
 		 typeof value === 'string')
 	);
-};
+}
 
-function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: string) {
+function routeServices(fastify: FastifyInstance, basePath: string, port: number) {
 	fastify.route({
 		method: ['GET', 'POST', 'PUT', 'DELETE'],
 		url: `/${basePath}/*`,
 		handler: async (req, reply) => {
 			try {
+				const serverHost = getServerHostFromRequest(req);
+				const serviceUrl = `http://${serverHost}:${port}`;
+				
 				const res = await fetch(`${serviceUrl}${req.url}`, {
 				method: req.method,
 				headers: fetchHeaders(req.headers),
@@ -47,9 +61,9 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceUrl: s
 
 export async function routeRequest(fastify: FastifyInstance) {
 
-	routeServices(fastify, "api/auth", "http://localhost:3001");
-	routeServices(fastify, "api/game-orchestration", "http://localhost:3002");
-	routeServices(fastify, "api/game-engine", "http://localhost:3003");
+	routeServices(fastify, "api/auth", 3001);
+	routeServices(fastify, "api/game-orchestration", 3002);
+	routeServices(fastify, "api/game-engine", 3003);
 
     fastify.register(fastifyStatic, {
         root: frontendPath,

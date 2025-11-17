@@ -1,5 +1,7 @@
 import {renderGame} from "./view/gameView.js";
 import { ViewEventBinder } from "./eventsBinder.js";
+import { SERVER_BASE } from "./view/utils.js";
+
 
 export class GameMenuViewBinder implements ViewEventBinder {
     bind() {
@@ -38,7 +40,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
             tournamentRound: 0
         };
         try {
-            const res1 = await fetch("http://localhost:3002/api/game-orchestration/local", {
+            const res1 = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/local`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -47,7 +49,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
             });
 
             if (!res1.ok) throw new Error('First player request failed');
-            const res2 = await fetch("http://localhost:3002/api/game-orchestration/local", {
+            const res2 = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/local`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -97,7 +99,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
         }
     }
     private async pollForMatch(signal: AbortSignal, matchRequest: any): Promise<any> {
-        const res = await fetch(`http://localhost:3002/api/game-orchestration/remote2/status?alias=${encodeURIComponent(matchRequest.player.alias)}`, {
+        const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/status?alias=${encodeURIComponent(matchRequest.player.alias)}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
@@ -144,7 +146,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
 
         try {
             // Join queue
-            const res = await fetch("http://localhost:3002/api/game-orchestration/remote2", {
+            const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -178,7 +180,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
                 console.log('Matchmaking cancelled by user');
                 // Notify server to remove from queue
                 try {
-                    await fetch("http://localhost:3002/api/game-orchestration/remote2/leave", {
+                    await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"

@@ -1,4 +1,5 @@
 declare const BABYLON: any; // Global BABYLON from CDN
+import { SERVER_BASE } from "./utils.js";
 
 import {
     clearDiv,
@@ -150,8 +151,8 @@ export function renderGame() {
         createLight(scene);
 
         // Connect to WebSocket
-        const ws = new WebSocket(`ws://localhost:3003/api/game-engine/${gameId}`);
-
+        const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${gameId}`);
+        
         // Set up keyboard controls
         const handleKeyDown = (event: KeyboardEvent) => {
             const key = event.key.toLowerCase();
