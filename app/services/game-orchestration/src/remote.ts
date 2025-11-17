@@ -2,7 +2,6 @@ import { FastifyInstance } from "fastify";
 import { Player, MatchRequest, Match, queues } from "./objects.js";
 import { createMatch } from "./utils.js"
 
-
 // Keep track of active matches to prevent double-creation
 let activeMatches = new Map<string, Match>();
 
