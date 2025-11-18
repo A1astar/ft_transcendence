@@ -1,9 +1,5 @@
 import {renderGame} from "./view/gameView.js";
 import { ViewEventBinder } from "./eventsBinder.js";
-import { SERVER_BASE } from "./view/utils.js";
-
-import { SERVER_BASE } from "./view/utils.js";
-
 
 export class GameMenuViewBinder implements ViewEventBinder {
     bind() {
@@ -24,10 +20,6 @@ export class GameMenuViewBinder implements ViewEventBinder {
             .getElementById("Tournament8")
             ?.removeEventListener("click", this.onTournament8Click);
     }
-
-    // local game
-
-    // local game
     private onLocalClick = async (event: MouseEvent) => {
         event.preventDefault();
         const guestUsername = localStorage.getItem("guestUsername");
@@ -46,8 +38,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
             tournamentRound: 0
         };
         try {
-            const res1 = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/local`, {
-            const res1 = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/local`, {
+            const res1 = await fetch("http://localhost:3002/api/game-orchestration/local", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -56,8 +47,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
             });
 
             if (!res1.ok) throw new Error('First player request failed');
-            const res2 = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/local`, {
-            const res2 = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/local`, {
+            const res2 = await fetch("http://localhost:3002/api/game-orchestration/local", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -77,10 +67,6 @@ export class GameMenuViewBinder implements ViewEventBinder {
             alert("Failed to start local game");
         }
     }
-
-    // remote game
-
-    // remote game
     private showWaitingPopup() {
         const popup = document.createElement('div');
         popup.id = 'waitingPopup';
@@ -111,7 +97,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
         }
     }
     private async pollForMatch(signal: AbortSignal, matchRequest: any): Promise<any> {
-        const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/status?alias=${encodeURIComponent(matchRequest.player.alias)}`, {
+        const res = await fetch(`http://localhost:3002/api/game-orchestration/remote2/status?alias=${encodeURIComponent(matchRequest.player.alias)}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
@@ -125,8 +111,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
         if (match.status === 'waiting') {
             // Wait for 1 second before polling again
             await new Promise(resolve => setTimeout(resolve, 1000));
-            return this.pollForMatch2(signal, matchRequest);
-            return this.pollForMatch2(signal, matchRequest);
+            return this.pollForMatch(signal, matchRequest);
         }
         return match;
     }
@@ -159,8 +144,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
 
         try {
             // Join queue
-            const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2`, {
-            const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2`, {
+            const res = await fetch("http://localhost:3002/api/game-orchestration/remote2", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -175,8 +159,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
 
             let match;
             if (initialResponse.status === 'waiting') {
-                match = await this.pollForMatch2(signal, matchRequest);
-                match = await this.pollForMatch2(signal, matchRequest);
+                match = await this.pollForMatch(signal, matchRequest);
             } else {
                 match = initialResponse;
             }
@@ -195,8 +178,7 @@ export class GameMenuViewBinder implements ViewEventBinder {
                 console.log('Matchmaking cancelled by user');
                 // Notify server to remove from queue
                 try {
-                    await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
-                    await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
+                    await fetch("http://localhost:3002/api/game-orchestration/remote2/leave", {
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json"
@@ -217,22 +199,14 @@ export class GameMenuViewBinder implements ViewEventBinder {
         history.pushState({}, "", "/api/game-orchestration/remote4");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
-
-    // tournament 4
-
-    // tournament 4
     private onTournament4Click(this: HTMLElement, event: MouseEvent) {
         event.preventDefault();
-        history.pushState({}, "", "/game/tournament/4");
+        history.pushState({}, "", "/api/game-orchestration/tournament");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
-
-    // tournament 8
-
-    // tournament 8
     private onTournament8Click(this: HTMLElement, event: MouseEvent) {
         event.preventDefault();
-        history.pushState({}, "", "/game/tournament/8");
+        history.pushState({}, "", "/api/game-orchestration/tournament");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
 }
