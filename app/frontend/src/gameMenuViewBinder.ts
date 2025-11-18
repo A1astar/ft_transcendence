@@ -203,12 +203,12 @@ export class GameMenuViewBinder implements ViewEventBinder {
     }
     private onTournament4Click(this: HTMLElement, event: MouseEvent) {
         event.preventDefault();
-        history.pushState({}, "", "/api/game-orchestration/tournament");
+        history.pushState({}, "", "/game/tournament/4");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
     private onTournament8Click(this: HTMLElement, event: MouseEvent) {
         event.preventDefault();
-        history.pushState({}, "", "/api/game-orchestration/tournament");
+        history.pushState({}, "", "/game/tournament/8");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
 }

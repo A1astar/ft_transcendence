@@ -8,6 +8,8 @@ import {renderProfile} from "./view/profileView.js";
 import {renderSettings} from "./view/settingsView.js";
 import {bindEvents} from "./eventsBinder.js";
 import {renderGame} from "./view/gameView.js";
+import {renderTournament4} from "./view/tournament4View.js"
+import {renderTournament8} from "./view/tournament8View.js"
 
 let currentBinder: ReturnType<typeof bindEvents> | null = null;
 
@@ -19,8 +21,8 @@ const routeMap: {[key: string]: () => void} = {
     "/profile": renderProfile,
     "/settings": renderSettings,
     "/gameMenu": renderGameMenu,
-    "/game/local": renderGame,
-    "/game": renderGame,
+    "/tournament-4" : renderTournament4,
+    "/tournament-8" : renderTournament8
 };
 
 export async function router(path: string): Promise<void> {
