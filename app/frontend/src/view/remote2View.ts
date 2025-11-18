@@ -1,20 +1,20 @@
 import {
-    clearDiv,
-    createVideoBackgroundDiv,
-    createHeadingText,
-    createSubheadingText,
-    createParagraphText,
-    createFormElement,
-    createInputElement,
-    createLogoElement,
-    createButtonForm,
-    createBoxDiv,
+	clearDiv,
+	createVideoBackgroundDiv,
+	createHeadingText,
+	createSubheadingText,
+	createParagraphText,
+	createFormElement,
+	createInputElement,
+	createLogoElement,
+	createButtonForm,
+	createBoxDiv,
 	createButtonLink
 } from "./utils.js";
 
 const appDiv = document.getElementById("app");
 
-export function renderTournament4Lobby() {
+export function renderRemote2Lobby() {
 	if(appDiv) {
 		clearDiv(appDiv);
 

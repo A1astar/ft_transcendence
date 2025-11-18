@@ -19,8 +19,10 @@ import {endGameView} from "./endGameView.js";
 const appDiv = document.getElementById("app");
 
 function updateScore(GameState: any) {
-    if (GameState.ball.x == -10) GameState.score.left++;
-    if (GameState.ball.x == 10) GameState.score.right++;
+    if (GameState.ball.x == -10)
+        GameState.score.left++;
+    if (GameState.ball.x == 10)
+        GameState.score.right++;
 }
 
 function displayScore(matchInfos: any, appDiv: HTMLElement, GameState: any) {
@@ -129,11 +131,7 @@ export function renderGame(matchInfos: any) {
         const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
         ground.material = groundMaterial;
 
-        const ball = BABYLON.MeshBuilder.CreateSphere(
-            "sphere",
-            {diameter: 0.35, segments: 16}, // Reduced segments for better performance
-            scene,
-        );
+        const ball = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 0.35, segments: 16},);
         ball.material = ballMaterial;
         update3DMeshPos(ball, 0, 0.25, 0);
 
@@ -150,16 +148,16 @@ export function renderGame(matchInfos: any) {
         const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
         leftWall.material = wallMaterial;
         scaling3DMesh(leftWall, 0.25, 0.5, 10);
-        update3DMeshPos(leftWall, -10, 0, 0); // Flip X coordinate
+        update3DMeshPos(leftWall, -10, 0, 0);
 
         const rightWall = BABYLON.MeshBuilder.CreateBox("rightWall", {}, scene);
         rightWall.material = wallMaterial;
         scaling3DMesh(rightWall, 0.25, 0.5, 10);
-        update3DMeshPos(rightWall, 10, 0, 0); // Flip X coordinate
+        update3DMeshPos(rightWall, 10, 0, 0);
 
         const leftPaddle = BABYLON.MeshBuilder.CreateBox("leftPaddle", {}, scene);
         leftPaddle.material = paddleMaterial;
-        scaling3DMesh(leftPaddle, 0.25, 0.5, 2); // Using exact game dimensions
+        scaling3DMesh(leftPaddle, 0.25, 0.5, 2);
         update3DMeshPos(leftPaddle, -8, 0, 0);
 
         const rightPaddle = BABYLON.MeshBuilder.CreateBox("rightPaddle", {}, scene);
@@ -208,9 +206,9 @@ export function renderGame(matchInfos: any) {
         let gameEnded = false;
 
         ws.onmessage = (event) => {
-            if (gameEnded) return;
+            if (gameEnded)
+                return;
             const message = JSON.parse(event.data);
-            // console.log('Received game state:', message);
 
             if (message.error) {
                 console.error("Game engine error:", message.error);
