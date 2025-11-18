@@ -3,8 +3,6 @@ import {
     createVideoBackgroundDiv,
     createHeadingText,
     createSubheadingText,
-    createParagraphText,
-    createFormElement,
     createInputElement,
     createLogoElement,
     createButtonForm,
@@ -13,86 +11,123 @@ import {
 	SERVER_BASE
 } from "./utils.js";
 import { renderGame } from "./gameView.js";
+import { renderTournamentIntermediate } from "./tournamentIntermediateView.js";
 
 const appDiv = document.getElementById("app");
 
-// Handle tournament game completion and progression
-async function handleTournamentGameEnd(winner: string) {
-    const tournamentId = sessionStorage.getItem('currentTournamentId');
-    const gameId = sessionStorage.getItem('currentGameId');
-    
-    if (!tournamentId || !gameId) {
-        console.error('Missing tournament or game ID');
-        return;
-    }
-    
+// Handle tournament game completion
+async function handleTournamentGameEnd(winner: string, match: any) {
     try {
-        // First, add the winner to the next round using the main tournament endpoint
-        const winnerMatchRequest = {
-            player: {
-                alias: winner
-            },
-            mode: "tournament8" as const,
-            tournamentRound: 2, // Next round for 8-player tournament (should be dynamic)
-            tournamentId: tournamentId
-        };
-        
-        const winnerResponse = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament`, {
+        // Register winner for next round
+        await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament`, {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(winnerMatchRequest)
-        });
-        
-        const winnerData = await winnerResponse.json();
-        console.log('Winner registered for next round:', winnerData);
-        
-        // Then, try to start the next match in the current round
-        const matchEndedResponse = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament/match-ended`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                tournamentId: tournamentId,
-                matchId: gameId
+                player: { alias: winner },
+                mode: "tournament8" as const,
+                tournamentRound: match.tournamentRound + 1,
+                tournamentId: match.tournamentId
             })
         });
         
-        const matchData = await matchEndedResponse.json();
-        console.log('Tournament match-ended response:', matchData);
+        // Get next match info to show next players
+        const nextMatchData = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament/match-ended`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                tournamentId: match.tournamentId,
+                matchId: match.id
+            })
+        }).then(r => r.json());
         
-        if (matchData.status === "next match started") {
-            console.log('Next match started:', matchData.match);
-            // Update session storage with new match ID and render next game
-            sessionStorage.setItem('currentGameId', matchData.match.id);
-            renderGame(matchData.match, handleTournamentGameEnd);
-        } else {
-            console.log('All matches in current round completed');
-            // Show winner screen - check if next round is ready
-            if (winnerData.status === "game created") {
-                // Next round match is ready!
-                sessionStorage.setItem('currentGameId', winnerData.match.id);
-                renderGame(winnerData.match, handleTournamentGameEnd);
-            } else {
-                // Waiting for more winners
-                import('./endGameView.js').then(({ endGameView }) => {
-                    if (appDiv) {
-                        endGameView(`${winner} wins the match! Waiting for other matches to complete...`, appDiv);
-                    }
-                });
-            }
-        }
+        const nextPlayers = nextMatchData.status === "next match available" 
+            ? nextMatchData.match.players.map((p: any) => p.alias)
+            : undefined;
+        
+        const nextMatch = nextMatchData.status === "next match available" 
+            ? nextMatchData.match
+            : undefined;
+            
+        showIntermediatePage(winner, match, false, nextPlayers, nextMatch);
+        
     } catch (error) {
         console.error('Error handling tournament progression:', error);
-        // Fallback to regular end game view
         import('./endGameView.js').then(({ endGameView }) => {
             if (appDiv) {
                 endGameView(winner, appDiv);
             }
         });
     }
+}
+
+function showIntermediatePage(winner: string, currentMatch: any, isFirstGame: boolean = false, nextPlayers?: string[], nextMatch?: any) {
+    const intermediateInfo = {
+        winner: isFirstGame ? "Tournament Ready!" : winner,
+        currentRound: isFirstGame ? 0 : currentMatch.tournamentRound,
+        nextRound: nextMatch ? nextMatch.tournamentRound : (isFirstGame ? 1 : currentMatch.tournamentRound + 1),
+        totalRounds: 3,
+        tournamentType: "tournament8" as const,
+        nextMatch: true,
+        nextPlayers: isFirstGame ? [currentMatch.players[0].alias, currentMatch.players[1].alias] : nextPlayers,
+        isWaiting: false,
+        tournamentId: currentMatch.tournamentId
+    };
+    
+    const onNextGame = async () => {
+        try {
+            if (isFirstGame) {
+                // Start first game
+                const response = await startMatch(currentMatch.id);
+                if (response.status === "match started") {
+                    renderGame(response.match, (winner: string) => handleTournamentGameEnd(winner, response.match));
+                }
+                return;
+            }
+            
+            // Get next match
+            const matchData = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament/match-ended`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    tournamentId: currentMatch.tournamentId,
+                    matchId: currentMatch.id
+                })
+            }).then(r => r.json());
+            
+            if (matchData.status === "next match available") {
+                const response = await startMatch(matchData.match.id);
+                if (response.status === "match started") {
+                    renderGame(response.match, (winner: string) => handleTournamentGameEnd(winner, response.match));
+                }
+            } else if (matchData.status === "tournament complete") {
+                import('./endGameView.js').then(({ endGameView }) => {
+                    if (appDiv) {
+                        endGameView(`🏆 TOURNAMENT CHAMPION: ${winner}! 🏆`, appDiv);
+                    }
+                });
+            } else {
+                import('./endGameView.js').then(({ endGameView }) => {
+                    if (appDiv) {
+                        endGameView(`Tournament ended. Status: ${matchData.status}`, appDiv);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error in tournament progression:', error);
+        }
+    };
+    
+    renderTournamentIntermediate(intermediateInfo, onNextGame);
+}
+
+// Helper function to start a match
+async function startMatch(matchId: string) {
+    const response = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament/start-match`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matchId })
+    });
+    return response.json();
 }
 
 export async function handleTournament8() {
@@ -119,7 +154,7 @@ export async function handleTournament8() {
                 tournamentRound: 1
             };
 
-            const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament8`, {
+            const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -141,11 +176,9 @@ export async function handleTournament8() {
         if (!tournament) {
             throw new Error('No game created in tournament results');
         }
-        sessionStorage.setItem('currentGameId', tournament.id);
-        sessionStorage.setItem('currentTournamentId', tournament.tournamentId);
         
-        // Render tournament view or first match with tournament callback
-        renderGame(tournament, handleTournamentGameEnd);
+        // Show intermediate page before the first game instead of starting directly
+        showIntermediatePage("Tournament Ready", tournament, true); // true indicates this is the first game
         history.pushState({}, "", "/tournament/8");
         window.dispatchEvent(new PopStateEvent("popstate"));
     } catch (error) {
@@ -222,7 +255,7 @@ export function renderTournament8() {
 		// Back button
 		const backContainer = document.createElement("div");
 		backContainer.className = "text-center mt-4";
-		const backButton = createButtonLink("/home", "Back to Menu", "center");
+		const backButton = createButtonLink("/gameMenu", "Back to Menu", "center");
 		backButton.className += " text-sm px-4 py-2";
 		backContainer.appendChild(backButton);
 		tournamentBox.appendChild(backContainer);

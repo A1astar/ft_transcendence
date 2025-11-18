@@ -96,10 +96,10 @@ export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void
     if (appDiv) {
         clearDiv(appDiv);
 
-        // Get the game ID from session storage
-        const gameId = sessionStorage.getItem("currentGameId");
+        // Use the match ID from the passed matchInfos object
+        const gameId = matchInfos.id;
         if (!gameId) {
-            console.error("No game ID found");
+            console.error("No game ID found in match object");
             return;
         }
 
@@ -251,9 +251,9 @@ export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void
                 if (gameState.score) {
                     updateScore(gameState);
                     displayScore(matchInfos, appDiv, gameState);
-                    if (gameState.score.left >= 5 || gameState.score.right >= 5) {
+                    if (gameState.score.left >= 3 || gameState.score.right >= 3) {
                         const winner =
-                            gameState.score.left >= 5
+                            gameState.score.left >= 3
                                 ? matchInfos.players[0].alias
                                 : matchInfos.players[1].alias;
                         gameEnded = true;

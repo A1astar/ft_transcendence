@@ -19,92 +19,104 @@ export async function tournamentMatch(fastify: FastifyInstance) {
   fastify.post("/api/game-orchestration/tournament", async(request, reply) => {
 	const matchRequest = request.body as MatchRequest;
 	const mode = matchRequest.mode;
-	if (!queues[mode])
-			queues[mode] = [];
 	const tournamentSize = mode === "tournament4" ? 4 : 8;
 	let tournamentId = matchRequest.tournamentId;
 
+	// Initialize tournament queue if needed
 	if (!tournamentId || !tournamentQueues.has(tournamentId)) {
+		if (!queues[mode]) queues[mode] = [];
 		queues[mode].push(matchRequest.player);
+		
 		if (queues[mode].length >= tournamentSize) {
 			tournamentId = randomUUID();
 			tournamentQueues.set(tournamentId, [...queues[mode]]);
 			queues[mode] = [];
-		}
-		else {
+		} else {
 			return {status: "waiting"};
 		}
-	}
-	else {
+	} else {
 		tournamentQueues.get(tournamentId)!.push(matchRequest.player);
 	}
 	
 	const queue = tournamentQueues.get(tournamentId)!;
 	const currentRound = matchRequest.tournamentRound;
-	
-	// Calculate required players and matches for this round
 	const playersInThisRound = tournamentSize / Math.pow(2, currentRound - 1);
 	const matchesInThisRound = playersInThisRound / 2;
 	
-	console.log(`Tournament ${tournamentId}: Round ${currentRound}, ${queue.length}/${playersInThisRound} players in queue`);
-	console.log(`Need to create ${matchesInThisRound} matches for this round`);
-	
-	// Only proceed when we have all players needed for this round
+	// Create matches when we have enough players for this round
 	if (queue.length >= playersInThisRound) {
-		// Create all matches for this round but don't start them yet
 		const matches = [];
-		
 		for (let i = 0; i < matchesInThisRound; i++) {
 			const players = queue.splice(0, 2);
 			const match = createMatch(players, matchRequest.mode, currentRound, tournamentId);
-			match.status = 'waiting'; // All matches start as waiting
+			match.status = 'waiting';
 			matches.push(match);
 		}
 		
-		// Store/update matches for this tournament
 		const existingMatches = tournamentMatches.get(tournamentId) || [];
 		tournamentMatches.set(tournamentId, [...existingMatches, ...matches]);
 		
-		// Start only the first match of this round
-		const firstMatch = matches[0];
-		if (firstMatch) {
-			await startMatch(firstMatch);
-			firstMatch.status = 'running';
-			
-			console.log(`Tournament ${tournamentId}: Round ${currentRound} - Created ${matches.length} matches`);
-			console.log(`Started first match with players: ${firstMatch.players.map(p => p.alias).join(', ')}`);
-			if (matches.length > 1) {
-				console.log(`Waiting matches: ${matches.slice(1).map(m => m.players.map(p => p.alias).join(' vs ')).join(', ')}`);
-			}
-			
-			return {status: "game created", tournamentId: tournamentId, match: firstMatch};
-		}
+		return {status: "game created", tournamentId: tournamentId, match: matches[0]};
 	}
 	
-	console.log(`Tournament ${tournamentId}: Waiting for more players for round ${currentRound}`);
 	return {status: "waiting"};
 	});
 
-  // New endpoint to handle match completion and start next match
+  // Handle match completion and find next match
   fastify.post("/api/game-orchestration/tournament/match-ended", async(request, reply) => {
-	const { tournamentId } = request.body as { tournamentId: string };
+	const { tournamentId, matchId } = request.body as { tournamentId: string; matchId: string };
 	
 	const matches = tournamentMatches.get(tournamentId);
 	if (!matches) {
 		return reply.status(404).send({ error: "Tournament not found" });
 	}
 	
-	// Find the next waiting match and start it
+	// Mark current match as finished
+	const currentMatch = matches.find(m => m.id === matchId);
+	if (currentMatch) {
+		currentMatch.status = 'finished';
+	}
+	
+	// Find next waiting match (current round first, then next round)
 	const nextMatch = matches.find(m => m.status === 'waiting');
 	if (nextMatch) {
-		await startMatch(nextMatch);
-		nextMatch.status = 'running';
-		
-		console.log(`Tournament ${tournamentId}: Started next match with players: ${nextMatch.players.map(p => p.alias).join(', ')}`);
-		
-		return { status: "next match started", match: nextMatch };
+		return { status: "next match available", match: nextMatch };
+	}
+	
+	// Check if tournament is complete
+	const currentRound = currentMatch?.tournamentRound || 1;
+	const totalSize = matches[0]?.mode === "tournament4" ? 4 : 8;
+	const maxRounds = totalSize === 4 ? 2 : 3;
+	
+	if (currentRound >= maxRounds) {
+		return { status: "tournament complete" };
 	}
 	
 	return { status: "no more matches waiting" };
+  });
+
+  // Start a specific match
+  fastify.post("/api/game-orchestration/tournament/start-match", async(request, reply) => {
+	const { matchId } = request.body as { matchId: string };
+	
+	// Find the match across all tournaments
+	let targetMatch: Match | undefined;
+	for (const matches of tournamentMatches.values()) {
+		targetMatch = matches.find(m => m.id === matchId);
+		if (targetMatch) break;
+	}
+	
+	if (!targetMatch) {
+		return reply.status(404).send({ error: "Match not found" });
+	}
+	
+	if (targetMatch.status !== 'waiting') {
+		return reply.status(400).send({ error: `Match is not in waiting status. Current status: ${targetMatch.status}` });
+	}
+	
+	await startMatch(targetMatch);
+	targetMatch.status = 'running';
+	
+	return { status: "match started", match: targetMatch };
   });
 }
