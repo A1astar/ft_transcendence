@@ -14,12 +14,12 @@ import {
 
 const appDiv = document.getElementById("app");
 
-export function renderTournament8Lobby() {
+export function renderTournament8() {
 	if(appDiv) {
 		clearDiv(appDiv);
 
 
-		appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Sauron.mp4"));
+		appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
 		appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));
 	}
