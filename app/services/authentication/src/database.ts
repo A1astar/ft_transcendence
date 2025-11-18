@@ -1,30 +1,61 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import { User, generateId } from "./user.js";
-import { UserFormat } from "./format.js";
+import { AuthenticationFormat, RegistrationFormat } from "./format.js";
+import crypto from 'crypto';
 import color from 'chalk';
+
+export interface Session {
+    userId: string
+    sessionId: string,
+}
 
 export default class Database {
     private users: Map<string, User> = new Map();
-    private sessions: Map<string, User> = new Map();
+    private usersByName: Map<string, User> = new Map();
+    private sessions: Map<number, User> = new Map();
 
-    authenticateUser(req: UserFormat) : void {
+    printDatabase() {
+        console.log(color.bold.cyan('\n=== Database Contents ==='));
+
+        this.users.forEach((user, key) => {
+            console.log(color.yellow(`ID: ${user.id}`));
+            console.log(color.green(`Name: ${user.name}`));
+            console.log(color.blue(`Email: ${user.email}`));
+            console.log('---');
+        });
+    }
+
+    createSession(userId: string) : Session {
+        const sessionId = crypto.randomBytes(32).toString('hex');
+
+        const session: Session = {
+            userId: userId,
+            sessionId: sessionId
+        };
+        return session;
+    }
+
+    authenticateUser(req: AuthenticationFormat) : void {
         const user = this.users.get(req.name);
         if (!user) {
-            console.log(color.red("Can't find user in database"));
+            console.log(color.red("can't find user in database"));
             throw new Error();
-
         }
     }
 
-    registerUser(req: UserFormat) : void {
+    registerUser(req: RegistrationFormat) : void {
+        const user = new User(req);
+        const session = this.createSession(user.id);
 
+        this.users.set(user.id, user);
+        this.sessions.set(session.id, session);
     }
 
     getUser(username: string) : User | undefined {
         return this.users.get(username);
-    }
+   }
 
-    deleteUser(req: UserFormat) {
+    deleteUser(req: AuthenticationFormat) {
         const user = this.users.get(req.name);
 
         if (!user)
@@ -34,8 +65,8 @@ export default class Database {
     }
 }
 
-export function initSQLite3Database(database: BetterSQLite3Database) : BetterSQLite3Database {
-    database = new BetterSQLite3("database.db", {
+export function initSQLite3Database() : BetterSQLite3Database {
+    const sqlite = new BetterSQLite3("database.db", {
         // Read-only mode
         readonly: false,                    // default: false
 
@@ -53,7 +84,7 @@ export function initSQLite3Database(database: BetterSQLite3Database) : BetterSQL
         nativeBinding: undefined,          // default: undefined (path to native module)
     });
 
-    database.exec(`
+    sqlite.exec(`
             CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             name TEXT UNIQUE NOT NULL,
@@ -65,10 +96,11 @@ export function initSQLite3Database(database: BetterSQLite3Database) : BetterSQL
         CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
         CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
     `);
-    return database;
+    return sqlite;
 }
 
-/*
+/* SQLite database
+
 // Database Connection
 db.close()
 db.pragma(string, options?)

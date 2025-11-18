@@ -1,9 +1,15 @@
 import { User } from "./user.js"
 
-export interface RegisterFormat {
+export interface RegistrationFormat {
     name: string;
     email: string;
     password: string;
+}
+
+export interface AuthenticationFormat {
+    name: string;
+    email: string;
+    passwordHash: string;
 }
 
 export interface UserFormat {

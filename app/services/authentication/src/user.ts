@@ -1,6 +1,10 @@
+import { RegistrationFormat  } from "./format";
+import crypto from 'crypto';
+
+const idGenerator = generateId();
+
 export function* generateId() : Generator<number> {
     let id = 1;
-
     while (true) {
         yield id;
         ++id;
@@ -8,18 +12,17 @@ export function* generateId() : Generator<number> {
 }
 
 export class User {
+    id: string;
     name: string;
     email: string;
     password: string;
 
-    // get printUser(user: User) {
-    //     console.log(user.name + user.email);
-    // }
-
-    constructor(name: string, password: string, email: string)
+    constructor(request: RegistrationFormat)
     {
-        this.name = name;
-        this.email = email;
-        this.password = password;
+        // this.id = idGenerator.next().value;
+        this.id = crypto.randomUUID();
+        this.name = request.name;
+        this.email = request.email;
+        this.password = request.password;
     }
 }
