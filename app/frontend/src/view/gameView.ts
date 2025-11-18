@@ -92,7 +92,7 @@ function createSkybox(scene: any) {
     skybox.infiniteDistance = true;
 }
 
-export function renderGame(matchInfos: any) {
+export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void) {
     if (appDiv) {
         clearDiv(appDiv);
 
@@ -260,7 +260,14 @@ export function renderGame(matchInfos: any) {
                         ws.close();
                         document.removeEventListener("keydown", handleKeyDown);
                         document.removeEventListener("keyup", handleKeyUp);
-                        endGameView(winner, appDiv);
+                        
+                        // Call the onGameEnd callback if provided (for tournament handling)
+                        if (onGameEnd) {
+                            onGameEnd(winner);
+                        } else {
+                            // Default behavior for non-tournament games
+                            endGameView(winner, appDiv);
+                        }
                         return;
                     }
                 }

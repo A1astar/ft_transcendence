@@ -1,6 +1,7 @@
 import {renderGame} from "./view/gameView.js";
 import { ViewEventBinder } from "./eventsBinder.js";
 import { SERVER_BASE } from "./view/utils.js";
+import { renderTournament4 } from "./view/tournament4View.js";
 
 
 export class GameMenuViewBinder implements ViewEventBinder {
@@ -305,8 +306,9 @@ export class GameMenuViewBinder implements ViewEventBinder {
     // tournament 4
     private onTournament4Click(this: HTMLElement, event: MouseEvent) {
         event.preventDefault();
-        history.pushState({}, "", "/api/game-orchestration/tournament");
-        window.dispatchEvent(new PopStateEvent("popstate"));
+        renderTournament4();
+        // history.pushState({}, "", "/api/game-orchestration/tournament");
+        // window.dispatchEvent(new PopStateEvent("popstate"));
     }
 
     // tournament 8
