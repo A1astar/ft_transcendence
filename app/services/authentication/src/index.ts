@@ -9,7 +9,7 @@ import fastifyCookie from '@fastify/cookie';
 import crypto from 'crypto';
 import color from 'chalk';
 
-import { RegisterFormat, UserFormat } from './format.js';
+import { RegistrationFormat, UserFormat } from './format.js';
 import { initFastifyInstance, initAuthenticationService } from './init.js';
 import { printRequest } from './print.js';
 import Database from "./database.js";
@@ -48,7 +48,7 @@ function registerAccount(request: FastifyRequest, reply: FastifyReply, database:
     console.log(color.bold.italic.yellow("\n----- REGISTER -----"));
 
     const headers = getRequestHeaders(request);
-    const userInfo = getRequestBody(request) as RegisterFormat;
+    const userInfo = getRequestBody(request) as RegistrationFormat;
 }
 
 function registerOAuth(path: string, request: FastifyRequest, reply: FastifyReply, database: Database) {

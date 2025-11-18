@@ -1,6 +1,7 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import { User, generateId } from "./user.js";
 import { UserFormat } from "./format.js";
+import color from 'chalk';
 
 export default class Database {
     private users: Map<string, User> = new Map();
@@ -8,11 +9,15 @@ export default class Database {
 
     authenticateUser(req: UserFormat) : void {
         const user = this.users.get(req.name);
-        if (!user)
+        if (!user) {
+            console.log(color.red("Can't find user in database"));
             throw new Error();
+
+        }
     }
 
     registerUser(req: UserFormat) : void {
+
     }
 
     getUser(username: string) : User | undefined {
