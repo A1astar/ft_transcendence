@@ -32,7 +32,6 @@ export class Tournament4LobbyViewBinder implements ViewEventBinder {
             nextPlayers: isFirstGame
                 ? [currentMatch.players[0].alias, currentMatch.players[1].alias]
                 : nextPlayers,
-            isWaiting: false,
             tournamentId: currentMatch.tournamentId,
         };
 

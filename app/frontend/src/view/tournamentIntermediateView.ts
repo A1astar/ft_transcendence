@@ -19,7 +19,6 @@ interface TournamentIntermediateInfo {
     tournamentType: "tournament4" | "tournament8";
     nextMatch?: any;
     nextPlayers?: string[];
-    isWaiting: boolean;
     tournamentId: string;
 }
 
@@ -124,7 +123,7 @@ export function renderTournamentIntermediate(info: TournamentIntermediateInfo, o
         const backButton = createButtonLink("/gameMenu", "Back to Menu", "center");
         backButton.className += " text-lg px-8 py-3 bg-green-600 hover:bg-green-700";
         buttonContainer.appendChild(backButton);
-    } else if (!info.isWaiting && info.nextMatch) {
+    } else if (info.nextMatch) {
         // Next game ready
         const buttonText = info.currentRound === 0 ? "Start First Game" : "Start Next Game";
         const nextGameButton = createButtonForm(buttonText, "nextGame");
