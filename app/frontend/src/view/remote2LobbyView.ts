@@ -1,4 +1,5 @@
 import {
+<<<<<<< HEAD:app/frontend/src/view/tournament4View.ts
     clearDiv,
     createVideoBackgroundDiv,
     createHeadingText,
@@ -9,12 +10,26 @@ import {
     createBoxDiv,
 	createButtonLink,
 	SERVER_BASE
+=======
+	clearDiv,
+	createVideoBackgroundDiv,
+	createHeadingText,
+	createSubheadingText,
+	createParagraphText,
+	createFormElement,
+	createInputElement,
+	createLogoElement,
+	createButtonForm,
+	createBoxDiv,
+	createButtonLink
+>>>>>>> a903b7f4253200c78ee8fd66fab326749a25ff74:app/frontend/src/view/remote2LobbyView.ts
 } from "./utils.js";
 import { renderGame } from "./gameView.js";
 import { renderTournamentIntermediate } from "./tournamentIntermediateView.js";
 
 const appDiv = document.getElementById("app");
 
+<<<<<<< HEAD:app/frontend/src/view/tournament4View.ts
 // Handle tournament game completion
 async function handleTournamentGameEnd(winner: string, match: any) {
     try {
@@ -248,6 +263,15 @@ export function renderTournament4() {
 
 		mainContainer.appendChild(tournamentBox);
 		appDiv.appendChild(mainContainer);
+=======
+export function renderRemote2Lobby() {
+	if(appDiv) {
+		clearDiv(appDiv);
+
+		appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Sauron.mp4"));
+		appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
+		appDiv.appendChild(createHeadingText("Lord of Transcendence"));
+>>>>>>> a903b7f4253200c78ee8fd66fab326749a25ff74:app/frontend/src/view/remote2LobbyView.ts
 	}
 }
 

@@ -12,7 +12,9 @@ import {
 	createButtonLink
 } from "./utils.js";
 
-export function endGameView(winner: string, appDiv: HTMLElement) {
+const appDiv = document.getElementById("app");
+
+export function endGameView(winner: string) {
 	if(appDiv) {
 		clearDiv(appDiv);
 

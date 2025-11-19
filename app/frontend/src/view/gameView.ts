@@ -260,13 +260,13 @@ export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void
                         ws.close();
                         document.removeEventListener("keydown", handleKeyDown);
                         document.removeEventListener("keyup", handleKeyUp);
-                        
+
                         // Call the onGameEnd callback if provided (for tournament handling)
                         if (onGameEnd) {
                             onGameEnd(winner);
                         } else {
                             // Default behavior for non-tournament games
-                            endGameView(winner, appDiv);
+                            endGameView(winner);
                         }
                         return;
                     }
