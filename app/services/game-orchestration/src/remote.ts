@@ -85,19 +85,18 @@ export async function remoteMatch2(fastify: FastifyInstance) {
 export async function remoteMatch4(fastify: FastifyInstance) {
   fastify.post("/api/game-orchestration/remote4", async(request, reply) => {
 	const matchRequest = request.body as MatchRequest;
+	if (queues.remote4.some(p => p.alias === matchRequest.player.alias)) {
+      reply.code(400);
+      return { error: "Player already in queue" };
+    }
 	queues.remote4.push(matchRequest.player);
+	console.log(`Player ${matchRequest.player.alias} joined queue. Queue size: ${queues.remote4.length}`);
 
-	if (queues.remote4.length == 4) {
-	  const matchPlayers = queues.remote4.splice(0,4);
-	  const match: Match = createMatch(matchPlayers, "remote4", 0);
-	  const res = await fetch("http://localhost:3003/game-engine/start", {
-		method: "POST",
-		headers: {"Content-Type": "application/json"},
-		body: JSON.stringify(match)
-	  });
-	  console.log("Game engine response:", await res.json());
-	  return match;
+	if (queues.remote4.length >= 4) {
+	  const matchPlayers = queues.remote4.splice(0, 4);
+	  return await createAndStartMatch(matchPlayers);
 	}
+	console.log(queues.remote4.length);
 	return {status: "waiting"};
   })
 
