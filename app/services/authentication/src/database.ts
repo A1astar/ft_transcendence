@@ -1,18 +1,25 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
+import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+
+import fastifySession from '@fastify/session';
+import fastifyCookie from '@fastify/cookie';
+import fastifyJWT from '@fastify/jwt';
+
 import { User, generateId } from "./user.js";
 import { AuthenticationFormat, RegistrationFormat } from "./format.js";
+
 import crypto from 'crypto';
 import color from 'chalk';
 
 export interface Session {
+    id: string,
     userId: string
-    sessionId: string,
 }
 
 export default class Database {
     private users: Map<string, User> = new Map();
     private usersByName: Map<string, User> = new Map();
-    private sessions: Map<number, User> = new Map();
+    private sessions: Map<string, User> = new Map();
 
     printDatabase() {
         console.log(color.bold.cyan('\n=== Database Contents ==='));
@@ -30,7 +37,7 @@ export default class Database {
 
         const session: Session = {
             userId: userId,
-            sessionId: sessionId
+            id: sessionId
         };
         return session;
     }
@@ -48,7 +55,7 @@ export default class Database {
         const session = this.createSession(user.id);
 
         this.users.set(user.id, user);
-        this.sessions.set(session.id, session);
+        this.sessions.set(session.id, user);
     }
 
     getUser(username: string) : User | undefined {
@@ -65,39 +72,80 @@ export default class Database {
     }
 }
 
-export function initSQLite3Database() : BetterSQLite3Database {
-    const sqlite = new BetterSQLite3("database.db", {
-        // Read-only mode
-        readonly: false,                    // default: false
+export class SQLiteDatabase {
+    private sqlite: BetterSQLite3Database;
 
-        // File must exist (throws error if not)
-        fileMustExist: false,              // default: false
+    constructor() {
+        this.sqlite = new BetterSQLite3("database.db", {
+            // Read-only mode
+            readonly: false,                    // default: false
 
-        // Connection timeout (milliseconds)
-        timeout: 5000,                     // default: 5000ms
+            // File must exist (throws error if not)
+            fileMustExist: false,              // default: false
 
-        // Verbose mode - logs SQL statements
-        verbose: undefined,                // default: undefined (or function to log)
-        // verbose: console.log,           // Example: log all SQL
+            // Connection timeout (milliseconds)
+            timeout: 5000,                     // default: 5000ms
 
-        // Native binding options
-        nativeBinding: undefined,          // default: undefined (path to native module)
-    });
+            // Verbose mode - logs SQL statements
+            verbose: undefined,                // default: undefined (or function to log)
+            // verbose: console.log,           // Example: log all SQL
 
-    sqlite.exec(`
-            CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY,
-            name TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            email TEXT,
-            created_at INTEGER DEFAULT (strftime('%s', 'now'))
-        );
+            // Native binding options
+            nativeBinding: undefined,          // default: undefined (path to native module)
+        });
 
-        CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
-        CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-    `);
-    return sqlite;
-}
+        this.sqlite.exec(`
+                CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                name TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                email TEXT,
+                created_at INTEGER DEFAULT (strftime('%s', 'now'))
+            );
+
+
+            CREATE TABLE IF NOT EXISTS sessions (
+                id TEXT PRIMARY KEY,
+                userId TEXT NOT NULL,
+                expiresAt INTEGER NOT NULL,
+                created_at INTEGER DEFAULT (strftime('%s', 'now')),
+                FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
+            CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+            CREATE INDEX IF NOT EXISTS idx_sessions_userId ON sessions(userId);
+            CREATE INDEX IF NOT EXISTS idx_sessions_expiresAt ON sessions(expiresAt);
+        `);
+    }
+
+    async registerAccount(request: FastifyRequest, reply: FastifyReply, database: Database, sqlite: BetterSQLite3Database) : Promise<void> {
+
+        console.log(color.bold.italic.yellow("\n----- REGISTER -----"));
+
+        database.registerUser(request.body as RegistrationFormat);
+        const stmt = sqlite.prepare(`
+            INSERT INTO users (id, name, email, passwordHash)
+            VALUES (?, ?, ?, ?)
+        `);
+
+        try {
+            // stmt.run(id, name, ElementInternals, passwordHash)
+
+        } catch (error: any) {
+            if (error.code === 'SQLITE_CONSTRAINT') {
+                throw new Error('User with this name or email already exists');
+            }
+            throw error;
+        }
+        database.printDatabase();
+
+        reply.setCookie(
+            'sessionId', 'sessionTest', {
+                httpOnly: true
+        });
+    }
+};
 
 /* SQLite database
 

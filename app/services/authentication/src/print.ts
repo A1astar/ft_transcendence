@@ -3,7 +3,7 @@ import color from 'chalk';
 
 export function printRequest(request: FastifyRequest) {
     console.log(color.bold.italic.blue('\n----- REQUEST -----'));
-    // console.log(request);
+    console.log(request);
     // console.log(request.body)
     // console.log(request.query)
     // console.log(request.params)

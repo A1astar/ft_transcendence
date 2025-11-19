@@ -13,34 +13,53 @@ export interface AuthenticationFormat {
 }
 
 export interface UserFormat {
-    id: number;
-    name: string;
-    email: string;
-    passwordHash: string;
+  id: number;                    // primary key
+  email: string;
+  passwordHash: string;
+
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;                 // admin, user, etc.
+  status?: string;               // active, suspended, etc.
+
+  profileImageUrl?: string;
+
+  lastLoginAt?: string;          // ISO timestamp
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
 }
 
-export interface Session {
-    sessoinID: number;
-    userID: number;
-    createdAt: Date;
-    expiresAt: Date;
+export interface SessionFormat {
+  id: number;                    // primary key
+  sessionId: string;             // cookie or token identifier
+  userId?: number;               // null for guests
+
+  accessToken?: string;
+  refreshToken?: string;
+  csrfToken?: string;
+  scope?: string;                // OAuth scopes or custom permissions
+
+  ipAddress?: string;
+  userAgent?: string;
+  deviceType?: string;
+  os?: string;
+  browser?: string;
+
+  isActive: boolean;
+  isRevoked: boolean;
+  failedAttempts: number;
+
+  loginMethod?: string;          // password, oauth_google, etc.
+  mfaPassed?: boolean;
+  riskLevel?: "low" | "medium" | "high";
+  location?: string;
+
+  sessionData?: Record<string, any>;
+
+  createdAt: string;
+  updatedAt: string;
+  lastAccessedAt: string;
+  expiresAt: string;
 }
-
-function passwordValid(password: string) : boolean {
-    if (password.length < 12 && password.length > 64)
-        throw new Error("Password must contain a least 12 - 64 character");
-    return true;
-}
-
-function usernameValid(username: string) : boolean {
-    if (username.length === 0 || !/^[a-zA-Z0-9_]+$/.test(username))
-        throw new Error("Username must contain only alphanumeric characters");
-    return true;
-}
-
-// export function userFormatCorrect(user: UserFormat) : boolean {
-
-//     if (usernameValid(user.name) && passwordValid(user.password))
-//         return true;
-//     return false;
-// }
