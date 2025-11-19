@@ -14,7 +14,7 @@ import {
 
 const appDiv = document.getElementById("app");
 
-export function renderTournament4() {
+export function renderTournament4Lobby() {
 	if(appDiv) {
 		clearDiv(appDiv);
 

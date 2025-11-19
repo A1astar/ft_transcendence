@@ -8,9 +8,9 @@
     "paths": {},
     "moduleResolution": "bundler",
     "allowJs": true,
-    "types": ["@babylonjs/core"],
     "module": "ES2022",
-    "target": "ES2022"
+    "target": "ES2022",
+    "types": []
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
