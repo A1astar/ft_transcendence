@@ -5,7 +5,8 @@ import {
     createSubheadingText,
     createButtonForm,
     createBoxDiv,
-    createButtonLink
+    createButtonLink,
+    createLogoElement
 } from "./utils.js";
 
 const appDiv = document.getElementById("app");
@@ -29,10 +30,8 @@ export function renderTournamentIntermediate(info: TournamentIntermediateInfo, o
 
     // Background and header
     appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
-    appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo", "top-left"));
-
-    const tournamentName = info.tournamentType === "tournament4" ? "Tournament 4 Players" : "Tournament 8 Players";
-    appDiv.appendChild(createHeadingText(tournamentName, "top-right"));
+    appDiv.appendChild(createLogoElement("../../public/icons/sauron.png", "Barad-dûr Logo"));
+    appDiv.appendChild(createHeadingText("Lord of Transcendence"));
 
     // Main container
     const mainContainer = document.createElement("div");
@@ -44,8 +43,8 @@ export function renderTournamentIntermediate(info: TournamentIntermediateInfo, o
     // Winner announcement
     const winnerTitle = createSubheadingText(
         info.currentRound === 0
-            ? `🎮 ${info.winner} 🎮`
-            : `🏆 ${info.winner} WINS! 🏆`
+            ? `${info.winner}`
+            : `${info.winner} WINS!`
     );
     winnerTitle.className += info.currentRound === 0
         ? " text-blue-400 text-4xl mb-8"
@@ -67,7 +66,7 @@ export function renderTournamentIntermediate(info: TournamentIntermediateInfo, o
         };
         roundInfo.textContent = `Up Next: Round 1 - ${roundNames[1]}`;
     } else if (info.currentRound === info.totalRounds) {
-        roundInfo.textContent = "🎉 TOURNAMENT CHAMPION! 🎉";
+        roundInfo.textContent = "TOURNAMENT CHAMPION!";
     } else {
         // Use the actual next round from the backend data
         const nextRound = info.nextRound || (info.currentRound + 1);
@@ -145,12 +144,4 @@ export function renderTournamentIntermediate(info: TournamentIntermediateInfo, o
     resultsBox.appendChild(buttonContainer);
     mainContainer.appendChild(resultsBox);
     appDiv.appendChild(mainContainer);
-}
-
-function createLogoElement(src: string, alt: string, position: string) {
-    const logo = document.createElement("img");
-    logo.src = src;
-    logo.alt = alt;
-    logo.className = `absolute ${position === "top-left" ? "top-4 left-4" : position === "top-right" ? "top-4 right-4" : ""} w-16 h-16`;
-    return logo;
 }

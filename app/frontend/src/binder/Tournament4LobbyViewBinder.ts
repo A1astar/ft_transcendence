@@ -39,7 +39,6 @@ export class Tournament4LobbyViewBinder implements ViewEventBinder {
         const onNextGame = async () => {
             try {
                 if (isFirstGame) {
-                    // Start first game
                     const response = await this.startMatch(currentMatch.id);
                     if (response.status === "match started") {
                         renderGame(response.match, (winner: string) =>
@@ -49,7 +48,6 @@ export class Tournament4LobbyViewBinder implements ViewEventBinder {
                     return;
                 }
 
-                // Get next match
                 const matchData = await fetch(
                     `http://${SERVER_BASE}:3002/api/game-orchestration/tournament/match-ended`,
                     {
@@ -70,9 +68,9 @@ export class Tournament4LobbyViewBinder implements ViewEventBinder {
                         );
                     }
                 } else if (matchData.status === "tournament complete") {
-                    endGameView(`🏆 TOURNAMENT CHAMPION: ${winner}! 🏆`);
+                    endGameView(`${winner}!`);
                 } else {
-                    endGameView(`Tournament ended. Status: ${matchData.status}`);
+                    endGameView(`${matchData.status}`);
                 }
             } catch (error) {
                 console.error("Error in tournament progression:", error);
@@ -138,7 +136,7 @@ export class Tournament4LobbyViewBinder implements ViewEventBinder {
     };
 
     private handleTournament4 = async () => {
-        // Get player names
+
         const playerNames = [];
         for (let i = 1; i <= 4; i++) {
             const input = document.getElementById(`player${i}`) as HTMLInputElement;
@@ -151,7 +149,6 @@ export class Tournament4LobbyViewBinder implements ViewEventBinder {
         }
 
         try {
-            // Register all players
             const results = await Promise.all(
                 playerNames.map((playerName) =>
                     fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament`, {
@@ -172,6 +169,7 @@ export class Tournament4LobbyViewBinder implements ViewEventBinder {
             }
 
             this.showIntermediatePage("Tournament Ready", tournament, true);
+
         } catch (error) {
             console.error("Error:", error);
             alert("Failed to create tournament");
