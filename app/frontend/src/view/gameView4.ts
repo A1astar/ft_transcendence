@@ -332,7 +332,7 @@ export function renderGame4(matchInfos: any, onGameEnd?: (winner: string) => voi
                             onGameEnd(winner);
                         } else {
                             // Default behavior for non-tournament games
-                            endGameView(winner, appDiv);
+                            endGameView(winner);
                         }
                         return;
                     }
