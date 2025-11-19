@@ -19,6 +19,8 @@ export async function initGame(fastify: FastifyInstance, games: Map<string, Game
 
 	const game = new Game;
 	game.mode = mode;
+	if (mode === 'remote4')
+		game.score = { left: 5, right: 5, up: 5, down: 5 }
 	games.set(gameId, game);
 	gameConnections.set(gameId, new Set());
 

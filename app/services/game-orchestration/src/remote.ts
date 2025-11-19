@@ -2,7 +2,6 @@ import { FastifyInstance } from "fastify";
 import { Player, MatchRequest, Match, queues } from "./objects.js";
 import { createMatch } from "./utils.js"
 
-
 // Keep track of active matches to prevent double-creation
 let activeMatches = new Map<string, Match>();
 
@@ -11,7 +10,11 @@ async function createAndStartMatch(players: Player[]): Promise<Match> {
   if (activeMatches.has(playerKey)) {
     return activeMatches.get(playerKey)!;
   }
-  const match: Match = createMatch(players, "remote2", 0);
+  let match: Match;
+  if (players.length === 2)
+    match = createMatch(players, "remote2", 0);
+  else
+    match = createMatch(players, "remote4", 0);
   try {
     const res = await fetch("http://localhost:3003/game-engine/start", {
       method: "POST",
@@ -78,22 +81,53 @@ export async function remoteMatch2(fastify: FastifyInstance) {
   });
 }
 
+// remote 4 players
 export async function remoteMatch4(fastify: FastifyInstance) {
   fastify.post("/api/game-orchestration/remote4", async(request, reply) => {
 	const matchRequest = request.body as MatchRequest;
+	if (queues.remote4.some(p => p.alias === matchRequest.player.alias)) {
+      reply.code(400);
+      return { error: "Player already in queue" };
+    }
 	queues.remote4.push(matchRequest.player);
+	console.log(`Player ${matchRequest.player.alias} joined queue. Queue size: ${queues.remote4.length}`);
 
-	if (queues.remote4.length == 4) {
-	  const matchPlayers = queues.remote4.splice(0,4);
-	  const match: Match = createMatch(matchPlayers, "remote4", 0);
-	  const res = await fetch("http://localhost:3003/game-engine/start", {
-		method: "POST",
-		headers: {"Content-Type": "application/json"},
-		body: JSON.stringify(match)
-	  });
-	  console.log("Game engine response:", await res.json());
-	  return match;
+	if (queues.remote4.length >= 4) {
+	  const matchPlayers = queues.remote4.splice(0, 4);
+	  return await createAndStartMatch(matchPlayers);
 	}
+	console.log(queues.remote4.length);
 	return {status: "waiting"};
   })
+
+  // Check queue status endpoint
+  fastify.get("/api/game-orchestration/remote4/status", async(request, reply) => {
+    const playerAlias = request.query as { alias: string };
+    if (!playerAlias.alias) {
+      reply.code(400);
+      return { error: "Player alias is required" };
+    }
+
+    // Check if this player is in any active match
+    for (const [key, match] of activeMatches.entries()) {
+      const matchPlayers = key.split('-');
+      if (matchPlayers.includes(playerAlias.alias)) {
+        return match;
+      }
+    }
+
+    console.log(`Status check for ${playerAlias.alias} - no match found yet`);
+    return {status: "waiting"};
+  });
+
+  // Leave queue endpoint
+  fastify.post("/api/game-orchestration/remote4/leave", async(request, reply) => {
+    const matchRequest = request.body as MatchRequest;
+    const index = queues.remote4.findIndex(p => p.alias === matchRequest.player.alias);
+    if (index !== -1) {
+      queues.remote4.splice(index, 1);
+      console.log(`Player ${matchRequest.player.alias} left queue. Queue size: ${queues.remote4.length}`);
+    }
+    return { status: "success" };
+  });
 }

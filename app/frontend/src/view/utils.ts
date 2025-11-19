@@ -1,3 +1,12 @@
+export function getServerBase(): string {
+    const currentUrl = window.location.href;
+    const match = currentUrl.match(/https?:\/\/([^:\/]+)/);
+    const host = match ? match[1] : 'localhost';
+    return `${host}`;
+}
+
+export const SERVER_BASE = getServerBase();
+
 export function clearDiv(Div: HTMLElement | null): void {
     if (Div) {
         Div.innerHTML = "";

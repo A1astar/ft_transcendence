@@ -1,3 +1,5 @@
+import { SERVER_BASE } from "./view/utils.js";
+
 export class apiService {
     constructor(baseURL: string) {
         this.baseURL = baseURL;
@@ -41,5 +43,5 @@ export class apiService {
     }
 }
 
-export const API_URL = "http://localhost:3000";
+export const API_URL = `http://${SERVER_BASE}:3000`;
 export const ApiClient = new apiService(API_URL);
