@@ -23,6 +23,7 @@
     "watch:game-engine": "npm run watch -w @ft_transcendence/game-engine",
     "watch:game-orchestration": "npm run watch -w @ft_transcendence/game-orchestration",
     "watch:gateway": "npm run watch -w @ft_transcendence/gateway",
+    "watch:user": "npm run watch -w @ft_transcendence/user",
     "clean": "npm run clean --workspaces"
   },
   "dependencies": {

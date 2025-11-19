@@ -22,8 +22,7 @@ function printSession(request: FastifyRequest) {
     console.log(color.bold.white('Cookie ID:'));
 }
 
-async function logAccount(request: FastifyRequest, reply: FastifyReply,
-            database: Database, sqlite: SQLiteDatabase) : Promise<boolean> {
+async function logAccount(request: FastifyRequest, reply: FastifyReply, database: Database, sqlite: SQLiteDatabase) : Promise<boolean> {
     console.log(color.bold.italic.yellow("----- LOGIN -----"));
     console.log(color.red('Raw body:'), JSON.stringify(request.body, null, 2));
     const user = request.body as UserFormat;
@@ -33,8 +32,7 @@ async function logAccount(request: FastifyRequest, reply: FastifyReply,
     return true;
 }
 
-function registerOAuth(path: string, request: FastifyRequest,
-        reply: FastifyReply, database: Database, sqlite: SQLiteDatabase) {
+function registerOAuth(path: string, request: FastifyRequest, reply: FastifyReply, database: Database, sqlite: SQLiteDatabase) {
     let provider;
     const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
@@ -52,8 +50,7 @@ function registerOAuth(path: string, request: FastifyRequest,
     }
 }
 
-async function manageRequest(fastify: FastifyInstance,
-                    database: Database, sqlite: SQLiteDatabase) {
+async function manageRequest(fastify: FastifyInstance, database: Database, sqlite: SQLiteDatabase) {
 
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;

@@ -1,0 +1,20 @@
+{
+  "name": "@ft_transcendence/user",
+  "version": "1.0.0",
+  "private": true,
+  "description": "User service of transcendence app.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "npm run build && node dist/index.js",
+    "watch": "tsx watch --clear-screen=false src"
+  },
+  "dependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/request": "^2.48.13",
+    "better-sqlite3": "^12.4.1",
+    "node-vault": "^0.10.9"
+  }
+}

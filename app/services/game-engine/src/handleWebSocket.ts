@@ -25,7 +25,7 @@ function keyMovements(game: Game, connection: any, playerside: 'left' | 'right' 
 		try {
 			const data = JSON.parse(message.toString());
 			const { type, key } = data;
-		
+
 			if (type === 'keyPress') {
 				if (game.mode === 'remote2') {
 					if (key == 'w' && playerside === 'left')
@@ -139,7 +139,7 @@ export async function handleWebSocket(fastify: FastifyInstance, games: Map<strin
 
 			// handle keypress event
 			keyMovements(game, connection, playerside);
-			
+
 			// close websocket
 			connection.on('close', () => {
 				connections.delete(connection);
