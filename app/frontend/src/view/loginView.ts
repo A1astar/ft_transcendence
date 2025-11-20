@@ -19,11 +19,15 @@ export function renderLogin() {
         clearDiv(appDiv);
 
         const formDiv1 = createFormElement("loginForm");
+        formDiv1.method = "POST";
+        formDiv1.action = "/api/auth/login";
         formDiv1.appendChild(createInputElement("text", "username", "Username/email"));
         formDiv1.appendChild(createInputElement("password", "password", "Password"));
         formDiv1.appendChild(createButtonForm("Login", "login"));
 
         const formDiv2 = createFormElement("oauth2Form");
+        formDiv1.method = "POST";
+        formDiv2.action = "/api/auth/oauth/google";
         formDiv2.appendChild(createButtonForm("Login with Google", "google"));
         formDiv2.appendChild(createButtonForm("Login with Intra 42", "intra42"));
 

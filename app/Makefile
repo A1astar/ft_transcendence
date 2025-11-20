@@ -38,4 +38,4 @@ fclean: clean
 
 re: clean all
 
-.PHONY: all build up down local-run local-build local-clean clean fclean re
+.PHONY: all build up down local-run local-build local-clean local-re clean fclean re
