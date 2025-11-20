@@ -1,23 +1,13 @@
-import { RegistrationFormat  } from "./format";
+import { UserFormat } from './format.js';
 import crypto from 'crypto';
 
-const idGenerator = generateId();
-
-export function* generateId() : Generator<number> {
-    let id = 1;
-    while (true) {
-        yield id;
-        ++id;
-    }
-}
-
-export class User {
+export class User implements UserFormat {
     id: string;
     name: string;
     email: string;
     password: string;
 
-    constructor(request: RegistrationFormat)
+    constructor()
     {
         // this.id = idGenerator.next().value;
         this.id = crypto.randomUUID();

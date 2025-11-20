@@ -1,7 +1,7 @@
 import { User } from "./user.js"
 
 export interface UserFormat {
-  id: number;                    // primary key
+  id: string;                    // primary key
   email: string;
   passwordHash: string;
 

@@ -5,9 +5,6 @@ import fastifySession from '@fastify/session';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJWT from '@fastify/jwt';
 
-import { User, generateId } from "./user.js";
-import { AuthenticationFormat, RegistrationFormat } from "./format.js";
-
 import crypto from 'crypto';
 import color from 'chalk';
 
