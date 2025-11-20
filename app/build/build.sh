@@ -12,6 +12,7 @@ directories=(
     "$project_dir/services/game-engine"
     "$project_dir/services/game-orchestration"
     "$project_dir/services/gateway"
+    "$project_dir/services/user-management"
 )
 
 checkNodeVersion()

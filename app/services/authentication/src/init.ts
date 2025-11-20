@@ -1,6 +1,4 @@
 import Fastify, { FastifyInstance } from 'fastify';
-import fastifySession from '@fastify/session';
-import fastifyCookie from '@fastify/cookie';
 import crypto from 'crypto';
 import color from 'chalk';
 
