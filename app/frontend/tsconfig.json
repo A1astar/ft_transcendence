@@ -1,16 +1,8 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "lib": ["ES2022", "DOM"],
     "outDir": "dist",
     "rootDir": "src",
-    "baseUrl": "./",
-    "paths": {},
-    "moduleResolution": "bundler",
-    "allowJs": true,
-    "module": "ES2022",
-    "target": "ES2022",
-    "types": []
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
