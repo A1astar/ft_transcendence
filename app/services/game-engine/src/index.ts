@@ -4,7 +4,7 @@ import webSocket from "@fastify/websocket";
 import { games, gameConnections } from "./objects.js";
 import { initGame } from "./initGame.js";
 import { handleWebSocket } from "./handleWebSocket.js";
-import { apiRoutes } from "./api.js";
+import { apiRoutes } from "./cliApis.js";
 import chalk from 'chalk';
 
 

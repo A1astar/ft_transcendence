@@ -1,0 +1,24 @@
+### Create a new local game
+GET http://localhost:3003/api/game-engine/cli/create HTTP/1.1
+
+### Get game details
+GET http://localhost:3003/api/game-engine/cli/cli-match HTTP/1.1
+
+### Move left paddle up
+GET http://localhost:3003/api/game-engine/cli/cli-match/move/left-up HTTP/1.1
+
+### Move left paddle down
+GET http://localhost:3003/api/game-engine/cli/cli-match/move/left-down HTTP/1.1
+
+### Move right paddle up
+GET http://localhost:3003/api/game-engine/cli/cli-match/move/right-up HTTP/1.1
+
+### Move right paddle down
+GET http://localhost:3003/api/game-engine/cli/cli-match/move/right-down HTTP/1.1
+
+### Stop all paddle movement
+GET http://localhost:3003/api/game-engine/cli/cli-match/move/stop-all HTTP/1.1
+
+### End game (replace {gameId} with actual game ID)
+DELETE http://localhost:3003/api/game-engine/cli/cli-match HTTP/1.1
+
