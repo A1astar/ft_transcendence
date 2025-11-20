@@ -10,9 +10,8 @@ import fastifyJWT from '@fastify/jwt';
 import crypto from 'crypto';
 import color from 'chalk';
 
-import { initFastifyInstance, initAuthenticationService } from './init.js';
+import { initUserManagementService } from './init.js';
 import Database, { SQLiteDatabase } from "./database.js";
-import { User } from "./user.js";
 
 
 function printSession(request: FastifyRequest) {
@@ -75,9 +74,8 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase) {
 
 async function main() {
     try {
+        const fastify = initUserManagementService();
         const sqlite = new SQLiteDatabase();
-        const fastify = initFastifyInstance();
-        initAuthenticationService(fastify);
         await manageRequest(fastify, sqlite);
 
     } catch (err) {

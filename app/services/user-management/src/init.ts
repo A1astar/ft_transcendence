@@ -1,52 +1,8 @@
 import Fastify, { FastifyInstance } from 'fastify';
-import fastifySession from '@fastify/session';
-import fastifyCookie from '@fastify/cookie';
-import crypto from 'crypto';
 import color from 'chalk';
 
-export async function initAuthenticationService(fastify: FastifyInstance) : Promise<void> {
-    fastify.register(fastifyCookie);
-
-    fastify.register(fastifySession, {
-        // required
-        secret: crypto.randomBytes(32).toString('hex'),
-
-        // @fastify/session top-level options (defaults shown)
-        salt: undefined,                 // default internal value (version-dependent)
-        cookieName: 'sessionId',         // default cookie name
-        sessionName: 'session',          // default request decorator name
-        store: undefined,                // default in-memory store (not for production)
-        idGenerator: undefined,          // default internal id generator
-        saveUninitialized: true,         // default
-        rolling: false,                  // default
-        ttl: undefined,                  // default (store decides; often based on cookie)
-
-        // Cookie options (from @fastify/cookie / cookie-serialize)
-        cookie: {
-            path: '/',                   // default
-            domain: undefined,           // default
-            expires: undefined,          // default
-            maxAge: undefined,           // default
-            httpOnly: true,              // default for session cookies
-            sameSite: undefined,         // default
-            secure: 'auto',              // default (auto based on request)
-            priority: undefined,         // default
-            partitioned: undefined,      // default
-            encode: undefined,           // default (internal encoder)
-        },
-    });
-
-    fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
-    if (err) {
-        fastify.log.error(err);
-        throw err;
-    }
-    })
-    console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
-}
-
-export function initFastifyInstance() {
-    return Fastify({
+export function initUserManagementService() {
+    const fastify = Fastify({
         // AJV options for schema validation
         ajv: {
             customOptions: {},
@@ -145,4 +101,12 @@ export function initFastifyInstance() {
         // Versioning options
         // versioning: undefined,              // default: undefined
     });
+
+    fastify.listen({ port: 3004, host: "0.0.0.0" }, function (err, address) { if (err) { fastify.log.error(err);
+        throw err;
+    }
+    })
+    console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
+
+    return fastify;
 }

@@ -10,7 +10,7 @@ import fastifyJWT from '@fastify/jwt';
 import crypto from 'crypto';
 import color from 'chalk';
 
-import { initFastifyInstance, initAuthenticationService } from './init.js';
+import { initAuthenticationService } from './init.js';
 import { RegistrationFormat, UserFormat } from './format.js';
 import Database, { SQLiteDatabase } from "./database.js";
 import { printRequest } from './print.js';
@@ -80,10 +80,9 @@ async function manageRequest(fastify: FastifyInstance,
 
 async function main() {
     try {
+        const fastify = initAuthenticationService();
         const database = new Database();
         const sqlite = new SQLiteDatabase();
-        const fastify = initFastifyInstance();
-        initAuthenticationService(fastify);
         await manageRequest(fastify, database, sqlite);
 
     } catch (err) {

@@ -1,22 +1,30 @@
-import { User } from "./user.js"
-
 export interface UserFormat {
+  // Indentity & Authentication
   id: string;                    // primary key
   email: string;
-  passwordHash: string;
+  password: string;
+  twoFactorAuth: boolean;
 
+  // Profile information
   username?: string;
   firstName?: string;
   lastName?: string;
   role?: string;                 // admin, user, etc.
   status?: string;               // active, suspended, etc.
 
-  profileImageUrl?: string;
+  // Avatar/Profile Picture
+  profileImageUrl?: string;      // URL or path to avatar (e.g., "/uploads/avatars/user123.jpg")
+  // Alternative: profileImageData?: string;  // Base64 encoded image if storing directly
 
-  lastLoginAt?: string;          // ISO timestamp
+  // Game statistics
+  gamePlayed?: number;
+  gameWon?: number;
+  gameLost?: number;
+  winRate?: number;
+
+  // Timestamps
+  lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
-
-  twoFactorAuth: boolean;
 }

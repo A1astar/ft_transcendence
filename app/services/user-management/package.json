@@ -12,9 +12,11 @@
     "watch": "tsx watch --clear-screen=false src"
   },
   "dependencies": {
-    "@types/better-sqlite3": "^7.6.13",
-    "@types/request": "^2.48.13",
     "better-sqlite3": "^12.4.1",
     "node-vault": "^0.10.9"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/request": "^2.48.13"
   }
 }

@@ -16,7 +16,7 @@ function getServerHostFromRequest(req: any): string {
         const hostname = host.split(':')[0];
         return hostname;
     }
-    
+
     return 'localhost';
 }
 
@@ -37,7 +37,7 @@ function routeServices(fastify: FastifyInstance, basePath: string, port: number)
 			try {
 				const serverHost = getServerHostFromRequest(req);
 				const serviceUrl = `http://${serverHost}:${port}`;
-				
+
 				const res = await fetch(`${serviceUrl}${req.url}`, {
 				method: req.method,
 				headers: fetchHeaders(req.headers),
@@ -64,6 +64,8 @@ export async function routeRequest(fastify: FastifyInstance) {
 	routeServices(fastify, "api/auth", 3001);
 	routeServices(fastify, "api/game-orchestration", 3002);
 	routeServices(fastify, "api/game-engine", 3003);
+	routeServices(fastify, "api/user-management", 3004);
+
 
     fastify.register(fastifyStatic, {
         root: frontendPath,
