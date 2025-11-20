@@ -9,7 +9,7 @@
     "build": "tsc",
     "clean": "rm -rf dist",
     "start": "npm run build && node dist/index.js",
-    "watch": "tsx watch src"
+    "watch": "tsx watch --clear-screen=false src"
   },
   "dependencies": {
     "@fastify/cors": "^11.1.0",

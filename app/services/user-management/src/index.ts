@@ -10,11 +10,8 @@ import fastifyJWT from '@fastify/jwt';
 import crypto from 'crypto';
 import color from 'chalk';
 
-import { initAuthenticationService } from './init.js';
-import { RegistrationFormat, UserFormat } from './format.js';
+import { initUserManagementService } from './init.js';
 import Database, { SQLiteDatabase } from "./database.js";
-import { printRequest } from './print.js';
-import { User } from "./user.js";
 
 
 function printSession(request: FastifyRequest) {
@@ -22,19 +19,17 @@ function printSession(request: FastifyRequest) {
     console.log(color.bold.white('Cookie ID:'));
 }
 
-async function logAccount(request: FastifyRequest, reply: FastifyReply,
-            database: Database, sqlite: SQLiteDatabase) : Promise<boolean> {
+async function logAccount(request: FastifyRequest, reply: FastifyReply, database: Database, sqlite: SQLiteDatabase) : Promise<boolean> {
     console.log(color.bold.italic.yellow("----- LOGIN -----"));
     console.log(color.red('Raw body:'), JSON.stringify(request.body, null, 2));
-    const user = request.body as UserFormat;
+    // const user = request.body as UserFormat;
 
     // console.log(color.bold.blue('username: ') + user.name);
     // console.log(color.bold.blue('password: ') + user.passwordHash);
     return true;
 }
 
-function registerOAuth(path: string, request: FastifyRequest,
-        reply: FastifyReply, database: Database, sqlite: SQLiteDatabase) {
+function registerOAuth(path: string, request: FastifyRequest, reply: FastifyReply, database: Database, sqlite: SQLiteDatabase) {
     let provider;
     const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
@@ -52,8 +47,7 @@ function registerOAuth(path: string, request: FastifyRequest,
     }
 }
 
-async function manageRequest(fastify: FastifyInstance,
-                    database: Database, sqlite: SQLiteDatabase) {
+async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase) {
 
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;
@@ -80,10 +74,9 @@ async function manageRequest(fastify: FastifyInstance,
 
 async function main() {
     try {
-        const fastify = initAuthenticationService();
-        const database = new Database();
+        const fastify = initUserManagementService();
         const sqlite = new SQLiteDatabase();
-        await manageRequest(fastify, database, sqlite);
+        await manageRequest(fastify, sqlite);
 
     } catch (err) {
         console.error(err);
