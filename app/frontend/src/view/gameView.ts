@@ -1,18 +1,4 @@
-import {
-    Engine,
-    Scene,
-    Vector3,
-    HemisphericLight,
-    MeshBuilder,
-    StandardMaterial,
-    Color3,
-    Texture,
-    CubeTexture,
-    Tools,
-    FreeCamera,
-    Mesh,
-} from "@babylonjs/core";
-
+declare const BABYLON: any;
 import {SERVER_BASE} from "./utils.js";
 
 import {
@@ -59,9 +45,9 @@ function displayScore(matchInfos: any, appDiv: HTMLElement, GameState: any) {
 
 function setupWebSocket(
     matchInfos: any,
-    ball: Mesh,
-    leftPaddle: Mesh,
-    rightPaddle: Mesh,
+    ball: any,
+    leftPaddle: any,
+    rightPaddle: any,
     onGameEnd?: (winner: string) => void,
 ) {
     const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
@@ -128,39 +114,39 @@ function setupWebSocket(
     };
 }
 
-function createCamera(scene: Scene) {
-    const camera = new FreeCamera("camera1", new Vector3(0, 18, 8), scene);
-    const target = Vector3.Zero();
+function createCamera(scene: any) {
+    const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 18, 8), scene);
+    const target = BABYLON.Vector3.Zero();
     camera.setTarget(target);
     camera.lockedTarget = target;
-    camera.fov = Tools.ToRadians(55);
+    camera.fov = BABYLON.Tools.ToRadians(55);
     camera.minZ = 0.1;
     camera.maxZ = 1000;
     camera.inertia = 0;
     camera.inputs.clear();
 }
 
-function createLight(scene: Scene) {
-    var light = new HemisphericLight("light", new Vector3(0, 1, 0), scene);
-    light.diffuse = new Color3(1, 1, 1);
+function createLight(scene: any) {
+    var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+    light.diffuse = new BABYLON.Color3(1, 1, 1);
     light.intensity = 0.7;
 }
 
-function update3DMeshPos(meshElement: Mesh, xPos: number, yPos: number, zPos: number) {
-    meshElement.position = new Vector3(xPos, yPos, zPos);
+function update3DMeshPos(meshElement: any, xPos: number, yPos: number, zPos: number) {
+    meshElement.position = new BABYLON.Vector3(xPos, yPos, zPos);
 }
 
-function scaling3DMesh(meshElement: Mesh, xPos: number, yPos: number, zPos: number) {
-    meshElement.scaling = new Vector3(xPos, yPos, zPos);
+function scaling3DMesh(meshElement: any, xPos: number, yPos: number, zPos: number) {
+    meshElement.scaling = new BABYLON.Vector3(xPos, yPos, zPos);
 }
 
-function createSkybox(scene: Scene) {
-    const skybox = MeshBuilder.CreateBox("skyBox", {size: 1000.0}, scene);
-    const skyboxMaterial = new StandardMaterial("skybox", scene);
+function createSkybox(scene: any) {
+    const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size: 1000.0}, scene);
+    const skyboxMaterial = new BABYLON.StandardMaterial("skybox", scene);
     skyboxMaterial.backFaceCulling = false;
     skyboxMaterial.disableLighting = true;
-    skyboxMaterial.reflectionTexture = new CubeTexture("../../public/skybox/skybox", scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = Texture.SKYBOX_MODE;
+    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../../public/skybox/skybox", scene);
+    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
     skybox.material = skyboxMaterial;
     skybox.infiniteDistance = true;
 }
@@ -170,34 +156,34 @@ function gotMatchInfos(matchInfos: any): boolean {
 }
 
 function setupScene(canvas: HTMLCanvasElement) {
-    const engine = new Engine(canvas, true);
-    const scene = new Scene(engine);
+    const engine = new BABYLON.Engine(canvas, true);
+    const scene = new BABYLON.Scene(engine);
 
-    const groundMaterial = new StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseTexture = new Texture(groundTexture, scene);
+    const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+    groundMaterial.diffuseTexture = new BABYLON.Texture(groundTexture, scene);
 
-    const wallMaterial = new StandardMaterial("wallMaterial", scene);
-    wallMaterial.diffuseColor = new Color3(0, 0, 0);
+    const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
+    wallMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
 
-    const ballMaterial = new StandardMaterial("ballMaterial", scene);
-    ballMaterial.diffuseColor = new Color3(1, 1, 1);
+    const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
+    ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
 
-    const paddleMaterial = new StandardMaterial("paddleMaterial", scene);
-    paddleMaterial.diffuseColor = new Color3(1, 1, 1);
+    const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
+    paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
 
-    const ground = MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
     ground.material = groundMaterial;
 
-    const ball = MeshBuilder.CreateSphere("sphere", {diameter: 0.35}, scene);
+    const ball = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 0.35}, scene);
     ball.material = ballMaterial;
     update3DMeshPos(ball, 0, 0.25, 0);
 
-    const leftPaddle = MeshBuilder.CreateBox("leftPaddle", {}, scene);
+    const leftPaddle = BABYLON.MeshBuilder.CreateBox("leftPaddle", {}, scene);
     leftPaddle.material = paddleMaterial;
     scaling3DMesh(leftPaddle, 0.25, 0.5, 2);
     update3DMeshPos(leftPaddle, -8, 0, 0);
 
-    const rightPaddle = MeshBuilder.CreateBox("rightPaddle", {}, scene);
+    const rightPaddle = BABYLON.MeshBuilder.CreateBox("rightPaddle", {}, scene);
     rightPaddle.material = paddleMaterial;
     scaling3DMesh(rightPaddle, 0.25, 0.5, 2);
     update3DMeshPos(rightPaddle, 8, 0, 0);
