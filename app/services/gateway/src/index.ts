@@ -3,7 +3,8 @@ import fastifyStatic from '@fastify/static';
 import { fileURLToPath } from 'url';
 import color from 'chalk';
 import path from 'path';
-import { routeRequest } from "./setupRoutes.js";
+
+import { routeRequest } from "./redirectRoutes.js";
 
 async function initGateway(fastify: FastifyInstance) {
     fastify.listen({ port: 3000, host: "0.0.0.0" }, function (err, address) {

@@ -1,59 +1,116 @@
-import Vault from 'node-vault'
+import VaultClient from 'node-vault'
 
-class Vault {
-    private vaultClient : any;
+interface VaultConfig {
+    apiVersion?: string;
+    endpoint?: string;
+    token?: string;
+    namespace?: string;
+}
 
-    constructor() {
-        this.vaultClient = new Vault({
-            // API version
-            apiVersion: 'v1',                    // default: 'v1' (can be 'v1' or 'v2')
+interface SecretData {
+    [key: string]: any;
+}
 
-            // Vault server endpoint
-            endpoint: 'http://vault:8200',       // default: process.env.VAULT_ADDR || 'http://127.0.0.1:8200'
+const VAULT_ADDR="http://localhost:8200"
+const VAULT_TOKEN="empty"
 
-            // Authentication token
-            token: 'your-vault-token',           // default: process.env.VAULT_TOKEN
+export class VaultService {
+    private client: any;
+    private isInitialized: boolean = false;
 
-            // Namespace (Vault Enterprise feature)
-            namespace: 'admin',                  // default: undefined
-
-            // Path prefix for all requests
-            pathPrefix: '',                      // default: '' (e.g., '/v1' is added automatically)
-
-
-            // Custom request options (passed to 'request' library)
+    constructor(config?: VaultConfig) {
+        const vaultConfig = {
+            apiVersion: 'v1',
+            endpoint: process.env.VAULT_ADDR || 'http://hashicorp-vault:8200',
+            token: process.env.VAULT_TOKEN,
             requestOptions: {
-                // Request timeout (milliseconds)
-                timeout: 10000,                      // default: 10000 (10 seconds)
-
-                // TLS/SSL options
-                ca: undefined,                     // CA certificate
-                cert: undefined,                   // Client certificate
-                key: undefined,                    // Client key
-                rejectUnauthorized: true,          // default: true (verify SSL certificates)
-
-                // Proxy settings
-                proxy: undefined,                  // HTTP proxy URL
-
-                // Keep-alive
-                forever: false,                    // default: false (use keep-alive)
-
-                // Other HTTP options
-                headers: {},                       // Custom headers
-                agentOptions: {},                  // HTTP agent options
+                timeout: 5000,
             },
+            ...config,
+        };
 
-            // Mustache-style templating for paths
-            mustache: undefined,                 // default: undefined
+        this.client = VaultClient(vaultConfig);
+    }
 
-            // Debug mode (logs requests)
-            debug: undefined,                    // default: undefined
+    async initialize(): Promise<void> {
+        try {
+            const health = await this.client.health();
+            console.log('✅ Vault connected successfully');
+            this.isInitialized = true;
+        } catch (error) {
+            console.error('❌ Failed to connect to Vault:', error);
+            throw new Error('Vault connection failed');
+        }
+    }
 
-            // Custom status codes to treat as success
-            noCustomHTTPVerbs: false,            // default: false
+    /**
+     * Read a secret from Vault KV v2
+     * @param path - Path to the secret (e.g., 'authentication/jwt')
+     */
+    async getSecret(path: string): Promise<SecretData | null> {
+        try {
+            const response = await this.client.read(`secret/data/${path}`);
+            return response.data.data;
+        } catch (error) {
+            console.error(`Failed to read secret at ${path}:`, error);
+            return null;
+        }
+    }
 
-            // Custom HTTP client
-            // rpInitialized: undefined,            // default: undefined (uses 'request-promise')
-        });
-        // vault.;
-};
+    /**
+     * Write a secret to Vault KV v2
+     * @param path - Path to store the secret
+     * @param data - Secret data to store
+     */
+    async setSecret(path: string, data: SecretData): Promise<boolean> {
+        try {
+            await this.client.write(`secret/data/${path}`, {
+                data: data,
+            });
+            return true;
+        } catch (error) {
+            console.error(`Failed to write secret at ${path}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Delete a secret from Vault
+     * @param path - Path to the secret
+     */
+    async deleteSecret(path: string): Promise<boolean> {
+        try {
+            await this.client.delete(`secret/data/${path}`);
+            return true;
+        } catch (error) {
+            console.error(`Failed to delete secret at ${path}:`, error);
+            return false;
+        }
+    }
+
+    /**
+     * Get JWT configuration
+     */
+    async getJWTConfig(): Promise<{ secret_key: string; expiry: string } | null> {
+        return await this.getSecret('authentication/jwt');
+    }
+
+    /**
+     * Get OAuth configuration for a provider
+     */
+    async getOAuthConfig(provider: string): Promise<any> {
+        return await this.getSecret(`authentication/oauth/${provider}`);
+    }
+
+    /**
+     * Check if Vault is healthy
+     */
+    async healthCheck(): Promise<boolean> {
+        try {
+            await this.client.health();
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+}

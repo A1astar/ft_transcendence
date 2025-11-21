@@ -5,7 +5,7 @@ import fastifySession from '@fastify/session';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJWT from '@fastify/jwt';
 
-// import HashiCorpVault from 'node-vault';
+import VaultClient from 'node-vault';
 
 import crypto from 'crypto';
 import color from 'chalk';
@@ -24,12 +24,11 @@ function printSession(request: FastifyRequest) {
 
 async function logAccount(request: FastifyRequest, reply: FastifyReply,
             database: Database, sqlite: SQLiteDatabase) : Promise<boolean> {
+
     console.log(color.bold.italic.yellow("----- LOGIN -----"));
     console.log(color.red('Raw body:'), JSON.stringify(request.body, null, 2));
     const user = request.body as UserFormat;
 
-    // console.log(color.bold.blue('username: ') + user.name);
-    // console.log(color.bold.blue('password: ') + user.passwordHash);
     return true;
 }
 
@@ -52,16 +51,15 @@ function registerOAuth(path: string, request: FastifyRequest,
     }
 }
 
-async function manageRequest(fastify: FastifyInstance,
-                    database: Database, sqlite: SQLiteDatabase) {
+async function manageRequest(fastify: FastifyInstance, vaultService: VaultClient) {
 
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;
-        console.log()
 
+        console.log(color.bold.blue('Authentication'));
         switch (path) {
             case "/api/auth/login":
-                logAccount(request, reply, database, sqlite);
+                logAccount(request, reply, vaultClient);
                 break;
             case "/api/auth/register":
                 // sqlite.registerAccount(request);
@@ -69,7 +67,7 @@ async function manageRequest(fastify: FastifyInstance,
                 break;
             case path?.startsWith('/api/auth/oauth'):
                 if (path)
-                    registerOAuth(path, request, reply, database, sqlite);
+                    registerOAuth(path, request, reply, vaulClient);
                 break;
             default:
                 reply.code(404).send({ error: "Route not found "});
@@ -81,9 +79,13 @@ async function manageRequest(fastify: FastifyInstance,
 async function main() {
     try {
         const fastify = initAuthenticationService();
-        const database = new Database();
-        const sqlite = new SQLiteDatabase();
-        await manageRequest(fastify, database, sqlite);
+
+        const vaulClient = VaultClient({
+
+        });
+        await vaulClient.initialized();
+
+        await manageRequest(fastify, vaulClient);
 
     } catch (err) {
         console.error(err);

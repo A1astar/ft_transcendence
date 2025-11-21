@@ -1,82 +1,16 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
-import fastifySession from '@fastify/session';
-import fastifyCookie from '@fastify/cookie';
-import fastifyJWT from '@fastify/jwt';
-
-import { AuthenticationFormat, RegistrationFormat } from "./format.js";
-import { User, generateId } from "./user.js";
+import { UserFormat } from "./format.js";
 
 import crypto from 'crypto';
 import color from 'chalk';
-
-export interface Session {
-    id: string,
-    userId: string
-}
-
-export default class Database {
-    private users: Map<string, User> = new Map();
-    private usersByName: Map<string, User> = new Map();
-    private sessions: Map<string, User> = new Map();
-
-    printDatabase() {
-        console.log(color.bold.cyan('\n=== Database Contents ==='));
-
-        this.users.forEach((user, key) => {
-            console.log(color.yellow(`ID: ${user.id}`));
-            console.log(color.green(`Name: ${user.name}`));
-            console.log(color.blue(`Email: ${user.email}`));
-            console.log('---');
-        });
-    }
-
-    createSession(userId: string) : Session {
-        const sessionId = crypto.randomBytes(32).toString('hex');
-
-        const session: Session = {
-            userId: userId,
-            id: sessionId
-        };
-        return session;
-    }
-
-    authenticateUser(req: AuthenticationFormat) : void {
-        const user = this.users.get(req.name);
-        if (!user) {
-            console.log(color.red("can't find user in database"));
-            throw new Error();
-        }
-    }
-
-    registerUser(req: RegistrationFormat) : void {
-        const user = new User(req);
-        const session = this.createSession(user.id);
-
-        this.users.set(user.id, user);
-        this.sessions.set(session.id, user);
-    }
-
-    getUser(username: string) : User | undefined {
-        return this.users.get(username);
-   }
-
-    deleteUser(req: AuthenticationFormat) {
-        const user = this.users.get(req.name);
-
-        if (!user)
-            return;
-
-        this.users.delete(user.name);
-    }
-}
 
 export class SQLiteDatabase {
     private sqlite: BetterSQLite3Database;
 
     constructor() {
-        this.sqlite = new BetterSQLite3("database.db", {
+        this.sqlite = new BetterSQLite3("user-management.db", {
             // Read-only mode
             readonly: false,                    // default: false
 
@@ -97,33 +31,20 @@ export class SQLiteDatabase {
         this.sqlite.exec(`
                 CREATE TABLE IF NOT EXISTS users (
                 id TEXT PRIMARY KEY,
+                pseudo TEXT PRIMARY NULL,
                 name TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
                 email TEXT,
                 created_at INTEGER DEFAULT (strftime('%s', 'now'))
             );
 
-
-            CREATE TABLE IF NOT EXISTS sessions (
-                id TEXT PRIMARY KEY,
-                userId TEXT NOT NULL,
-                expiresAt INTEGER NOT NULL,
-                created_at INTEGER DEFAULT (strftime('%s', 'now')),
-                FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-            );
-
             CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
             CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-            CREATE INDEX IF NOT EXISTS idx_sessions_userId ON sessions(userId);
-            CREATE INDEX IF NOT EXISTS idx_sessions_expiresAt ON sessions(expiresAt);
         `);
     }
 
-    async registerAccount(request: FastifyRequest, reply: FastifyReply) : Promise<void> {
-
-        console.log(color.bold.italic.yellow("\n----- REGISTER -----"));
-
-        database.registerUser(request.body as RegistrationFormat);
+    async registerUser(request: FastifyRequest, reply: FastifyReply) : Promise<void> {
+        console.log('');
         const stmt = sqlite.prepare(`
             INSERT INTO users (id, name, email, passwordHash)
             VALUES (?, ?, ?, ?)
@@ -138,7 +59,8 @@ export class SQLiteDatabase {
             }
             throw error;
         }
-        database.printDatabase();
+
+        this.printDatabase();
 
         reply.setCookie(
             'sessionId', 'sessionTest', {
@@ -166,6 +88,10 @@ export class SQLiteDatabase {
             signed: true                 // Creates signed cookie for tamper protection
         });
     }
+
+    printDatabase() {
+        this.sqlite.
+    };
 };
 
 /* SQLite database

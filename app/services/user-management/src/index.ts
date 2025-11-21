@@ -1,11 +1,10 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
-import color from 'chalk';
-
 import Database, { SQLiteDatabase } from "./database.js";
 import { initUserManagementService } from './init.js';
 
+import color from 'chalk';
 
 function printSession(request: FastifyRequest) {
     console.log(color.bold.white('Session ID:'));
