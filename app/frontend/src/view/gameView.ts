@@ -19,16 +19,20 @@ import {endGameView} from "./endGameView.js";
 
 const appDiv = document.getElementById("app");
 const groundTexture = "../../public/textures/pongTable.png";
+const eyeTexture = "../../public/textures/eye.png";
+
 
 function updateScore(GameState: any) {
-    if (GameState.ball.x == -10) GameState.score.left++;
-    if (GameState.ball.x == 10) GameState.score.right++;
+    //if (GameState.ball.x == -10) GameState.score.left++;
+    //if (GameState.ball.x == 10) GameState.score.right++;
+        if (GameState.ball.x == -10) GameState.score.left = 0;
+    if (GameState.ball.x == 10) GameState.score.right = 0;
 }
 
 function displayScore(matchInfos: any, appDiv: HTMLElement, GameState: any) {
     let scoreBoard = document.getElementById("scoreBoard");
     const player1Name = matchInfos.players[0].alias;
-    const player2Name = matchInfos.players[2].alias;
+    const player2Name = matchInfos.players[1].alias;
     let player1Score = GameState.score.left;
     let player2Score = GameState.score.right;
     let scoreDisplay = `${player1Name}: ${player1Score} - ${player2Score} :${player2Name}`;
@@ -140,6 +144,156 @@ function scaling3DMesh(meshElement: any, xPos: number, yPos: number, zPos: numbe
     meshElement.scaling = new BABYLON.Vector3(xPos, yPos, zPos);
 }
 
+function createBaradDur(scene :any) {
+
+    // Groupe parent de toute la tour
+    const towerRoot = new BABYLON.TransformNode("towerRoot", scene);
+
+    // Materials
+    const eyeMat = new BABYLON.StandardMaterial("eyeMat", scene);
+    eyeMat.diffuseColor = new BABYLON.Color3(1, 0.2, 0);
+    eyeMat.emissiveColor = new BABYLON.Color3(1, 0.15, 0);
+
+    const towerMat = new BABYLON.StandardMaterial("towerMat", scene);
+    towerMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+
+    const spikeMat = new BABYLON.StandardMaterial("spikeMat", scene);
+    spikeMat.diffuseColor = new BABYLON.Color3(0.42, 0.42, 0.42);
+
+    const sauronEye = BABYLON.MeshBuilder.CreateSphere("sauronEye", {
+        diameter: 0.10,
+        segments: 32
+    }, scene);
+    sauronEye.position = new BABYLON.Vector3(0, 2.8, 0);
+    sauronEye.scaling = new BABYLON.Vector3(1.6, 0.8, 1);
+    sauronEye.material = eyeMat;
+    sauronEye.parent = towerRoot;
+
+    scene.registerBeforeRender(() => {
+        const t = performance.now() * 0.003;
+        sauronEye.scaling.y = 0.8 + Math.sin(t) * 0.2;
+    });
+
+    const leftHorn = BABYLON.MeshBuilder.CreateBox("leftHorn", { width: 0.03, height: 0.2, depth: 0.15 }, scene);
+    leftHorn.position = new BABYLON.Vector3(-0.09, 2.75, 0);
+    leftHorn.material = towerMat;
+    leftHorn.parent = towerRoot;
+
+    const rightHorn = BABYLON.MeshBuilder.CreateBox("rightHorn", { width: 0.03, height: 0.2, depth: 0.15 }, scene);
+    rightHorn.position = new BABYLON.Vector3(0.09, 2.75, 0);
+    rightHorn.material = towerMat;
+    rightHorn.parent = towerRoot;
+
+    const coneBalcony = BABYLON.MeshBuilder.CreateCylinder("cone", {
+        diameterTop: 0,
+        diameterBottom: 0.25,
+        height: 0.5,
+        tessellation: 32
+    }, scene);
+    coneBalcony.position = new BABYLON.Vector3(0, 2.4, 0);
+    coneBalcony.material = towerMat;
+    coneBalcony.parent = towerRoot;
+
+    const cone = BABYLON.MeshBuilder.CreateCylinder("cone2", {
+        diameterTop: 0.3,
+        diameterBottom: 0,
+        height: 0.5,
+        tessellation: 32
+    }, scene);
+    cone.position = new BABYLON.Vector3(0, 2.4, 0);
+    cone.material = towerMat;
+    cone.parent = towerRoot;
+
+    var cylinderFloor = BABYLON.MeshBuilder.CreateCylinder("cylinderFloor", { diameter: 1, height: 0.5 }, scene);
+    cylinderFloor.material = towerMat;
+    cylinderFloor.position.y = 0.3;
+    cylinderFloor.parent = towerRoot;
+
+    var cylinderMiddleGround = BABYLON.MeshBuilder.CreateCylinder("cylinderMiddleGround", { diameter: 0.8, height: 0.5 }, scene);
+    cylinderMiddleGround.material = towerMat;
+    cylinderMiddleGround.position.y = 0.6;
+    cylinderMiddleGround.parent = towerRoot;
+
+    var cylinderMiddle = BABYLON.MeshBuilder.CreateCylinder("cylinderMiddle", { diameter: 0.5, height: 0.5 }, scene);
+    cylinderMiddle.material = towerMat;
+    cylinderMiddle.position.y = 0.9;
+    cylinderMiddle.parent = towerRoot;
+
+    var cylinderMiddleHigh = BABYLON.MeshBuilder.CreateCylinder("cylinderMiddleHigh", { diameter: 0.2, height: 2 }, scene);
+    cylinderMiddleHigh.material = towerMat;
+    cylinderMiddleHigh.position.y = 1.5;
+    cylinderMiddleHigh.parent = towerRoot;
+
+
+    for (let i = 0; i < 10; i++) {
+        const spikeHigh = BABYLON.MeshBuilder.CreateBox("spikeHigh" + i, {
+            height: 0.25,
+            width: 0.04,
+            depth: 0.04
+        }, scene);
+
+        const angle = (i / 10) * Math.PI * 2;
+        const radius = 0.25;
+
+        spikeHigh.position = new BABYLON.Vector3(
+            Math.cos(angle) * radius,
+            1.1,
+            Math.sin(angle) * radius
+        );
+
+        spikeHigh.lookAt(new BABYLON.Vector3(0, 1.1, 0));
+        spikeHigh.material = spikeMat;
+        spikeHigh.parent = towerRoot;
+    }
+
+    for (let i = 0; i < 10; i++) {
+        const spikeMiddle = BABYLON.MeshBuilder.CreateBox("spikeMiddle" + i, {
+            height: 0.25,
+            width: 0.04,
+            depth: 0.04
+        }, scene);
+
+        const angle = (i / 10) * Math.PI * 2;
+        const radius = 0.4;
+
+        spikeMiddle.position = new BABYLON.Vector3(
+            Math.cos(angle) * radius,
+            0.8,
+            Math.sin(angle) * radius
+        );
+
+        spikeMiddle.lookAt(new BABYLON.Vector3(0, 0.8, 0));
+        spikeMiddle.material = spikeMat;
+        spikeMiddle.parent = towerRoot;
+    }
+
+    for (let i = 0; i < 10; i++) {
+        const spikeBottom = BABYLON.MeshBuilder.CreateBox("spikeBottom" + i, {
+            height: 0.25,
+            width: 0.04,
+            depth: 0.04
+        }, scene);
+
+        const angle = (i / 10) * Math.PI * 2;
+        const radius = 0.5;
+
+        spikeBottom.position = new BABYLON.Vector3(
+            Math.cos(angle) * radius,
+            0.5,
+            Math.sin(angle) * radius
+        );
+
+        spikeBottom.lookAt(new BABYLON.Vector3(0, 0.5, 0));
+        spikeBottom.material = spikeMat;
+        spikeBottom.parent = towerRoot;
+    }
+
+    const gl = new BABYLON.GlowLayer("glow", scene);
+    gl.intensity = 0.65;
+
+    return towerRoot;
+}
+
 function createSkybox(scene: any) {
     const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size: 1000.0}, scene);
     const skyboxMaterial = new BABYLON.StandardMaterial("skybox", scene);
@@ -166,7 +320,7 @@ function setupScene(canvas: HTMLCanvasElement) {
     wallMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
 
     const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
-    ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+    ballMaterial.diffuseTexture = new BABYLON.Texture(eyeTexture, scene);
 
     const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
     paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
@@ -174,7 +328,10 @@ function setupScene(canvas: HTMLCanvasElement) {
     const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
     ground.material = groundMaterial;
 
-    const ball = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 0.35}, scene);
+    const ball = BABYLON.MeshBuilder.CreateCylinder("ball", {
+        diameter: 0.5,
+        height: 0.01,
+    }, scene);
     ball.material = ballMaterial;
     update3DMeshPos(ball, 0, 0.25, 0);
 
@@ -187,6 +344,30 @@ function setupScene(canvas: HTMLCanvasElement) {
     rightPaddle.material = paddleMaterial;
     scaling3DMesh(rightPaddle, 0.25, 0.5, 2);
     update3DMeshPos(rightPaddle, 8, 0, 0);
+
+    const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
+    leftWall.material = wallMaterial;
+    scaling3DMesh(leftWall, 0.2, 0.5, 10);
+    update3DMeshPos(leftWall, -10, 0, 0);
+
+    const rightWall = BABYLON.MeshBuilder.CreateBox("rightWall", {}, scene);
+    rightWall.material = wallMaterial;
+    scaling3DMesh(rightWall, 0.2, 0.5, 10);
+    update3DMeshPos(rightWall, 10, 0, 0);
+
+    const upperWall = BABYLON.MeshBuilder.CreateBox("upperWall", {}, scene);
+    upperWall.material = wallMaterial;
+    scaling3DMesh(upperWall, 20.2, 0.5, 0.2);
+    update3DMeshPos(upperWall, 0, 0, -5);
+
+    const lowerWall = BABYLON.MeshBuilder.CreateBox("lowerWall", {}, scene);
+    lowerWall.material = wallMaterial;
+    scaling3DMesh(lowerWall, 20.2, 0.5, 0.2);
+    update3DMeshPos(lowerWall, 0, 0, 5);
+
+    const tower = createBaradDur(scene);
+    scaling3DMesh(tower, 2, 2, 2);
+    update3DMeshPos(tower, 0, 0, -6.5);
 
     createCamera(scene);
     createLight(scene);
