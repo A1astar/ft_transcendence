@@ -23,9 +23,7 @@ const eyeTexture = "../../public/textures/eye.png";
 
 
 function updateScore(GameState: any) {
-    //if (GameState.ball.x == -10) GameState.score.left++;
-    //if (GameState.ball.x == 10) GameState.score.right++;
-        if (GameState.ball.x == -10) GameState.score.left = 0;
+    if (GameState.ball.x == -10) GameState.score.left = 0;
     if (GameState.ball.x == 10) GameState.score.right = 0;
 }
 
@@ -118,16 +116,27 @@ function setupWebSocket(
     };
 }
 
-function createCamera(scene: any) {
-    const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 18, 8), scene);
-    const target = BABYLON.Vector3.Zero();
-    camera.setTarget(target);
-    camera.lockedTarget = target;
-    camera.fov = BABYLON.Tools.ToRadians(55);
-    camera.minZ = 0.1;
-    camera.maxZ = 1000;
-    camera.inertia = 0;
-    camera.inputs.clear();
+function createCamera(scene: any, canvas: HTMLCanvasElement) {
+    // const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 18, 8), scene);
+    // const target = BABYLON.Vector3.Zero();
+    // camera.setTarget(target);
+    // camera.lockedTarget = target;
+    // camera.fov = BABYLON.Tools.ToRadians(55);
+    // camera.minZ = 0.1;
+    // camera.maxZ = 1000;
+    // camera.inertia = 0;
+    // camera.inputs.clear();
+
+        // Camera
+    const camera = new BABYLON.ArcRotateCamera(
+        "camera",
+        Math.PI / 2,
+        Math.PI / 3,
+        10,
+        new BABYLON.Vector3(0, 1.5, 0),
+        scene
+    );
+    camera.attachControl(canvas, true);
 }
 
 function createLight(scene: any) {
@@ -146,10 +155,8 @@ function scaling3DMesh(meshElement: any, xPos: number, yPos: number, zPos: numbe
 
 function createBaradDur(scene :any) {
 
-    // Groupe parent de toute la tour
     const towerRoot = new BABYLON.TransformNode("towerRoot", scene);
 
-    // Materials
     const eyeMat = new BABYLON.StandardMaterial("eyeMat", scene);
     eyeMat.diffuseColor = new BABYLON.Color3(1, 0.2, 0);
     eyeMat.emissiveColor = new BABYLON.Color3(1, 0.15, 0);
@@ -309,6 +316,69 @@ function gotMatchInfos(matchInfos: any): boolean {
     return matchInfos?.id ? true : false;
 }
 
+// function updateVisionConePos(scene: any, tower: any , ball: any, cone: any) {
+//     cone.setPivotPoint(new BABYLON.Vector3(0, 5, 0));
+
+//     const sauronEye = scene.getMeshByName("sauronEye");
+//     const eyePos = sauronEye.getAbsolutePosition();
+//     cone.position.copyFrom(eyePos);
+// }
+
+// function updateVisionConePos(scene: any, cone: any, ball: any) {
+//     const sauronEye = scene.getMeshByName("sauronEye");
+
+//     const eyePos = sauronEye.getAbsolutePosition();
+//     const ballPos = ball.getAbsolutePosition();
+
+//     // pointe du cône à la position de l’œil
+//     cone.position.copyFrom(eyePos);
+
+//     // direction vers la balle
+//     cone.lookAt(ballPos);
+
+//     const dist = BABYLON.Vector3.Distance(eyePos, ballPos);
+//     cone.scaling.y = dist / 10;  // car height = 10
+// }
+
+
+function updateVisionConePos(scene: any, ball: any, cone: any) {
+    const sauronEye = scene.getMeshByName("sauronEye");
+    const eyePos = sauronEye.getAbsolutePosition();
+    cone.position.copyFrom(eyePos);
+
+    const ballPos = ball.getAbsolutePosition();
+    cone.lookAt(ballPos);
+}
+
+function createVisionCone(scene: any) {
+
+    const coneMat = new BABYLON.StandardMaterial("coneMat", scene);
+    coneMat.emissiveColor = new BABYLON.Color3(1, 0.4, 0);
+    coneMat.alpha = 0.35;
+
+    const height = 10;
+
+    const cone = BABYLON.MeshBuilder.CreateCylinder("visionCone", {
+        diameterTop: 0,
+        diameterBottom: 0.5,
+        height: height,
+        tessellation: 32,
+    }, scene);
+    cone.material = coneMat;
+
+    cone.position.y = -height / 2;
+
+    cone.bakeCurrentTransformIntoVertices();
+
+    cone.position.set(0, 0, 0);
+    cone.rotation.set(0, 0, 0);
+    cone.computeWorldMatrix(true);
+
+    cone.setPivotPoint(new BABYLON.Vector3.Zero());
+
+    return cone;
+}
+
 function setupScene(canvas: HTMLCanvasElement) {
     const engine = new BABYLON.Engine(canvas, true);
     const scene = new BABYLON.Scene(engine);
@@ -369,10 +439,13 @@ function setupScene(canvas: HTMLCanvasElement) {
     scaling3DMesh(tower, 2, 2, 2);
     update3DMeshPos(tower, 0, 0, -6.5);
 
-    createCamera(scene);
+    const visionCone = createVisionCone(scene);
+    updateVisionConePos(scene, ball, visionCone);
+
+    createCamera(scene, canvas);
     createLight(scene);
 
-    return {engine, scene, ball, leftPaddle, rightPaddle};
+    return {engine, scene, ball, leftPaddle, rightPaddle, visionCone};
 }
 
 export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void) {
@@ -388,10 +461,12 @@ export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void
     appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
     appDiv.appendChild(canvas);
 
-    const {engine, scene, ball, leftPaddle, rightPaddle} = setupScene(canvas);
+    const {engine, scene, ball, leftPaddle, rightPaddle, visionCone} = setupScene(canvas);
 
     setupWebSocket(matchInfos, ball, leftPaddle, rightPaddle, onGameEnd);
-
-    engine.runRenderLoop(() => scene.render());
+    engine.runRenderLoop(() => {
+    updateVisionConePos(scene, ball, visionCone);
+    scene.render();
+});
     window.addEventListener("resize", () => engine.resize());
 }
