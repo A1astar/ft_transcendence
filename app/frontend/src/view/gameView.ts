@@ -20,6 +20,7 @@ import {endGameView} from "./endGameView.js";
 const appDiv = document.getElementById("app");
 const groundTexture = "../../public/textures/pongTable.png";
 const eyeTexture = "../../public/textures/eye.png";
+const flareTexture = "../../public/textures/flare.png";
 
 
 function displayScore(matchInfos: any, appDiv: HTMLElement, GameState: any) {
@@ -145,6 +146,93 @@ function update3DMeshPos(meshElement: any, xPos: number, yPos: number, zPos: num
 
 function scaling3DMesh(meshElement: any, xPos: number, yPos: number, zPos: number) {
     meshElement.scaling = new BABYLON.Vector3(xPos, yPos, zPos);
+}
+
+function createTorch(scene : any) {
+    const towerRoot = new BABYLON.TransformNode("towerRoot", scene);
+
+    const towerMat = new BABYLON.StandardMaterial("towerMat", scene);
+    towerMat.diffuseColor = new BABYLON.Color3(0, 0, 0);
+
+    const spikeMat = new BABYLON.StandardMaterial("spikeMat", scene);
+    spikeMat.diffuseColor = new BABYLON.Color3(0.42, 0.42, 0.42);
+
+    const cone = BABYLON.MeshBuilder.CreateCylinder("cone2", {
+        diameterTop: 0.5,
+        diameterBottom: 0,
+        height: 1,
+        tessellation: 32
+    }, scene);
+    cone.position = new BABYLON.Vector3(0, 1.5, 0);
+    cone.material = towerMat;
+    cone.parent = towerRoot;
+
+    var cylinderFloor = BABYLON.MeshBuilder.CreateCylinder("cylinderFloor", { diameter: 0.3, height: 2 }, scene);
+    cylinderFloor.material = towerMat;
+    cylinderFloor.position.y = 1;
+    cylinderFloor.parent = towerRoot;
+
+    for (let i = 0; i < 10; i++) {
+        const spikeHigh = BABYLON.MeshBuilder.CreateBox("spikeHigh" + i, {
+            height: 0.25,
+            width: 0.04,
+            depth: 0.04
+        }, scene);
+
+        const angle = (i / 10) * Math.PI * 2;
+        const radius = 0.25;
+
+        spikeHigh.position = new BABYLON.Vector3(
+            Math.cos(angle) * radius,
+            2,
+            Math.sin(angle) * radius
+        );
+
+        spikeHigh.lookAt(new BABYLON.Vector3(0, 2, 0));
+        spikeHigh.material = spikeMat;
+        spikeHigh.parent = towerRoot;
+    }
+
+    const flameAnchor = new BABYLON.TransformNode("flameAnchor", scene);
+    flameAnchor.position = new BABYLON.Vector3(0, 2.1, 0); // au-dessus du cône
+    flameAnchor.parent = towerRoot
+
+    const flameSystem = new BABYLON.ParticleSystem("flameParticles", 2000, scene);
+
+    flameSystem.particleTexture = new BABYLON.Texture(flareTexture, scene);
+
+    flameSystem.emitter = flameAnchor; // suit la tour automatiquement
+
+    flameSystem.color1 = new BABYLON.Color4(1, 0.6, 0.1, 1.0);
+    flameSystem.color2 = new BABYLON.Color4(1, 0.2, 0, 1.0);
+    flameSystem.colorDead = new BABYLON.Color4(0.2, 0, 0, 0.0);
+
+    flameSystem.minSize = 0.05;
+    flameSystem.maxSize = 0.15;
+
+    flameSystem.minLifeTime = 0.3;
+    flameSystem.maxLifeTime = 0.6;
+
+    flameSystem.direction1 = new BABYLON.Vector3(-0.2, 1, -0.2);
+    flameSystem.direction2 = new BABYLON.Vector3(0.2, 1, 0.2);
+
+    flameSystem.minEmitPower = 0.5;
+    flameSystem.maxEmitPower = 1.5;
+
+    flameSystem.emitRate = 400;
+
+    flameSystem.gravity = new BABYLON.Vector3(0, 0.1, 0);
+
+    flameSystem.minEmitBox = new BABYLON.Vector3(-0.05, 0, -0.05);
+    flameSystem.maxEmitBox = new BABYLON.Vector3(0.05, 0, 0.05);
+
+    flameSystem.updateSpeed = 0.01;
+    flameSystem.addSizeGradient(0, 0.5);
+    flameSystem.addSizeGradient(1, 0);
+
+    flameSystem.start();
+
+    return towerRoot;
 }
 
 function createBaradDur(scene :any) {
@@ -295,45 +383,10 @@ function createBaradDur(scene :any) {
     return towerRoot;
 }
 
-function createSkybox(scene: any) {
-    const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size: 1000.0}, scene);
-    const skyboxMaterial = new BABYLON.StandardMaterial("skybox", scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../../public/skybox/skybox", scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
-}
 
 function gotMatchInfos(matchInfos: any): boolean {
     return matchInfos?.id ? true : false;
 }
-
-// function updateVisionConePos(scene: any, tower: any , ball: any, cone: any) {
-//     cone.setPivotPoint(new BABYLON.Vector3(0, 5, 0));
-
-//     const sauronEye = scene.getMeshByName("sauronEye");
-//     const eyePos = sauronEye.getAbsolutePosition();
-//     cone.position.copyFrom(eyePos);
-// }
-
-// function updateVisionConePos(scene: any, cone: any, ball: any) {
-//     const sauronEye = scene.getMeshByName("sauronEye");
-
-//     const eyePos = sauronEye.getAbsolutePosition();
-//     const ballPos = ball.getAbsolutePosition();
-
-//     // pointe du cône à la position de l’œil
-//     cone.position.copyFrom(eyePos);
-
-//     // direction vers la balle
-//     cone.lookAt(ballPos);
-
-//     const dist = BABYLON.Vector3.Distance(eyePos, ballPos);
-//     cone.scaling.y = dist / 10;  // car height = 10
-// }
-
 
 function updateVisionConePos(scene: any, ball: any, cone: any) {
     const sauronEye = scene.getMeshByName("sauronEye");
@@ -444,6 +497,20 @@ function setupScene(canvas: HTMLCanvasElement) {
 
     const visionCone = createVisionCone(scene);
     updateVisionConePos(scene, ball, visionCone);
+
+
+    const topleftTorch = createTorch(scene);
+    update3DMeshPos(topleftTorch, 10, 0, -5);
+
+    const topRightTorch = createTorch(scene);
+    update3DMeshPos(topRightTorch, -10, 0, -5);
+
+    const bottomleftTorch = createTorch(scene);
+    update3DMeshPos(bottomleftTorch, 10, 0, 5);
+
+    const bottomRightTorch = createTorch(scene);
+    update3DMeshPos(bottomRightTorch, -10, 0, 5);
+
 
     createCamera(scene, canvas);
     createLight(scene);
