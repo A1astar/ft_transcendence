@@ -1,10 +1,13 @@
-FROM alpine
+FROM hashicorp/vault:latest
 
-WORKDIR /app
+# Copy configuration
+COPY vault-config.hcl /vault/config/vault-config.hcl
+COPY init.sh /vault/init.sh
 
-COPY package*.json ./
+RUN chmod +x /vault/init.sh
 
-# npm clean installation: suited for CI/CD and containers
-RUN npm ci
+# Expose Vault port
+EXPOSE 8200
 
-COPY . .
+# Set entrypoint
+ENTRYPOINT ["/vault/init.sh"]
