@@ -22,11 +22,6 @@ const groundTexture = "../../public/textures/pongTable.png";
 const eyeTexture = "../../public/textures/eye.png";
 
 
-function updateScore(GameState: any) {
-    if (GameState.ball.x == -10) GameState.score.left = 0;
-    if (GameState.ball.x == 10) GameState.score.right = 0;
-}
-
 function displayScore(matchInfos: any, appDiv: HTMLElement, GameState: any) {
     let scoreBoard = document.getElementById("scoreBoard");
     const player1Name = matchInfos.players[0].alias;
@@ -89,10 +84,9 @@ function setupWebSocket(
             update3DMeshPos(rightPaddle, -gameState.paddles.right.x, 0, gameState.paddles.right.y);
 
             if (gameState.score && appDiv) {
-                updateScore(gameState);
                 displayScore(matchInfos, appDiv, gameState);
 
-                if (gameState.score.left >= 3 || gameState.score.right >= 3) {
+                if (gameState.score.left >= 100 || gameState.score.right >= 100) {
                     const winner =
                         gameState.score.left >= 3
                             ? matchInfos.players[0].alias
@@ -348,6 +342,10 @@ function updateVisionConePos(scene: any, ball: any, cone: any) {
 
     const ballPos = ball.getAbsolutePosition();
     cone.lookAt(ballPos);
+
+    const dist = BABYLON.Vector3.Distance(eyePos, ballPos);
+    const baseLength = cone.metadata?.baseLength ?? 10;
+    cone.scaling.z = dist / baseLength;
 }
 
 function createVisionCone(scene: any) {
@@ -367,14 +365,19 @@ function createVisionCone(scene: any) {
     cone.material = coneMat;
 
     cone.position.y = -height / 2;
-
     cone.bakeCurrentTransformIntoVertices();
 
     cone.position.set(0, 0, 0);
     cone.rotation.set(0, 0, 0);
+    cone.scaling.set(1, 1, 1);
     cone.computeWorldMatrix(true);
 
     cone.setPivotPoint(new BABYLON.Vector3.Zero());
+
+    cone.rotation.x = -Math.PI / 2;
+    cone.bakeCurrentTransformIntoVertices();
+    cone.rotation.set(0, 0, 0);
+    cone.computeWorldMatrix(true);
 
     return cone;
 }
