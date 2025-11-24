@@ -1,82 +1,336 @@
+import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import session from '@fastify/session';
+
+import fastifySession from '@fastify/session';
 import fastifyCookie from '@fastify/cookie';
-import Database from "./database.js";
-import { userFormatCorrect, RegisterFormat } from './format.js';
-import BetterSQLite3Database from "better-sqlite3"
-import { User } from "./user.js";
-import HashiCorpVault from 'node-vault';
+import fastifyJWT from '@fastify/jwt';
+
+// import HashiCorpVault from 'node-vault';
+
+import crypto from 'crypto';
 import color from 'chalk';
 
-function printRequest(request: FastifyRequest) {
-    console.log(color.bold.italic.blue('\n----- REQUEST -----'));
-    // console.log(request);
-    // console.log(request.body)
-    // console.log(request.query)
-    // console.log(request.params)
-    // console.log(request.headers)
-    // console.log(request.raw) <---
-    // console.log(request.server) <---
-    // console.log(request.id)
-    // console.log(request.ip)
-    // console.log(request.ips)
-    // console.log(request.host)
-    // console.log(request.hostname)
-    // console.log(request.port)
-    // console.log(request.protocol)
-    // console.log(request.url)
-    // console.log(request.routeOptions.method)
-    // console.log(request.routeOptions.bodyLimit)
-    // console.log(request.routeOptions.method)
-    // console.log(request.routeOptions.url)
-    // console.log(request.routeOptions.attachValidation)
-    // console.log(request.routeOptions.logLevel)
-    // console.log(request.routeOptions.version)
-    // console.log(request.routeOptions.exposeHeadRoute)
-    // console.log(request.routeOptions.prefixTrailingSlash)
-    // console.log(request.routeOptions.logLevel)
-    // request.log.info('some info')
+import { initAuthenticationService } from './init.js';
+import { RegistrationFormat, AuthenticationFormat } from './format.js';
+import Database, { SQLiteDatabase } from "./database.js";
+import { printRequest } from './print.js';
+import { User } from "./user.js";
+import { generateTokens, validateRefreshToken, revokeRefreshToken } from './jwt.js';
+import { hashPassword, verifyPassword } from './password.js';
+
+
+function printSession(request: FastifyRequest) {
+    console.log(color.bold.white('Session ID:'));
+    console.log(color.bold.white('Cookie ID:'));
 }
 
-function getRequestHeaders(request: FastifyRequest) : object {
-    if (!request.headers)
-        return {};
-    return Object.entries(request.headers);
-}
-
-function getRequestBody(request: FastifyRequest) : object {
-    if (!request.body || typeof request.body !== 'object')
-        return {};
-    return Object.entries(request.body);
-}
-
-function logAccount(request: FastifyRequest, database: Database) {
+async function logAccount(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    database: Database,
+    sqlite: SQLiteDatabase,
+    fastify: FastifyInstance
+): Promise<void> {
     console.log(color.bold.italic.yellow("----- LOGIN -----"));
-    printRequest(request);
+    
+    try {
+        const loginData = request.body as AuthenticationFormat & { password: string };
+        
+        if (!loginData.name && !loginData.email) {
+            reply.code(400).send({ error: 'Username or email is required' });
+            return;
+        }
+
+        if (!loginData.password) {
+            reply.code(400).send({ error: 'Password is required' });
+            return;
+        }
+
+        // Find user (by username or email)
+        let user: User | undefined;
+        if (loginData.name) {
+            user = database.getUser(loginData.name);
+        }
+        
+        if (!user && loginData.email) {
+            // Find user by email
+            user = (database as any).getUserByEmail(loginData.email);
+        }
+
+        if (!user) {
+            console.log(color.red('User not found'));
+            reply.code(401).send({ error: 'Invalid credentials' });
+            return;
+        }
+
+        // Verify password
+        const isValidPassword = await verifyPassword(loginData.password, user.passwordHash);
+        
+        if (!isValidPassword) {
+            console.log(color.red('Invalid password'));
+            reply.code(401).send({ error: 'Invalid credentials' });
+            return;
+        }
+
+        // Generate JWT tokens
+        const tokens = await generateTokens(fastify, user);
+
+        // Set HTTP-only cookie for Access Token
+        reply.setCookie('accessToken', tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env['NODE_ENV'] === 'production', // Use HTTPS in production
+            sameSite: 'strict',
+            maxAge: tokens.expiresIn, // 15 minutes
+            path: '/',
+        });
+
+        // Set HTTP-only cookie for Refresh Token
+        reply.setCookie('refreshToken', tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env['NODE_ENV'] === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60, // 7 days
+            path: '/',
+        });
+
+        // Return tokens and user information
+        reply.code(200).send({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            },
+            tokens: {
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                expiresIn: tokens.expiresIn,
+            },
+        });
+
+        console.log(color.green(`User logged in: ${user.name} (${user.id})`));
+    } catch (error: any) {
+        console.error(color.red('Login error:'), error);
+        reply.code(500).send({ error: 'Internal server error' });
+    }
 }
 
-function registerAccount(request: FastifyRequest, database: Database) {
+function registerOAuth(path: string, request: FastifyRequest,
+        reply: FastifyReply, database: Database, sqlite: SQLiteDatabase) {
+    let provider;
+    const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
-    console.log(color.bold.italic.yellow("\n----- REGISTER -----"));
+    if (oauthMatch) {
+        provider = oauthMatch[1];
+        console.log(color.bold.blue(provider));
+    }
 
-    const headers = getRequestHeaders(request);
-    const userInfo = getRequestBody(request) as RegisterFormat;
-
-    if (userFormatCorrect(userInfo))
-        database.addUser(userInfo);
+    switch (provider) {
+        case 'intra42':
+            console.log(color.bold.cyan('intra42'));
+            break;
+        default:
+            reply.code(409).send({ error: "Wrong oauth provider." });
+    }
 }
 
-async function manageRequest(fastify: FastifyInstance, database: Database) {
+async function registerAccount(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    database: Database,
+    sqlite: SQLiteDatabase,
+    fastify: FastifyInstance
+): Promise<void> {
+    console.log(color.bold.italic.yellow("----- REGISTER -----"));
+    
+    try {
+        const registerData = request.body as RegistrationFormat;
+        
+        // Validate input
+        if (!registerData.name || !registerData.email || !registerData.password) {
+            reply.code(400).send({ error: 'Name, email, and password are required' });
+            return;
+        }
+
+        // Validate email format (simple check)
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(registerData.email)) {
+            reply.code(400).send({ error: 'Invalid email format' });
+            return;
+        }
+
+        // Validate password length (at least 8 characters)
+        if (registerData.password.length < 8) {
+            reply.code(400).send({ error: 'Password must be at least 8 characters long' });
+            return;
+        }
+
+        // Hash password
+        const passwordHash = await hashPassword(registerData.password);
+
+        // Register user
+        const user = await database.registerUser(registerData, passwordHash);
+
+        // Generate JWT tokens
+        const tokens = await generateTokens(fastify, user);
+
+        // Set HTTP-only cookies
+        reply.setCookie('accessToken', tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env['NODE_ENV'] === 'production',
+            sameSite: 'strict',
+            maxAge: tokens.expiresIn,
+            path: '/',
+        });
+
+        reply.setCookie('refreshToken', tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env['NODE_ENV'] === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60, // 7 days
+            path: '/',
+        });
+
+        // Return tokens and user information
+        reply.code(201).send({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+            },
+            tokens: {
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                expiresIn: tokens.expiresIn,
+            },
+        });
+
+        console.log(color.green(`User registered: ${user.name} (${user.id})`));
+    } catch (error: any) {
+        console.error(color.red('Registration error:'), error);
+        
+        if (error.message.includes('already exists')) {
+            reply.code(409).send({ error: error.message });
+        } else {
+            reply.code(500).send({ error: 'Internal server error' });
+        }
+    }
+}
+
+async function refreshAccessToken(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    database: Database,
+    fastify: FastifyInstance
+): Promise<void> {
+    console.log(color.bold.italic.cyan("----- REFRESH TOKEN -----"));
+    
+    try {
+        const refreshToken = request.cookies['refreshToken'] || (request.body as any)?.refreshToken;
+        
+        if (!refreshToken) {
+            reply.code(401).send({ error: 'Refresh token is required' });
+            return;
+        }
+
+        // Validate refresh token
+        const tokenData = validateRefreshToken(refreshToken);
+        
+        if (!tokenData) {
+            reply.code(401).send({ error: 'Invalid or expired refresh token' });
+            return;
+        }
+
+        // Get user information
+        const user = database.getUserById(tokenData.userId);
+        
+        if (!user) {
+            reply.code(401).send({ error: 'User not found' });
+            return;
+        }
+
+        // Generate new tokens
+        const tokens = await generateTokens(fastify, user);
+
+        // Revoke old refresh token
+        revokeRefreshToken(refreshToken);
+
+        // Set new cookies
+        reply.setCookie('accessToken', tokens.accessToken, {
+            httpOnly: true,
+            secure: process.env['NODE_ENV'] === 'production',
+            sameSite: 'strict',
+            maxAge: tokens.expiresIn,
+            path: '/',
+        });
+
+        reply.setCookie('refreshToken', tokens.refreshToken, {
+            httpOnly: true,
+            secure: process.env['NODE_ENV'] === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60,
+            path: '/',
+        });
+
+        reply.code(200).send({
+            success: true,
+            tokens: {
+                accessToken: tokens.accessToken,
+                refreshToken: tokens.refreshToken,
+                expiresIn: tokens.expiresIn,
+            },
+        });
+
+        console.log(color.green(`Token refreshed for user: ${user.name} (${user.id})`));
+    } catch (error: any) {
+        console.error(color.red('Refresh token error:'), error);
+        reply.code(500).send({ error: 'Internal server error' });
+    }
+}
+
+async function logout(
+    request: FastifyRequest,
+    reply: FastifyReply
+): Promise<void> {
+    console.log(color.bold.italic.magenta("----- LOGOUT -----"));
+    
+    const refreshToken = request.cookies['refreshToken'];
+    
+    if (refreshToken) {
+        revokeRefreshToken(refreshToken);
+    }
+
+        // Clear cookies
+    reply.clearCookie('accessToken', { path: '/' });
+    reply.clearCookie('refreshToken', { path: '/' });
+
+    reply.code(200).send({ success: true, message: 'Logged out successfully' });
+}
+
+async function manageRequest(fastify: FastifyInstance,
+                    database: Database, sqlite: SQLiteDatabase) {
 
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;
+        console.log()
 
         switch (path) {
-            case "/auth/login":
-                logAccount(request, database);
+            case "/api/auth/login":
+                await logAccount(request, reply, database, sqlite, fastify);
                 break;
-            case "/auth/register":
-                registerAccount(request, database);
+            case "/api/auth/register":
+                await registerAccount(request, reply, database, sqlite, fastify);
+                break;
+            case "/api/auth/refresh":
+                await refreshAccessToken(request, reply, database, fastify);
+                break;
+            case "/api/auth/logout":
+                await logout(request, reply);
+                break;
+            case path?.startsWith('/api/auth/oauth'):
+                if (path)
+                    registerOAuth(path, request, reply, database, sqlite);
                 break;
             default:
                 reply.code(404).send({ error: "Route not found "});
@@ -85,205 +339,40 @@ async function manageRequest(fastify: FastifyInstance, database: Database) {
     });
 }
 
-function initAuthenticationService(fastify: FastifyInstance) {
-    fastify.register(fastifyCookie);
-    fastify.register(session, {
-        secret: 'a random secret that shoud be longer than length 32',
-        cookie: { secure: false, maxAge: 3600 * 1000 },
-    });
-
-    fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
-    if (err) {
-        fastify.log.error(err);
-        throw err;
-    }
-    })
-    console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
-}
-
-function start() {
-
-    const fastify = Fastify({
-        // AJV options for schema validation
-        ajv: {
-            customOptions: {},
-            plugins: []
-        },
-
-        // Body size limit (bytes)
-        bodyLimit: 1048576,                 // default: 1MB
-
-        // Case sensitivity for routes
-        // caseSensitive: true,                // default: true
-
-        // Connection timeout (milliseconds)
-        connectionTimeout: 0,               // default: 0 (disabled)
-
-        // Disable request logging
-        disableRequestLogging: false,       // default: false
-
-        // Expose HEAD routes for GET routes
-        exposeHeadRoutes: true,             // default: true
-
-        // Force close connections on close
-        forceCloseConnections: false,       // default: false
-
-        // Custom request ID generator
-        // genReqId: (req) => {                // default: incremental counter
-        //     return `req-${Date.now()}-${Math.random()}`;
-        // },
-
-        // HTTP/2 support
-        // http2: false,                       // default: false
-
-        // HTTP/2 session timeout
-        // http2SessionTimeout: 72000,         // default: 72000ms (72s)
-
-        // HTTPS/TLS options
-        // https: undefined,                   // default: undefined (provide { key, cert } for HTTPS)
-
-        // Ignore trailing slashes in routes
-        // ignoreTrailingSlash: false,         // default: false
-
-        // Ignore duplicate slashes in routes
-        // ignoreDuplicateSlashes: false,      // default: false
-
-        // Keep-alive timeout
-        keepAliveTimeout: 72000,            // default: 72000ms (Node.js default)
-
-        // Logging configuration
-        logger: true,                       // default: false (or pino options)
-
-        // Max param length
-        // maxParamLength: 100,                // default: 100
-
-        // Max request headers count
-        maxRequestsPerSocket: 0,            // default: 0 (unlimited)
-
-        // On protocol error behavior
-        // onProtocolError: 'error',           // default: 'error' | 'ignore'
-
-        // Plugin timeout
-        pluginTimeout: 10000,               // default: 10000ms (10s)
-
-        // Query string parser
-        // querystringParser: undefined,       // default: undefined (uses Node's)
-
-        // Request ID header name
-        requestIdHeader: false,             // default: false (or string header name)
-
-        // Request ID log label
-        requestIdLogLabel: 'reqId',         // default: 'reqId'
-
-        // Request timeout
-        requestTimeout: 0,                  // default: 0 (disabled)
-
-        // Return 503 on closing
-        return503OnClosing: true,           // default: true
-
-        // Rewrite URL function
-        rewriteUrl: undefined,              // default: undefined
-
-        // Schema controller
-        schemaController: undefined,        // default: undefined
-
-        // Schema error formatter
-        schemaErrorFormatter: undefined,    // default: undefined
-
-        // Serializer options
-        serializerOpts: {},                 // default: {}
-
-        // Server factory (custom server)
-        serverFactory: undefined,           // default: undefined
-
-        // Trust proxy
-        trustProxy: false,                  // default: false (or true, string, number, function)
-
-        // Versioning options
-        // versioning: undefined,              // default: undefined
-    });
-
-    const vault = HashiCorpVault({
-        // API version
-        apiVersion: 'v1',                    // default: 'v1' (can be 'v1' or 'v2')
-
-        // Vault server endpoint
-        endpoint: 'http://vault:8200',       // default: process.env.VAULT_ADDR || 'http://127.0.0.1:8200'
-
-        // Authentication token
-        token: 'your-vault-token',           // default: process.env.VAULT_TOKEN
-
-        // Namespace (Vault Enterprise feature)
-        namespace: 'admin',                  // default: undefined
-
-        // Path prefix for all requests
-        pathPrefix: '',                      // default: '' (e.g., '/v1' is added automatically)
-
-
-        // Custom request options (passed to 'request' library)
-        requestOptions: {
-            // Request timeout (milliseconds)
-            timeout: 10000,                      // default: 10000 (10 seconds)
-
-            // TLS/SSL options
-            ca: undefined,                     // CA certificate
-            cert: undefined,                   // Client certificate
-            key: undefined,                    // Client key
-            rejectUnauthorized: true,          // default: true (verify SSL certificates)
-
-            // Proxy settings
-            proxy: undefined,                  // HTTP proxy URL
-
-            // Keep-alive
-            forever: false,                    // default: false (use keep-alive)
-
-            // Other HTTP options
-            headers: {},                       // Custom headers
-            agentOptions: {},                  // HTTP agent options
-        },
-
-        // Mustache-style templating for paths
-        mustache: undefined,                 // default: undefined
-
-        // Debug mode (logs requests)
-        debug: undefined,                    // default: undefined
-
-        // Custom status codes to treat as success
-        noCustomHTTPVerbs: false,            // default: false
-
-        // Custom HTTP client
-        // rpInitialized: undefined,            // default: undefined (uses 'request-promise')
-    });
-
-    const database = new Database();
-    const betterSQLite3 = new BetterSQLite3Database("database.db", {
-        // Read-only mode
-        readonly: false,                    // default: false
-
-        // File must exist (throws error if not)
-        fileMustExist: false,              // default: false
-
-        // Connection timeout (milliseconds)
-        timeout: 5000,                     // default: 5000ms
-
-        // Verbose mode - logs SQL statements
-        verbose: undefined,                // default: undefined (or function to log)
-        // verbose: console.log,           // Example: log all SQL
-
-        // Native binding options
-        nativeBinding: undefined,          // default: undefined (path to native module)
-    });
-
-    betterSQLite3.exec(`
-    `);
-
+async function main() {
     try {
-        initAuthenticationService(fastify);
-        manageRequest(fastify, database);
+        const fastify = await initAuthenticationService();
+        const database = new Database();
+        const sqlite = new SQLiteDatabase();
+        
+        // Add all routes first, then start service
+        await manageRequest(fastify, database, sqlite);
+
+        // Add a protected route example (optional)
+        fastify.get('/api/protected', async (request, reply) => {
+            const { authenticate } = await import('./middleware.js');
+            const user = await authenticate(request, reply);
+            
+            if (!user) {
+                return; // authenticate has already sent the error response
+            }
+
+            reply.code(200).send({
+                message: `Hello ${user.name}!`,
+                userId: user.userId,
+                email: user.email,
+            });
+        });
+
+        // Start service after all routes are added
+        await fastify.listen({ port: 3001, host: "0.0.0.0" });
+        console.log(color.green.bold("Authentication service listening on http://0.0.0.0:3001"));
+        console.log(color.green.bold("Authentication state: running"));
 
     } catch (err) {
         console.error(err);
+        process.exit(1);
     }
 }
 
-start();
+main();

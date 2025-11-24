@@ -15,6 +15,7 @@ Content-Length: 0
 
 {
     "username": "username",
+    "email": "email@email.com",
     "password": "password",
 }
 
@@ -30,5 +31,6 @@ Content-Length: 0
 
 {
     "username": "username",
+    "email": "email@email.com",
     "password": "password",
 }

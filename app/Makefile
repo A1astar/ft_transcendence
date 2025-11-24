@@ -21,11 +21,16 @@ down:
 local-run:
 	cd build && ./build.sh local-run
 
+local-watch:
+	cd build && ./build.sh local-watch
+
 local-build:
 	cd build && ./build.sh local-build
 
 local-clean:
 	cd build && ./build.sh local-clean
+
+local-re: local-clean local-run
 
 clean: down
 
@@ -33,4 +38,4 @@ fclean: clean
 
 re: clean all
 
-.PHONY: all build up down local clean fclean re
+.PHONY: all build up down local-run local-build local-clean local-re clean fclean re
