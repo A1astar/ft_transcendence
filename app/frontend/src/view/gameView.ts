@@ -487,6 +487,73 @@ function createScoreBox(scene: any) {
     return scoreText;
 }
 
+function createPaddle(scene: any) {
+ // Root du paddle (pivot commun)
+  const paddleRoot = new BABYLON.TransformNode("paddleRoot", scene);
+
+  // Corps principal du paddle
+  const paddle = BABYLON.MeshBuilder.CreateBox("paddle", {}, scene);
+  paddle.scaling = new BABYLON.Vector3(0.25, 0.5, 2);
+  paddle.position.y = 0.25;
+  paddle.parent = paddleRoot;
+
+  for (let i = 0; i < 10; i++) {
+    const spike = BABYLON.MeshBuilder.CreateBox(`spike_${i}`, {}, scene);
+    spike.scaling = new BABYLON.Vector3(0.05, 0.2, 0.08);
+    spike.position.y = 0.55;
+    spike.position.x = -0.15;
+    spike.position.z = -0.9 + i * 0.2;
+    spike.parent = paddleRoot;
+  }
+
+  for (let i = 0; i < 10; i++) {
+    const spike = BABYLON.MeshBuilder.CreateBox(`spike_${i}`, {}, scene);
+    spike.scaling = new BABYLON.Vector3(0.05, 0.2, 0.08);
+    spike.position.y = 0.55;
+    spike.position.x = 0.15;
+    spike.position.z = -0.9 + i * 0.2;
+    spike.parent = paddleRoot;
+  }
+
+    const tower1 = BABYLON.MeshBuilder.CreateCylinder("tower", {diameter: 0.6}, scene);
+    tower1.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+    tower1.position.y = 0.5;
+    tower1.position.z = 0.9;
+    tower1.parent = paddleRoot;
+
+    const tower2 = BABYLON.MeshBuilder.CreateCylinder("tower", {diameter: 0.6}, scene);
+    tower2.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+    tower2.position.y = 0.5;
+    tower2.position.z = -0.9;
+    tower2.parent = paddleRoot;
+
+  const createTowerCrenels = (tower: any) => {
+    const nb = 12;
+    const radius = 0.3;
+    for (let i = 0; i < nb; i++) {
+      const spike = BABYLON.MeshBuilder.CreateBox(`${tower.name}_crenel_${i}`, {
+        height: 0.25,
+        width: 0.05,
+        depth: 0.05,
+      }, scene);
+
+      const angle = (i / nb) * Math.PI * 2;
+      spike.position = new BABYLON.Vector3(
+        Math.cos(angle) * radius,
+        1,
+        Math.sin(angle) * radius
+      );
+      spike.lookAt(new BABYLON.Vector3(0, 1, 0)); // oriente vers le centre de la tour
+      spike.parent = tower;
+    }
+  };
+
+  createTowerCrenels(tower1);
+  createTowerCrenels(tower2);
+
+  return paddleRoot;
+}
+
 function setupScene(canvas: HTMLCanvasElement) {
     const engine = new BABYLON.Engine(canvas, true);
     const scene = new BABYLON.Scene(engine);
@@ -519,16 +586,22 @@ function setupScene(canvas: HTMLCanvasElement) {
     update3DMeshPos(ball, 0, 0.25, 0);
     ball.parent = pongRoot;
 
-    const leftPaddle = BABYLON.MeshBuilder.CreateBox("leftPaddle", {}, scene);
-    leftPaddle.material = paddleMaterial;
-    scaling3DMesh(leftPaddle, 0.25, 0.5, 2);
-    update3DMeshPos(leftPaddle, -8, 0, 0);
+    //const leftPaddle = BABYLON.MeshBuilder.CreateBox("leftPaddle", {}, scene);
+    //leftPaddle.material = paddleMaterial;
+    //scaling3DMesh(leftPaddle, 0.25, 0.5, 2);
+    //update3DMeshPos(leftPaddle, -8, 0, 0);
+    //leftPaddle.parent = pongRoot;
+
+    //const rightPaddle = BABYLON.MeshBuilder.CreateBox("rightPaddle", {}, scene);
+    //rightPaddle.material = paddleMaterial;
+    //scaling3DMesh(rightPaddle, 0.25, 0.5, 2);
+    //update3DMeshPos(rightPaddle, 8, 0, 0);
+//    rightPaddle.parent = pongRoot;
+
+    const leftPaddle = createPaddle(scene);
     leftPaddle.parent = pongRoot;
 
-    const rightPaddle = BABYLON.MeshBuilder.CreateBox("rightPaddle", {}, scene);
-    rightPaddle.material = paddleMaterial;
-    scaling3DMesh(rightPaddle, 0.25, 0.5, 2);
-    update3DMeshPos(rightPaddle, 8, 0, 0);
+    const rightPaddle = createPaddle(scene);
     rightPaddle.parent = pongRoot;
 
     const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
