@@ -24,23 +24,13 @@ const flareTexture = "../../public/textures/flare.png";
 const backgroundHeightMap = "../../public/heightmap/height.png";
 const backgroundTexture = "../../public/heightmap/texture.png";
 
-
-function displayScore(matchInfos: any, appDiv: HTMLElement, GameState: any) {
-    let scoreBoard = document.getElementById("scoreBoard");
+function displayScore(matchInfos: any, appDiv: HTMLElement, gameState: any, scoreText: any) {
     const player1Name = matchInfos.players[0].alias;
     const player2Name = matchInfos.players[1].alias;
-    let player1Score = GameState.score.left;
-    let player2Score = GameState.score.right;
-    let scoreDisplay = `${player1Name}: ${player1Score} - ${player2Score} :${player2Name}`;
+    const player1Score = gameState.score.left;
+    const player2Score = gameState.score.right;
 
-    if (!scoreBoard) {
-        scoreBoard = createBoxDiv("scoreBoard");
-        scoreBoard.appendChild(createSubheadingText(scoreDisplay, "center"));
-        appDiv.appendChild(scoreBoard);
-    }
-    scoreBoard.innerHTML = "";
-    scoreBoard.appendChild(createSubheadingText(scoreDisplay, "center"));
-    appDiv.appendChild(scoreBoard);
+    scoreText.text = `${player1Name}: ${player1Score}  -  ${player2Score} : ${player2Name}`;
 }
 
 function setupWebSocket(
@@ -48,6 +38,7 @@ function setupWebSocket(
     ball: any,
     leftPaddle: any,
     rightPaddle: any,
+    scoreText: any,
     onGameEnd?: (winner: string) => void,
 ) {
     const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
@@ -87,7 +78,7 @@ function setupWebSocket(
             update3DMeshPos(rightPaddle, -gameState.paddles.right.x, 0, gameState.paddles.right.y);
 
             if (gameState.score && appDiv) {
-                displayScore(matchInfos, appDiv, gameState);
+                displayScore(matchInfos, appDiv, gameState, scoreText);
 
                 if (gameState.score.left >= 100 || gameState.score.right >= 100) {
                     const winner =
@@ -123,17 +114,6 @@ function createCamera(scene: any, canvas: HTMLCanvasElement) {
     camera.maxZ = 1000;
     camera.inertia = 0;
     camera.inputs.clear();
-
-        // Camera
-    //const camera = new BABYLON.ArcRotateCamera(
-    //    "camera",
-    //    Math.PI / 2,
-    //    Math.PI / 3,
-    //    10,
-    //    new BABYLON.Vector3(0, 1.5, 0),
-    //    scene
-    //);
-    //camera.attachControl(canvas, true);
 }
 
 function createLight(scene: any) {
@@ -474,6 +454,39 @@ function createBackgroundScene() {
     largeGround.position.y = -20;
 }
 
+function createScoreBox(scene: any) {
+    const ui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
+
+    const scoreBox = new BABYLON.GUI.Rectangle("scoreBox");
+    scoreBox.width = "30%";
+    scoreBox.height = "80px";
+    scoreBox.cornerRadius = 8;
+    scoreBox.thickness = 2;
+    scoreBox.color = "#b32b00";
+    scoreBox.background = "rgba(30, 0, 0, 0.7)";
+    scoreBox.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    scoreBox.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    scoreBox.paddingBottom = "20px";
+    ui.addControl(scoreBox);
+
+    const scoreText = new BABYLON.GUI.TextBlock("scoreText");
+    scoreText.text = "";
+    scoreText.color = "#ffb347";
+    scoreText.fontFamily = "Cinzel, serif";
+    scoreText.fontSize = 28;
+    scoreText.fontWeight = "bold";
+    scoreText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    scoreText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    scoreBox.addControl(scoreText);
+
+    scoreText.shadowBlur = 5;
+    scoreText.shadowOffsetX = 0;
+    scoreText.shadowOffsetY = 0;
+    scoreText.shadowColor = "#ff4500";
+
+    return scoreText;
+}
+
 function setupScene(canvas: HTMLCanvasElement) {
     const engine = new BABYLON.Engine(canvas, true);
     const scene = new BABYLON.Scene(engine);
@@ -567,10 +580,11 @@ function setupScene(canvas: HTMLCanvasElement) {
     const visionCone = createVisionCone(scene);
     updateVisionConePos(scene, ball, visionCone);
 
+    const scoreText = createScoreBox(scene);
     createCamera(scene, canvas);
     createLight(scene);
 
-    return {engine, scene, ball, leftPaddle, rightPaddle, visionCone};
+    return {engine, scene, ball, leftPaddle, rightPaddle, visionCone, scoreText};
 }
 
 export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void) {
@@ -584,11 +598,13 @@ export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void
 
     const canvas = createCanvas();
     appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
+    appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
+    appDiv.appendChild(createHeadingText("Lord of Transcendence"));
     appDiv.appendChild(canvas);
 
-    const {engine, scene, ball, leftPaddle, rightPaddle, visionCone} = setupScene(canvas);
+    const {engine, scene, ball, leftPaddle, rightPaddle, visionCone, scoreText} = setupScene(canvas);
 
-    setupWebSocket(matchInfos, ball, leftPaddle, rightPaddle, onGameEnd);
+    setupWebSocket(matchInfos, ball, leftPaddle, rightPaddle, scoreText, onGameEnd);
     engine.runRenderLoop(() => {
     updateVisionConePos(scene, ball, visionCone);
     scene.render();

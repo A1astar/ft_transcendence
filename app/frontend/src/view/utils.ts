@@ -311,8 +311,8 @@ export function createInputElement(
 export function createCanvas(): HTMLCanvasElement {
     const canvas = document.createElement("canvas");
 
-    canvas.height = 1080;
-    canvas.width = 1920;
+    canvas.height = 864;
+    canvas.width = 1536;
 
     canvas.style.borderRadius = "16px";
     canvas.style.border = "1px solid rgba(255, 255, 255, 0.08)";
