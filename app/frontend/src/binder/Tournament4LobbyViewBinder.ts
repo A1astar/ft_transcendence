@@ -40,7 +40,7 @@ export class Tournament4LobbyViewBinder implements ViewEventBinder {
                 if (isFirstGame) {
                     const response = await this.startMatch(currentMatch.id);
                     if (response.status === "match started") {
-                        renderGame(response.match, (winner: string) =>
+                        renderGame(2, response.match, (winner: string) =>
                             this.handleTournamentGameEnd(winner, response.match),
                         );
                     }
@@ -62,7 +62,7 @@ export class Tournament4LobbyViewBinder implements ViewEventBinder {
                 if (matchData.status === "next match available") {
                     const response = await this.startMatch(matchData.match.id);
                     if (response.status === "match started") {
-                        renderGame(response.match, (winner: string) =>
+                        renderGame(2, response.match, (winner: string) =>
                             this.handleTournamentGameEnd(winner, response.match),
                         );
                     }

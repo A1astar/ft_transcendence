@@ -38,7 +38,7 @@ export class LocalLobbyViewBinder implements ViewEventBinder {
             const match = await res2.json();
             sessionStorage.setItem("currentGameId", match.id);
 
-            renderGame(match);
+            renderGame(2, match);
         } catch (error) {
             console.error("Error:", error);
             alert("Failed to start local game");
