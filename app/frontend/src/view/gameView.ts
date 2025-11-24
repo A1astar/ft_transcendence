@@ -21,6 +21,8 @@ const appDiv = document.getElementById("app");
 const groundTexture = "../../public/textures/pongTable.png";
 const eyeTexture = "../../public/textures/eye.png";
 const flareTexture = "../../public/textures/flare.png";
+const backgroundHeightMap = "../../public/heightmap/height.png";
+const backgroundTexture = "../../public/heightmap/texture.png";
 
 
 function displayScore(matchInfos: any, appDiv: HTMLElement, GameState: any) {
@@ -435,6 +437,16 @@ function createVisionCone(scene: any) {
     return cone;
 }
 
+function createBackgroundScene() {
+    const largeGroundMat = new BABYLON.StandardMaterial("largeGroundMat");
+    largeGroundMat.diffuseTexture = new BABYLON.Texture(backgroundTexture);
+
+    const largeGround = BABYLON.MeshBuilder.CreateGroundFromHeightMap("largeGround", backgroundHeightMap,
+        {width:150, height:150, subdivisions: 10, minHeight:0, maxHeight: 100});
+    largeGround.material = largeGroundMat;
+    largeGround.position.y = -19;
+}
+
 function setupScene(canvas: HTMLCanvasElement) {
     const engine = new BABYLON.Engine(canvas, true);
     const scene = new BABYLON.Scene(engine);
@@ -450,6 +462,8 @@ function setupScene(canvas: HTMLCanvasElement) {
 
     const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
     paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+
+    createBackgroundScene();
 
     const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
     ground.material = groundMaterial;
@@ -491,13 +505,6 @@ function setupScene(canvas: HTMLCanvasElement) {
     scaling3DMesh(lowerWall, 20.2, 0.5, 0.2);
     update3DMeshPos(lowerWall, 0, 0, 5);
 
-    const tower = createBaradDur(scene);
-    scaling3DMesh(tower, 2, 2, 2);
-    update3DMeshPos(tower, 0, 0, -6.5);
-
-    const visionCone = createVisionCone(scene);
-    updateVisionConePos(scene, ball, visionCone);
-
 
     const topleftTorch = createTorch(scene);
     update3DMeshPos(topleftTorch, 10, 0, -5);
@@ -511,6 +518,13 @@ function setupScene(canvas: HTMLCanvasElement) {
     const bottomRightTorch = createTorch(scene);
     update3DMeshPos(bottomRightTorch, -10, 0, 5);
 
+
+    const tower = createBaradDur(scene);
+    scaling3DMesh(tower, 5, 5, 5);
+    update3DMeshPos(tower, -20, 0, -20);
+
+    const visionCone = createVisionCone(scene);
+    updateVisionConePos(scene, ball, visionCone);
 
     createCamera(scene, canvas);
     createLight(scene);
