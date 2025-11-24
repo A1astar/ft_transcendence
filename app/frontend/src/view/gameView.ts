@@ -80,7 +80,7 @@ function setupWebSocket(
             if (gameState.score && appDiv) {
                 displayScore(matchInfos, appDiv, gameState, scoreText);
 
-                if (gameState.score.left >= 100 || gameState.score.right >= 100) {
+                if (gameState.score.left >= 5 || gameState.score.right >= 5) {
                     const winner =
                         gameState.score.left >= 3
                             ? matchInfos.players[0].alias
@@ -597,7 +597,7 @@ export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void
     }
 
     const canvas = createCanvas();
-    appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
+    appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Sauron.mp4"));
     appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
     appDiv.appendChild(createHeadingText("Lord of Transcendence"));
     appDiv.appendChild(canvas);
