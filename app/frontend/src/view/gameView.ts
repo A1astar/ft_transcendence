@@ -137,7 +137,6 @@ function createCamera(scene: any, canvas: HTMLCanvasElement) {
 }
 
 function createLight(scene: any) {
-    // Lumière principale : au-dessus du centre de la scène
     const mainLight = new BABYLON.DirectionalLight(
         "mainLight",
         new BABYLON.Vector3(0, -1, 0),
@@ -148,14 +147,12 @@ function createLight(scene: any) {
     mainLight.diffuse = new BABYLON.Color3(1, 0.95, 0.9);
     mainLight.specular = new BABYLON.Color3(1, 0.8, 0.6);
 
-    // Génération d’ombres pour les tours et les murs
     const shadowGenerator = new BABYLON.ShadowGenerator(2048, mainLight);
     shadowGenerator.useBlurExponentialShadowMap = true;
     shadowGenerator.blurKernel = 32;
     shadowGenerator.useKernelBlur = true;
     shadowGenerator.darkness = 0.4;
 
-    // Lumière secondaire : ambiance générale (simule la lueur du Mordor)
     const ambient = new BABYLON.HemisphericLight(
         "ambientLight",
         new BABYLON.Vector3(0, 1, 0),
@@ -165,8 +162,7 @@ function createLight(scene: any) {
     ambient.diffuse = new BABYLON.Color3(1, 0.6, 0.4); // lueur rouge/orange
     ambient.groundColor = new BABYLON.Color3(0.2, 0.05, 0.05);
 
-    // Lumière d’appoint pour la tour de Sauron (halo rougeoyant)
-    const eyeLight = new BABYLON.PointLight("eyeLight", new BABYLON.Vector3(-40, 30, -40), scene);
+    const eyeLight = new BABYLON.PointLight("eyeLight", new BABYLON.Vector3(-20, 45, -45), scene);
     eyeLight.diffuse = new BABYLON.Color3(1, 0.2, 0);
     eyeLight.specular = new BABYLON.Color3(1, 0.1, 0.1);
     eyeLight.intensity = 1.5;
