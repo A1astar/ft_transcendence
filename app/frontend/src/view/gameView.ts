@@ -465,8 +465,11 @@ function setupScene(canvas: HTMLCanvasElement) {
 
     createBackgroundScene();
 
+    const pongRoot = new BABYLON.TransformNode("pongRoot", scene);
+
     const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
     ground.material = groundMaterial;
+    ground.parent = pongRoot;
 
     const ball = BABYLON.MeshBuilder.CreateCylinder("ball", {
         diameter: 0.5,
@@ -474,50 +477,59 @@ function setupScene(canvas: HTMLCanvasElement) {
     }, scene);
     ball.material = ballMaterial;
     update3DMeshPos(ball, 0, 0.25, 0);
+    ball.parent = pongRoot;
 
     const leftPaddle = BABYLON.MeshBuilder.CreateBox("leftPaddle", {}, scene);
     leftPaddle.material = paddleMaterial;
     scaling3DMesh(leftPaddle, 0.25, 0.5, 2);
     update3DMeshPos(leftPaddle, -8, 0, 0);
+    leftPaddle.parent = pongRoot;
 
     const rightPaddle = BABYLON.MeshBuilder.CreateBox("rightPaddle", {}, scene);
     rightPaddle.material = paddleMaterial;
     scaling3DMesh(rightPaddle, 0.25, 0.5, 2);
     update3DMeshPos(rightPaddle, 8, 0, 0);
+    rightPaddle.parent = pongRoot;
 
     const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
     leftWall.material = wallMaterial;
     scaling3DMesh(leftWall, 0.2, 0.5, 10);
     update3DMeshPos(leftWall, -10, 0, 0);
+    leftWall.parent = pongRoot;
 
     const rightWall = BABYLON.MeshBuilder.CreateBox("rightWall", {}, scene);
     rightWall.material = wallMaterial;
     scaling3DMesh(rightWall, 0.2, 0.5, 10);
     update3DMeshPos(rightWall, 10, 0, 0);
+    rightWall.parent = pongRoot;
 
     const upperWall = BABYLON.MeshBuilder.CreateBox("upperWall", {}, scene);
     upperWall.material = wallMaterial;
     scaling3DMesh(upperWall, 20.2, 0.5, 0.2);
     update3DMeshPos(upperWall, 0, 0, -5);
+    upperWall.parent = pongRoot;
 
     const lowerWall = BABYLON.MeshBuilder.CreateBox("lowerWall", {}, scene);
     lowerWall.material = wallMaterial;
     scaling3DMesh(lowerWall, 20.2, 0.5, 0.2);
     update3DMeshPos(lowerWall, 0, 0, 5);
-
+    lowerWall.parent = pongRoot;
 
     const topleftTorch = createTorch(scene);
     update3DMeshPos(topleftTorch, 10, 0, -5);
+    topleftTorch.parent = pongRoot;
 
     const topRightTorch = createTorch(scene);
     update3DMeshPos(topRightTorch, -10, 0, -5);
+    topRightTorch.parent = pongRoot;
 
     const bottomleftTorch = createTorch(scene);
     update3DMeshPos(bottomleftTorch, 10, 0, 5);
+    bottomleftTorch.parent = pongRoot;
 
     const bottomRightTorch = createTorch(scene);
     update3DMeshPos(bottomRightTorch, -10, 0, 5);
-
+    bottomRightTorch.parent = pongRoot;
 
     const tower = createBaradDur(scene);
     scaling3DMesh(tower, 5, 5, 5);
