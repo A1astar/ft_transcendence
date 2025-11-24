@@ -114,32 +114,63 @@ function setupWebSocket(
 }
 
 function createCamera(scene: any, canvas: HTMLCanvasElement) {
-    // const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 18, 8), scene);
-    // const target = BABYLON.Vector3.Zero();
-    // camera.setTarget(target);
-    // camera.lockedTarget = target;
-    // camera.fov = BABYLON.Tools.ToRadians(55);
-    // camera.minZ = 0.1;
-    // camera.maxZ = 1000;
-    // camera.inertia = 0;
-    // camera.inputs.clear();
+    const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 30, 35), scene);
+    const target = BABYLON.Vector3.Zero();
+    camera.setTarget(target);
+    camera.lockedTarget = target;
+    camera.fov = BABYLON.Tools.ToRadians(55);
+    camera.minZ = 0.1;
+    camera.maxZ = 1000;
+    camera.inertia = 0;
+    camera.inputs.clear();
 
         // Camera
-    const camera = new BABYLON.ArcRotateCamera(
-        "camera",
-        Math.PI / 2,
-        Math.PI / 3,
-        10,
-        new BABYLON.Vector3(0, 1.5, 0),
-        scene
-    );
-    camera.attachControl(canvas, true);
+    //const camera = new BABYLON.ArcRotateCamera(
+    //    "camera",
+    //    Math.PI / 2,
+    //    Math.PI / 3,
+    //    10,
+    //    new BABYLON.Vector3(0, 1.5, 0),
+    //    scene
+    //);
+    //camera.attachControl(canvas, true);
 }
 
 function createLight(scene: any) {
-    var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-    light.diffuse = new BABYLON.Color3(1, 1, 1);
-    light.intensity = 0.7;
+    // Lumière principale : au-dessus du centre de la scène
+    const mainLight = new BABYLON.DirectionalLight(
+        "mainLight",
+        new BABYLON.Vector3(0, -1, 0),
+        scene
+    );
+    mainLight.position = new BABYLON.Vector3(0, 50, 0);
+    mainLight.intensity = 1.2;
+    mainLight.diffuse = new BABYLON.Color3(1, 0.95, 0.9);
+    mainLight.specular = new BABYLON.Color3(1, 0.8, 0.6);
+
+    // Génération d’ombres pour les tours et les murs
+    const shadowGenerator = new BABYLON.ShadowGenerator(2048, mainLight);
+    shadowGenerator.useBlurExponentialShadowMap = true;
+    shadowGenerator.blurKernel = 32;
+    shadowGenerator.useKernelBlur = true;
+    shadowGenerator.darkness = 0.4;
+
+    // Lumière secondaire : ambiance générale (simule la lueur du Mordor)
+    const ambient = new BABYLON.HemisphericLight(
+        "ambientLight",
+        new BABYLON.Vector3(0, 1, 0),
+        scene
+    );
+    ambient.intensity = 0.6;
+    ambient.diffuse = new BABYLON.Color3(1, 0.6, 0.4); // lueur rouge/orange
+    ambient.groundColor = new BABYLON.Color3(0.2, 0.05, 0.05);
+
+    // Lumière d’appoint pour la tour de Sauron (halo rougeoyant)
+    const eyeLight = new BABYLON.PointLight("eyeLight", new BABYLON.Vector3(-40, 30, -40), scene);
+    eyeLight.diffuse = new BABYLON.Color3(1, 0.2, 0);
+    eyeLight.specular = new BABYLON.Color3(1, 0.1, 0.1);
+    eyeLight.intensity = 1.5;
+    eyeLight.range = 80;
 }
 
 function update3DMeshPos(meshElement: any, xPos: number, yPos: number, zPos: number) {
@@ -444,7 +475,7 @@ function createBackgroundScene() {
     const largeGround = BABYLON.MeshBuilder.CreateGroundFromHeightMap("largeGround", backgroundHeightMap,
         {width:150, height:150, subdivisions: 10, minHeight:0, maxHeight: 100});
     largeGround.material = largeGroundMat;
-    largeGround.position.y = -19;
+    largeGround.position.y = -20;
 }
 
 function setupScene(canvas: HTMLCanvasElement) {
@@ -530,6 +561,8 @@ function setupScene(canvas: HTMLCanvasElement) {
     const bottomRightTorch = createTorch(scene);
     update3DMeshPos(bottomRightTorch, -10, 0, 5);
     bottomRightTorch.parent = pongRoot;
+
+    scaling3DMesh(pongRoot, 2, 2, 2);
 
     const tower = createBaradDur(scene);
     scaling3DMesh(tower, 5, 5, 5);
