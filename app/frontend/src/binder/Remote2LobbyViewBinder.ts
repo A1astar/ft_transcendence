@@ -111,7 +111,7 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
 
             // Start the game
             sessionStorage.setItem("currentGameId", match.id);
-            renderGame(match);
+            renderGame(2, match);
         } catch (error: unknown) {
             this.hideWaitingPopup();
             if (error instanceof Error && error.name === "AbortError") {

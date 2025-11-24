@@ -111,7 +111,7 @@ export class Remote4LobbyViewBinder implements ViewEventBinder {
 
             // Start the game
             sessionStorage.setItem("currentGameId", match.id);
-            renderGame(match);
+            renderGame(4, match);
             history.pushState({}, "", "/game/remote4");
             window.dispatchEvent(new PopStateEvent("popstate"));
         } catch (error: unknown) {
