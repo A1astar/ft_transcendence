@@ -60,78 +60,94 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
     }
 
     async bind() {
-        const guestUsername = localStorage.getItem("guestUsername");
+        // Bind join button to start matchmaking with chosen alias
+        const form = document.getElementById("remote2Form") as HTMLFormElement | null;
+        const aliasInput = document.getElementById("remote2AliasInput") as HTMLInputElement | null;
 
-        const matchRequest = {
-            player: {
-                alias: guestUsername || "guest",
-            },
-            mode: "remote2" as const,
-            tournamentRound: 0,
-        };
+        const startMatchmaking = async (aliasValue: string) => {
+            const alias = aliasValue || localStorage.getItem("guestUsername") || "guest";
+            localStorage.setItem("remote2Alias", alias);
 
-        // Show waiting popup
-        const waitingPopup = this.showWaitingPopup();
-        const cancelButton = waitingPopup.querySelector("#cancelMatchmaking");
+            const matchRequest = {
+                player: { alias },
+                mode: "remote2" as const,
+                tournamentRound: 0,
+            };
 
-        // Create an AbortController to handle cancellation
-        const controller = new AbortController();
-        const signal = controller.signal;
+            // Show waiting popup
+            const waitingPopup = this.showWaitingPopup();
+            const cancelButton = waitingPopup.querySelector("#cancelMatchmaking");
 
-        // Add cancel button handler
-        cancelButton?.addEventListener("click", () => {
-            controller.abort();
-            this.hideWaitingPopup();
-        });
+            // Create an AbortController to handle cancellation
+            const controller = new AbortController();
+            const signal = controller.signal;
 
-        try {
-            // Join queue
-            const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(matchRequest),
-                signal,
+            // Add cancel button handler
+            cancelButton?.addEventListener("click", () => {
+                controller.abort();
+                this.hideWaitingPopup();
             });
 
-            if (!res.ok) throw new Error("Failed to join queue");
+            try {
+                // Join queue
+                const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(matchRequest),
+                    signal,
+                });
 
-            const initialResponse = await res.json();
+                if (!res.ok) throw new Error("Failed to join queue");
 
-            let match;
-            if (initialResponse.status === "waiting") {
-                match = await this.pollForMatch2(signal, matchRequest);
-            } else {
-                match = initialResponse;
-            }
+                const initialResponse = await res.json();
 
-            // Hide waiting popup
-            this.hideWaitingPopup();
-
-            // Start the game
-            sessionStorage.setItem("currentGameId", match.id);
-            renderGame(match);
-        } catch (error: unknown) {
-            this.hideWaitingPopup();
-            if (error instanceof Error && error.name === "AbortError") {
-                console.log("Matchmaking cancelled by user");
-                try {
-                    await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(matchRequest),
-                    });
-                } catch (e) {
-                    console.error("Failed to leave queue:", e);
+                let match;
+                if (initialResponse.status === "waiting") {
+                    match = await this.pollForMatch2(signal, matchRequest);
+                } else {
+                    match = initialResponse;
                 }
-            } else {
-                console.error("Error:", error);
-                alert("Failed to start remote game");
+
+                // Hide waiting popup
+                this.hideWaitingPopup();
+
+                // Start the game
+                sessionStorage.setItem("currentGameId", match.id);
+                renderGame(match);
+            } catch (error: unknown) {
+                this.hideWaitingPopup();
+                if (error instanceof Error && error.name === "AbortError") {
+                    console.log("Matchmaking cancelled by user");
+                    try {
+                        await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(matchRequest),
+                        });
+                    } catch (e) {
+                        console.error("Failed to leave queue:", e);
+                    }
+                } else {
+                    console.error("Error:", error);
+                    alert("Failed to start remote game");
+                }
             }
-        }
+        };
+
+        // If user submits the form (clicks Join), start matchmaking with input value
+        form?.addEventListener("submit", (ev) => {
+            ev.preventDefault();
+            const aliasVal = aliasInput?.value.trim() ?? "";
+            startMatchmaking(aliasVal);
+        });
+
+        // Also attach to button in case of direct click handlers
+        const joinBtn = document.getElementById("joinRemote2Button");
+        joinBtn?.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            const aliasVal = aliasInput?.value.trim() ?? "";
+            startMatchmaking(aliasVal);
+        });
     }
 
     unbind() {}

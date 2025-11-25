@@ -23,6 +23,35 @@ export function renderRemote2Lobby() {
 		appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Sauron.mp4"));
 		appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
 		appDiv.appendChild(createHeadingText("Lord of Transcendence"));
+
+		// Main container
+		const mainContainer = document.createElement("div");
+		mainContainer.className = "flex flex-col items-center justify-center min-h-screen p-8";
+
+		const box = createBoxDiv("remote2Setup");
+		box.className += " max-w-lg w-full";
+
+		const title = createSubheadingText("Join Remote 1v1 Queue");
+		box.appendChild(title);
+
+		// Alias input
+		const inputForm = createFormElement("remote2Form");
+		const aliasInput = createInputElement("text", "remote2Alias", "Enter alias for this match");
+		aliasInput.id = "remote2AliasInput";
+		aliasInput.className += " w-full mb-4";
+		const stored = localStorage.getItem("remote2Alias") ?? localStorage.getItem("guestUsername") ?? "";
+		aliasInput.value = stored as string;
+		inputForm.appendChild(aliasInput);
+
+		// Join button
+		const joinButton = createButtonForm("Join Queue", "joinRemote2");
+		joinButton.id = "joinRemote2Button";
+		joinButton.className += " w-full text-lg py-2";
+		inputForm.appendChild(joinButton);
+
+		box.appendChild(inputForm);
+		mainContainer.appendChild(box);
+		appDiv.appendChild(mainContainer);
 	}
 }
 
