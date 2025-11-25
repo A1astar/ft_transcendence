@@ -1,10 +1,6 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
-import fastifySession from '@fastify/session';
-import fastifyCookie from '@fastify/cookie';
-import fastifyJWT from '@fastify/jwt';
-
 import VaultClient from 'node-vault';
 
 import crypto from 'crypto';
@@ -51,7 +47,7 @@ function registerOAuth(path: string, request: FastifyRequest,
     }
 }
 
-async function manageRequest(fastify: FastifyInstance, vaultService: VaultClient) {
+async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, vaultClient: ReturnType<typeof VaultClient>) {
 
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;
@@ -63,11 +59,11 @@ async function manageRequest(fastify: FastifyInstance, vaultService: VaultClient
                 break;
             case "/api/auth/register":
                 // sqlite.registerAccount(request);
-                database.registerUser(request.body as RegistrationFormat);
+                sqlite.registerUser(request.body as RegistrationFormat);
                 break;
             case path?.startsWith('/api/auth/oauth'):
                 if (path)
-                    registerOAuth(path, request, reply, vaulClient);
+                    registerOAuth(path, request, reply, vaultClient);
                 break;
             default:
                 reply.code(404).send({ error: "Route not found "});
@@ -79,13 +75,13 @@ async function manageRequest(fastify: FastifyInstance, vaultService: VaultClient
 async function main() {
     try {
         const fastify = initAuthenticationService();
-
-        const vaulClient = VaultClient({
+        const sqlite = new SQLiteDatabase();
+        const vaultClient = VaultClient({
 
         });
-        await vaulClient.initialized();
+        await vaultClient.initialized();
 
-        await manageRequest(fastify, vaulClient);
+        await manageRequest(fastify, sqlite, vaultClient);
 
     } catch (err) {
         console.error(err);

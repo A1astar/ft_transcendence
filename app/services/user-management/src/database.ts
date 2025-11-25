@@ -44,8 +44,7 @@ export class SQLiteDatabase {
     }
 
     async registerUser(request: FastifyRequest, reply: FastifyReply) : Promise<void> {
-        console.log('');
-        const stmt = sqlite.prepare(`
+        const stmt = this.sqlite.prepare(`
             INSERT INTO users (id, name, email, passwordHash)
             VALUES (?, ?, ?, ?)
         `);
@@ -61,86 +60,9 @@ export class SQLiteDatabase {
         }
 
         this.printDatabase();
-
-        reply.setCookie(
-            'sessionId', 'sessionTest', {
-            // Security attributes
-            httpOnly: true,              // Prevents JavaScript access (XSS protection)
-            secure: true,                // Only sent over HTTPS
-            sameSite: 'strict',          // CSRF protection: 'strict' | 'lax' | 'none'
-
-            // Expiration attributes
-            maxAge: 3600,                // Max age in seconds
-            expires: new Date(),         // Absolute expiration date
-
-            // Scope attributes
-            domain: 'example.com',       // Domain the cookie is valid for
-            path: '/',                   // URL path the cookie is valid for
-
-            // Modern attributes
-            partitioned: true,           // CHIPS - partitioned cookies
-            priority: 'high',            // Cookie priority: 'low' | 'medium' | 'high'
-
-            // Encoding
-            encode: encodeURIComponent,  // Custom encoding function
-
-            // Signing (if fastify-cookie is configured with secret)
-            signed: true                 // Creates signed cookie for tamper protection
-        });
     }
 
     printDatabase() {
-        this.sqlite.
+        // this.sqlite.
     };
 };
-
-/* SQLite database
-
-// Database Connection
-db.close()
-db.pragma(string, options?)
-db.checkpoint(databaseName?)
-db.function(name, options?, function)
-db.aggregate(name, options)
-db.table(name, definition)
-db.loadExtension(path)
-db.backup(destination, options?)
-db.serialize(options?)
-db.defaultSafeIntegers(toggle?)
-db.unsafeMode(unsafe?)
-
-// Query Execution
-db.exec(sql)                                    // Execute SQL without return
-db.prepare(sql)                                 // Returns statement object
-
-// Prepared Statements
-stmt.run([...bindParameters])                   // Execute, returns info object
-stmt.get([...bindParameters])                   // Returns first row or undefined
-stmt.all([...bindParameters])                   // Returns array of all rows
-stmt.iterate([...bindParameters])               // Returns iterator
-stmt.pluck(toggleState?)                        // Returns only first column
-stmt.expand(toggleState?)                       // Returns objects with column names
-stmt.raw(toggleState?)                          // Returns arrays instead of objects
-stmt.columns()                                  // Returns column information
-stmt.bind([...bindParameters])                  // Bind parameters permanently
-stmt.safeIntegers(toggleState?)                 // Handle large integers safely
-
-// Transactions
-db.transaction(function)                        // Returns transaction function
-transaction.default()                           // Set as default mode
-transaction.deferred()                          // Deferred transaction
-transaction.immediate()                         // Immediate transaction
-transaction.exclusive()                         // Exclusive transaction
-
-// Database Information
-db.memory                                       // Boolean - in-memory database
-db.readonly                                     // Boolean - read-only mode
-db.name                                         // Database file path
-db.open                                         // Boolean - connection open
-db.inTransaction                                // Boolean - in transaction
-
-// Statement Information
-stmt.reader                                     // Boolean - is SELECT statement
-stmt.readonly                                   // Boolean - read-only statement
-stmt.source                                     // Original SQL source
-*/
