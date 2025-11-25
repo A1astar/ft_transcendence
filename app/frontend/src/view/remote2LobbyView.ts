@@ -31,7 +31,7 @@ export function renderRemote2Lobby() {
 		const box = createBoxDiv("remote2Setup");
 		box.className += " max-w-lg w-full";
 
-		const title = createSubheadingText("Join Remote 1v1 Queue");
+		const title = createSubheadingText("Join a 2-player remote match");
 		box.appendChild(title);
 
 		// Alias input
@@ -39,8 +39,7 @@ export function renderRemote2Lobby() {
 		const aliasInput = createInputElement("text", "remote2Alias", "Enter alias for this match");
 		aliasInput.id = "remote2AliasInput";
 		aliasInput.className += " w-full mb-4";
-		const stored = localStorage.getItem("remote2Alias") ?? localStorage.getItem("guestUsername") ?? "";
-		aliasInput.value = stored as string;
+		// start with an empty input; user should enter alias for this session
 		inputForm.appendChild(aliasInput);
 
 		// Join button

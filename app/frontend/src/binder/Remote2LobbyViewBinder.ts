@@ -3,6 +3,40 @@ import {SERVER_BASE} from "../view/utils.js";
 import {ViewEventBinder} from "./binderInterface.js";
 
 export class Remote2LobbyViewBinder implements ViewEventBinder {
+    private activeController: AbortController | null = null;
+    private activeMatchRequest: any = null;
+
+    // Handle browser navigation (back/forward) to cancel matchmaking and leave queue
+    private navigationHandler = async () => {
+        if (this.activeController) {
+            try {
+                // Abort ongoing requests
+                this.activeController.abort();
+            } catch (e) {
+                console.error(e);
+            }
+
+            // Attempt to tell server we leave the queue
+            if (this.activeMatchRequest) {
+                try {
+                    await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(this.activeMatchRequest),
+                    });
+                } catch (e) {
+                    console.error("Failed to leave queue on navigation:", e);
+                }
+            }
+
+            // Remove popup if present
+            this.hideWaitingPopup();
+
+            // clear active state
+            this.activeController = null;
+            this.activeMatchRequest = null;
+        }
+    };
     private showWaitingPopup() {
         const popup = document.createElement("div");
         popup.id = "waitingPopup";
@@ -82,10 +116,17 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
             const controller = new AbortController();
             const signal = controller.signal;
 
+            // Track active controller and request so navigation handler can access them
+            this.activeController = controller;
+            this.activeMatchRequest = matchRequest;
+
             // Add cancel button handler
             cancelButton?.addEventListener("click", () => {
                 controller.abort();
                 this.hideWaitingPopup();
+                // clear active state
+                this.activeController = null;
+                this.activeMatchRequest = null;
             });
 
             try {
@@ -111,6 +152,10 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
                 // Hide waiting popup
                 this.hideWaitingPopup();
 
+                // clear active state (we're transitioning to game)
+                this.activeController = null;
+                this.activeMatchRequest = null;
+
                 // Start the game
                 sessionStorage.setItem("currentGameId", match.id);
                 renderGame(match);
@@ -134,6 +179,9 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
             }
         };
 
+        // Register navigation handler so that browser back/forward cancels matchmaking
+        window.addEventListener("popstate", this.navigationHandler);
+
         // If user submits the form (clicks Join), start matchmaking with input value
         form?.addEventListener("submit", (ev) => {
             ev.preventDefault();
@@ -150,5 +198,34 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
         });
     }
 
-    unbind() {}
+    unbind() {
+        // Remove navigation listener
+        try {
+            window.removeEventListener("popstate", this.navigationHandler);
+        } catch (e) {
+            // ignore
+        }
+
+        // If there is an active matchmaking, abort and inform server
+        if (this.activeController) {
+            try {
+                this.activeController.abort();
+            } catch (e) {
+                // ignore
+            }
+
+            if (this.activeMatchRequest) {
+                fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(this.activeMatchRequest),
+                }).catch((e) => console.error("Failed to leave queue on unbind:", e));
+            }
+        }
+
+        // Clear state and remove popup
+        this.activeController = null;
+        this.activeMatchRequest = null;
+        this.hideWaitingPopup();
+    }
 }

@@ -3,6 +3,34 @@ import {SERVER_BASE} from "../view/utils.js";
 import {ViewEventBinder} from "./binderInterface.js";
 
 export class Remote4LobbyViewBinder implements ViewEventBinder {
+    private activeController: AbortController | null = null;
+    private activeMatchRequest: any = null;
+
+    private navigationHandler = async () => {
+        if (this.activeController) {
+            try {
+                this.activeController.abort();
+            } catch (e) {
+                // ignore
+            }
+
+            if (this.activeMatchRequest) {
+                try {
+                    await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote4/leave`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(this.activeMatchRequest),
+                    });
+                } catch (e) {
+                    console.error("Failed to leave queue on navigation:", e);
+                }
+            }
+
+            this.hideWaitingPopup();
+            this.activeController = null;
+            this.activeMatchRequest = null;
+        }
+    };
     private async pollForMatch4(signal: AbortSignal, matchRequest: any): Promise<any> {
         const res = await fetch(
             `http://${SERVER_BASE}:3002/api/game-orchestration/remote4/status?alias=${encodeURIComponent(
@@ -60,80 +88,132 @@ export class Remote4LobbyViewBinder implements ViewEventBinder {
     }
 
     async bind() {
-        const guestUsername = localStorage.getItem("guestUsername");
+        const form = document.getElementById("remote4Form") as HTMLFormElement | null;
+        const aliasInput = document.getElementById("remote4AliasInput") as HTMLInputElement | null;
 
-        const matchRequest = {
-            player: {
-                alias: guestUsername || "guest",
-            },
-            mode: "remote4" as const,
-            tournamentRound: 0,
-        };
+        const startMatchmaking = async (aliasValue: string) => {
+            const alias = aliasValue || localStorage.getItem("guestUsername") || "guest";
+            localStorage.setItem("remote4Alias", alias);
 
-        // Show waiting popup
-        const waitingPopup = this.showWaitingPopup();
-        const cancelButton = waitingPopup.querySelector("#cancelMatchmaking");
+            const matchRequest = {
+                player: { alias },
+                mode: "remote4" as const,
+                tournamentRound: 0,
+            };
 
-        // Create an AbortController to handle cancellation
-        const controller = new AbortController();
-        const signal = controller.signal;
+            // Show waiting popup
+            const waitingPopup = this.showWaitingPopup();
+            const cancelButton = waitingPopup.querySelector("#cancelMatchmaking");
 
-        // Add cancel button handler
-        cancelButton?.addEventListener("click", () => {
-            controller.abort();
-            this.hideWaitingPopup();
-        });
+            // Create an AbortController to handle cancellation
+            const controller = new AbortController();
+            const signal = controller.signal;
 
-        try {
-            // Join queue
-            const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote4`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(matchRequest),
-                signal,
+            // Track active controller and request so navigation handler can access them
+            this.activeController = controller;
+            this.activeMatchRequest = matchRequest;
+
+            // Add cancel button handler
+            cancelButton?.addEventListener("click", () => {
+                controller.abort();
+                this.hideWaitingPopup();
+                this.activeController = null;
+                this.activeMatchRequest = null;
             });
 
-            if (!res.ok) throw new Error("Failed to join queue");
+            try {
+                // Join queue
+                const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote4`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(matchRequest),
+                    signal,
+                });
 
-            const initialResponse = await res.json();
+                if (!res.ok) throw new Error("Failed to join queue");
 
-            let match;
-            if (initialResponse.status === "waiting") {
-                match = await this.pollForMatch4(signal, matchRequest);
-            } else {
-                match = initialResponse;
-            }
+                const initialResponse = await res.json();
 
-            // Hide waiting popup
-            this.hideWaitingPopup();
-
-            // Start the game
-            sessionStorage.setItem("currentGameId", match.id);
-            renderGame4(match);
-        } catch (error: unknown) {
-            this.hideWaitingPopup();
-            if (error instanceof Error && error.name === "AbortError") {
-                console.log("Matchmaking cancelled by user");
-                // Notify server to remove from queue
-                try {
-                    await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote4/leave`, {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                        },
-                        body: JSON.stringify(matchRequest),
-                    });
-                } catch (e) {
-                    console.error("Failed to leave queue:", e);
+                let match;
+                if (initialResponse.status === "waiting") {
+                    match = await this.pollForMatch4(signal, matchRequest);
+                } else {
+                    match = initialResponse;
                 }
-            } else {
-                console.error("Error:", error);
-                alert("Failed to start remote game");
+
+                // Hide waiting popup
+                this.hideWaitingPopup();
+
+                // clear active state
+                this.activeController = null;
+                this.activeMatchRequest = null;
+
+                // Start the game
+                sessionStorage.setItem("currentGameId", match.id);
+                renderGame4(match);
+            } catch (error: unknown) {
+                this.hideWaitingPopup();
+                if (error instanceof Error && error.name === "AbortError") {
+                    console.log("Matchmaking cancelled by user");
+                    try {
+                        await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote4/leave`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify(matchRequest),
+                        });
+                    } catch (e) {
+                        console.error("Failed to leave queue:", e);
+                    }
+                } else {
+                    console.error("Error:", error);
+                    alert("Failed to start remote game");
+                }
             }
-        }
+        };
+
+        // Register popstate navigation handler
+        window.addEventListener("popstate", this.navigationHandler);
+
+        // Form submit / join button
+        form?.addEventListener("submit", (ev) => {
+            ev.preventDefault();
+            const aliasVal = aliasInput?.value.trim() ?? "";
+            startMatchmaking(aliasVal);
+        });
+
+        const joinBtn = document.getElementById("joinRemote4Button");
+        joinBtn?.addEventListener("click", (ev) => {
+            ev.preventDefault();
+            const aliasVal = aliasInput?.value.trim() ?? "";
+            startMatchmaking(aliasVal);
+        });
     }
 
-    unbind() {}
+    unbind() {
+        try {
+            window.removeEventListener("popstate", this.navigationHandler);
+        } catch (e) {
+            // ignore
+        }
+
+        if (this.activeController) {
+            try {
+                this.activeController.abort();
+            } catch (e) {
+                // ignore
+            }
+
+            if (this.activeMatchRequest) {
+                fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote4/leave`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(this.activeMatchRequest),
+                }).catch((e) => console.error("Failed to leave queue on unbind:", e));
+            }
+        }
+
+        this.activeController = null;
+        this.activeMatchRequest = null;
+        this.hideWaitingPopup();
+    }
 }
