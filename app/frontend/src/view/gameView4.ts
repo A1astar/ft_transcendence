@@ -125,7 +125,7 @@ function setupWebsocket(
 
                 if (
                     playersWithPositiveScore.length === 1 ||
-                    scores.some((score) => score <= -100)
+                    scores.some((score) => score > 1000000)
                 ) {
                     const maxScore = Math.max(...scores);
                     let winnerIndex = scores.findIndex((score) => score === maxScore);
@@ -181,7 +181,7 @@ function setupScene(canvas: HTMLCanvasElement) {
 
     const pongRoot = new BABYLON.TransformNode("pongRoot", scene);
 
-    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 20}, scene);
     ground.material = groundMaterial;
     ground.parent = pongRoot;
 
@@ -199,42 +199,42 @@ function setupScene(canvas: HTMLCanvasElement) {
 
     const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
     leftWall.material = wallMaterial;
-    scaling3DMesh(leftWall, 0.2, 0.5, 10);
+    scaling3DMesh(leftWall, 0.2, 0.5, 20);
     update3DMeshPos(leftWall, -10, 0, 0);
     leftWall.parent = pongRoot;
 
     const rightWall = BABYLON.MeshBuilder.CreateBox("rightWall", {}, scene);
     rightWall.material = wallMaterial;
-    scaling3DMesh(rightWall, 0.2, 0.5, 10);
+    scaling3DMesh(rightWall, 0.2, 0.5, 20);
     update3DMeshPos(rightWall, 10, 0, 0);
     rightWall.parent = pongRoot;
 
     const upperWall = BABYLON.MeshBuilder.CreateBox("upperWall", {}, scene);
     upperWall.material = wallMaterial;
     scaling3DMesh(upperWall, 20.2, 0.5, 0.2);
-    update3DMeshPos(upperWall, 0, 0, -5);
+    update3DMeshPos(upperWall, 0, 0, -10);
     upperWall.parent = pongRoot;
 
     const lowerWall = BABYLON.MeshBuilder.CreateBox("lowerWall", {}, scene);
     lowerWall.material = wallMaterial;
     scaling3DMesh(lowerWall, 20.2, 0.5, 0.2);
-    update3DMeshPos(lowerWall, 0, 0, 5);
+    update3DMeshPos(lowerWall, 0, 0, 10);
     lowerWall.parent = pongRoot;
 
     const topleftTorch = createTorch(scene);
-    update3DMeshPos(topleftTorch, 10, 0, -5);
+    update3DMeshPos(topleftTorch, 10, 0, -10);
     topleftTorch.parent = pongRoot;
 
     const topRightTorch = createTorch(scene);
-    update3DMeshPos(topRightTorch, -10, 0, -5);
+    update3DMeshPos(topRightTorch, -10, 0, -10);
     topRightTorch.parent = pongRoot;
 
     const bottomleftTorch = createTorch(scene);
-    update3DMeshPos(bottomleftTorch, 10, 0, 5);
+    update3DMeshPos(bottomleftTorch, 10, 0, 10);
     bottomleftTorch.parent = pongRoot;
 
     const bottomRightTorch = createTorch(scene);
-    update3DMeshPos(bottomRightTorch, -10, 0, 5);
+    update3DMeshPos(bottomRightTorch, -10, 0, 10);
     bottomRightTorch.parent = pongRoot;
 
     const leftPaddle = createPaddle(scene);
@@ -262,10 +262,11 @@ function setupScene(canvas: HTMLCanvasElement) {
     downPaddle.parent = pongRoot;
 
     scaling3DMesh(pongRoot, 2, 2, 2);
+    pongRoot.position.y = 2;
 
     const tower = createBaradDur(scene);
     scaling3DMesh(tower, 5, 5, 5);
-    update3DMeshPos(tower, -20, 0, -20);
+    update3DMeshPos(tower, -20, 0, -25);
 
     const visionCone = createVisionCone(scene);
     updateVisionConePos(scene, ball, visionCone);
