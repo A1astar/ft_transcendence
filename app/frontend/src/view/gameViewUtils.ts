@@ -1,12 +1,14 @@
 declare const BABYLON: any;
 import {SERVER_BASE} from "./utils.js";
 
-const appDiv = document.getElementById("app");
-const groundTexture = "../../public/textures/pongTable.png";
-const eyeTexture = "../../public/textures/eye.png";
 const flareTexture = "../../public/textures/flare.png";
 const backgroundHeightMap = "../../public/heightmap/height.png";
 const backgroundTexture = "../../public/heightmap/texture.png";
+const appDiv = document.getElementById("app");
+
+export function gotMatchInfos(matchInfos: any): boolean {
+    return matchInfos?.id ? true : false;
+}
 
 export function createCamera(scene: any, canvas: HTMLCanvasElement) {
     const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 30, 35), scene);
@@ -436,7 +438,7 @@ export function createBackgroundScene() {
     largeGround.position.y = -20;
 }
 
-export function createScoreBox2(scene: any) {
+export function createScoreBox(scene: any) {
     const ui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
 
     const scoreBox = new BABYLON.GUI.Rectangle("scoreBox");
@@ -469,13 +471,38 @@ export function createScoreBox2(scene: any) {
     return scoreText;
 }
 
-export function displayScore2(matchInfos: any, appDiv: HTMLElement, gameState: any, scoreText: any) {
+export function displayScore2(
+    matchInfos: any,
+    appDiv: HTMLElement,
+    gameState: any,
+    scoreText: any,
+) {
     const player1Name = matchInfos.players[0].alias;
     const player2Name = matchInfos.players[1].alias;
     const player1Score = gameState.score.left;
     const player2Score = gameState.score.right;
 
     scoreText.text = `${player1Name}: ${player1Score}  -  ${player2Score} : ${player2Name}`;
+}
+
+export function displayScore4(
+    matchInfos: any,
+    appDiv: HTMLElement,
+    gameState: any,
+    scoreText: any,
+) {
+    const player1Name = matchInfos.players[0].alias;
+    const player2Name = matchInfos.players[1].alias;
+    const player3Name = matchInfos.players[2].alias;
+    const player4Name = matchInfos.players[3].alias;
+
+    const player1Score = gameState.score.left;
+    const player2Score = gameState.score.right;
+    const player3Score = gameState.score.up;
+    const player4Score = gameState.score.down;
+
+    scoreText.text = `${player1Name}: ${player1Score} - ${player2Score} : ${player2Name} \
+                        ${player3Name}: ${player3Score} - ${player4Score} : ${player4Name}`;
 }
 
 export function createVisionCone(scene: any) {
