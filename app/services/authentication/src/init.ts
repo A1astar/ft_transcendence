@@ -110,7 +110,8 @@ export async function initAuthenticationService() {
 
     fastify.register(fastifyCookie);
 
-    fastify.register(fastifySession, {
+    // Cast to any to avoid strict type mismatches with plugin option names
+    fastify.register(fastifySession as any, {
         // required
         secret: crypto.randomBytes(32).toString('hex'),
 
@@ -137,7 +138,7 @@ export async function initAuthenticationService() {
             partitioned: undefined,      // default
             encode: undefined,           // default (internal encoder)
         },
-    });
+    } as any);
 
     fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) { if (err) { fastify.log.error(err);
         throw err;

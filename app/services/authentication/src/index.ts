@@ -1,16 +1,15 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
-import VaultClient from 'node-vault';
-
 import crypto from 'crypto';
 import color from 'chalk';
 
 import { initAuthenticationService } from './init.js';
 import { RegistrationFormat, UserFormat } from './format.js';
-import Database, { SQLiteDatabase } from "./database.js";
+import { SQLiteDatabase } from "./database.js";
 import { printRequest } from './print.js';
 import { User } from "./user.js";
+import { VaultService } from './vault.js';
 
 
 function printSession(request: FastifyRequest) {
@@ -19,17 +18,18 @@ function printSession(request: FastifyRequest) {
 }
 
 async function logAccount(request: FastifyRequest, reply: FastifyReply,
-            database: Database, sqlite: SQLiteDatabase) : Promise<boolean> {
+            sqlite: SQLiteDatabase, vaultClient: VaultService) : Promise<boolean> {
 
     console.log(color.bold.italic.yellow("----- LOGIN -----"));
     console.log(color.red('Raw body:'), JSON.stringify(request.body, null, 2));
     const user = request.body as UserFormat;
 
+    // TODO: Implement actual login flow using sqlite and vaultClient when ready
     return true;
 }
 
 function registerOAuth(path: string, request: FastifyRequest,
-        reply: FastifyReply, database: Database, sqlite: SQLiteDatabase) {
+    reply: FastifyReply, sqlite: SQLiteDatabase, vaultClient: VaultService) {
     let provider;
     const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
@@ -47,7 +47,7 @@ function registerOAuth(path: string, request: FastifyRequest,
     }
 }
 
-async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, vaultClient: ReturnType<typeof VaultClient>) {
+async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, vaultClient: VaultService) {
 
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;
@@ -55,15 +55,14 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, v
         console.log(color.bold.blue('Authentication'));
         switch (path) {
             case "/api/auth/login":
-                logAccount(request, reply, vaultClient);
+                await logAccount(request, reply, sqlite, vaultClient);
                 break;
             case "/api/auth/register":
-                // sqlite.registerAccount(request);
-                sqlite.registerUser(request.body as RegistrationFormat);
+                await sqlite.registerUser(request, reply);
                 break;
             case path?.startsWith('/api/auth/oauth'):
                 if (path)
-                    registerOAuth(path, request, reply, vaultClient);
+                    registerOAuth(path, request, reply, sqlite, vaultClient);
                 break;
             default:
                 reply.code(404).send({ error: "Route not found "});
@@ -74,12 +73,10 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, v
 
 async function main() {
     try {
-        const fastify = initAuthenticationService();
+        const fastify = await initAuthenticationService();
         const sqlite = new SQLiteDatabase();
-        const vaultClient = VaultClient({
-
-        });
-        await vaultClient.initialized();
+        const vaultClient = new VaultService();
+        await vaultClient.initialize();
 
         await manageRequest(fastify, sqlite, vaultClient);
 

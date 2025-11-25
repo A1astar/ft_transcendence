@@ -3,12 +3,18 @@ import {ApiClient} from "../apiService.js";
 
 export class RegisterViewBinder implements ViewEventBinder {
 	bind() {
-		document.getElementById("register")?.addEventListener("click", this.onRegisterClick);
+		const form = document.getElementById("registerForm") as HTMLFormElement | null;
+		form?.addEventListener("submit", this.onRegisterSubmit);
 	}
+
 	unbind() {
-		document.getElementById("register")?.removeEventListener("click", this.onRegisterClick);
+		const form = document.getElementById("registerForm") as HTMLFormElement | null;
+		form?.removeEventListener("submit", this.onRegisterSubmit);
 	}
-	private onRegisterClick = async () => {
+
+	private onRegisterSubmit = async (ev: Event) => {
+		ev.preventDefault();
+
 		const email = (document.getElementById("email") as HTMLInputElement | null)?.value;
 		const username = (document.getElementById("username") as HTMLInputElement | null)?.value;
 		const password = (document.getElementById("password") as HTMLInputElement | null)?.value;
@@ -20,9 +26,11 @@ export class RegisterViewBinder implements ViewEventBinder {
 			alert("Passwords do not match");
 			return;
 		}
-		const res = await ApiClient.post("/api/auth/register", {email, username, password});
+
+		// send `name` to match backend expected field
+		const res = await ApiClient.post("/api/auth/register", { email, name: username, password });
 		if (!res.ok) {
-			const err = await res.json().catch(() => ({message: "Registration failed"}));
+			const err = await res.json().catch(() => ({ message: "Registration failed" }));
 			alert(err.message || "Registration failed");
 			return;
 		}
