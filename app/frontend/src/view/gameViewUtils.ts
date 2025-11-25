@@ -509,12 +509,45 @@ export function createBackgroundScene() {
     largeGround.position.y = -20;
 }
 
-export function createScoreBox(scene: any) {
+export function createScoreBox2(scene: any) {
     const ui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
 
     const scoreBox = new BABYLON.GUI.Rectangle("scoreBox");
     scoreBox.width = "30%";
     scoreBox.height = "80px";
+    scoreBox.cornerRadius = 8;
+    scoreBox.thickness = 2;
+    scoreBox.color = "#b32b00";
+    scoreBox.background = "rgba(30, 0, 0, 0.7)";
+    scoreBox.horizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    scoreBox.verticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_BOTTOM;
+    scoreBox.paddingBottom = "20px";
+    ui.addControl(scoreBox);
+
+    const scoreText = new BABYLON.GUI.TextBlock("scoreText");
+    scoreText.text = "";
+    scoreText.color = "#ffb347";
+    scoreText.fontFamily = "Cinzel, serif";
+    scoreText.fontSize = 28;
+    scoreText.fontWeight = "bold";
+    scoreText.textHorizontalAlignment = BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER;
+    scoreText.textVerticalAlignment = BABYLON.GUI.Control.VERTICAL_ALIGNMENT_CENTER;
+    scoreBox.addControl(scoreText);
+
+    scoreText.shadowBlur = 5;
+    scoreText.shadowOffsetX = 0;
+    scoreText.shadowOffsetY = 0;
+    scoreText.shadowColor = "#ff4500";
+
+    return scoreText;
+}
+
+export function createScoreBox4(scene: any) {
+    const ui = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI", true, scene);
+
+    const scoreBox = new BABYLON.GUI.Rectangle("scoreBox");
+    scoreBox.width = "30%";
+    scoreBox.height = "90px";
     scoreBox.cornerRadius = 8;
     scoreBox.thickness = 2;
     scoreBox.color = "#b32b00";
@@ -572,9 +605,11 @@ export function displayScore4(
     const player3Score = gameState.score.up;
     const player4Score = gameState.score.down;
 
-    scoreText.text = `${player1Name}: ${player1Score} - ${player2Score} : ${player2Name} \
-                        ${player3Name}: ${player3Score} - ${player4Score} : ${player4Name}`;
+    scoreText.text =
+        `${player1Name}: ${player1Score}  ${player2Name}: ${player2Score}\n` +
+        `${player3Name}: ${player3Score}  ${player4Name}: ${player4Score}`;
 }
+
 
 export function createVisionCone(scene: any) {
     const coneMat = new BABYLON.StandardMaterial("coneMat", scene);

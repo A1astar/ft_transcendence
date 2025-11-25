@@ -24,7 +24,7 @@ import {
     createBaradDur,
     createPaddle,
     createBackgroundScene,
-    createScoreBox,
+    createScoreBox2,
     displayScore2,
     createVisionCone,
     updateVisionConePos,
@@ -198,7 +198,7 @@ function setupScene(canvas: HTMLCanvasElement) {
     const visionCone = createVisionCone(scene);
     updateVisionConePos(scene, ball, visionCone);
 
-    const scoreText = createScoreBox(scene);
+    const scoreText = createScoreBox2(scene);
     createCamera(scene, canvas);
     createLight(scene);
 

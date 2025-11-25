@@ -25,7 +25,7 @@ import {
     createPaddle,
     createPaddleRotate,
     createBackgroundScene,
-    createScoreBox,
+    createScoreBox4,
     createVisionCone,
     updateVisionConePos,
     displayScore4,
@@ -259,12 +259,12 @@ function setupScene(canvas: HTMLCanvasElement) {
 
     const tower = createBaradDur(scene);
     scaling3DMesh(tower, 5, 5, 5);
-    update3DMeshPos(tower, -18, 0, -25);
+    update3DMeshPos(tower, -18, 0, -27);
 
     const visionCone = createVisionCone(scene);
     updateVisionConePos(scene, ball, visionCone);
 
-    const scoreText = createScoreBox(scene);
+    const scoreText = createScoreBox4(scene);
     createCamera(scene, canvas);
     createLight(scene);
 
