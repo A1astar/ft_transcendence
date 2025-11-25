@@ -11,6 +11,8 @@ import {
 	createBoxDiv,
 	createButtonLink
 } from "./utils.js";
+import { renderGame } from "./gameView.js";
+import { renderTournamentIntermediate } from "./tournamentIntermediateView.js";
 
 const appDiv = document.getElementById("app");
 

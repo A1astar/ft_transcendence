@@ -1,4 +1,4 @@
-import {renderGame} from "../view/gameView.js";
+import { renderGame4 } from "../view/gameView4.js";
 import {SERVER_BASE} from "../view/utils.js";
 import {ViewEventBinder} from "./binderInterface.js";
 
@@ -111,9 +111,7 @@ export class Remote4LobbyViewBinder implements ViewEventBinder {
 
             // Start the game
             sessionStorage.setItem("currentGameId", match.id);
-            renderGame(4, match);
-            history.pushState({}, "", "/game/remote4");
-            window.dispatchEvent(new PopStateEvent("popstate"));
+            renderGame4(match);
         } catch (error: unknown) {
             this.hideWaitingPopup();
             if (error instanceof Error && error.name === "AbortError") {
@@ -135,8 +133,6 @@ export class Remote4LobbyViewBinder implements ViewEventBinder {
                 alert("Failed to start remote game");
             }
         }
-        history.pushState({}, "", "/api/game-orchestration/remote4");
-        window.dispatchEvent(new PopStateEvent("popstate"));
     }
 
     unbind() {}

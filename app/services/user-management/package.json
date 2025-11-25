@@ -1,8 +1,8 @@
 {
-  "name": "@ft_transcendence/authentication",
+  "name": "@ft_transcendence/user-management",
   "version": "1.0.0",
   "private": true,
-  "description": "Authentication service of transcendence app.",
+  "description": "User management service of transcendence app.",
   "type": "module",
   "main": "index.js",
   "scripts": {
@@ -12,9 +12,6 @@
     "watch": "tsx watch --clear-screen=false src"
   },
   "dependencies": {
-    "@fastify/jwt": "^10.0.0",
-    "@fastify/oauth2": "^8.1.2",
-    "@fastify/session": "github:fastify/session",
     "better-sqlite3": "^12.4.1",
     "node-vault": "^0.10.9"
   },

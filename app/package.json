@@ -7,11 +7,12 @@
     "services/authentication",
     "services/game-engine",
     "services/game-orchestration",
-    "services/gateway"
+    "services/gateway",
+    "services/user-management"
   ],
   "scripts": {
     "build:all": "npm run build --workspaces",
-    "start:all": "concurrently --names \"frontend,auth,game-engine,game-orch,gateway\" -c \"blue,green,red,yellow,magenta\" \"npm:start:frontend\" \"npm:start:authentication\" \"npm:start:game-engine\" \"npm:start:game-orchestration\" \"npm:start:gateway\"",
+    "start:all": "concurrently --names \"frontend,auth,game-engine,game-orch,gateway,user-mana\" -c \"blue,green,red,yellow,magenta,cyan\" \"npm:start:frontend\" \"npm:start:authentication\" \"npm:start:game-engine\" \"npm:start:game-orchestration\" \"npm:start:gateway\" \"npm:start:user-management\"",
     "start:frontend": "npm run start -w @ft_transcendence/frontend",
     "start:authentication": "npm run start -w @ft_transcendence/authentication",
     "start:game-engine": "npm run start -w @ft_transcendence/game-engine",
@@ -23,6 +24,7 @@
     "watch:game-engine": "npm run watch -w @ft_transcendence/game-engine",
     "watch:game-orchestration": "npm run watch -w @ft_transcendence/game-orchestration",
     "watch:gateway": "npm run watch -w @ft_transcendence/gateway",
+    "watch:user-management": "npm run watch -w @ft_transcendence/user-management",
     "clean": "npm run clean --workspaces"
   },
   "dependencies": {

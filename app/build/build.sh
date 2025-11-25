@@ -12,6 +12,7 @@ directories=(
     "$project_dir/services/game-engine"
     "$project_dir/services/game-orchestration"
     "$project_dir/services/gateway"
+    "$project_dir/services/user-management"
 )
 
 checkNodeVersion()
@@ -19,7 +20,7 @@ checkNodeVersion()
     # Load NVM if it exists
     export NVM_DIR="$HOME/.nvm"
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-    
+
     if ! command -v nvm &> /dev/null; then
         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
         export NVM_DIR="$HOME/.nvm"
@@ -41,13 +42,13 @@ checkPackageInstallation()
 
 if [ $# -gt 0 ]; then
 
-
     case "$1" in
         "local-run")
             checkNodeVersion
             checkPackageInstallation
             cd $project_dir && npm run start:all
         ;;
+
         "local-watch")
             checkNodeVersion
             checkPackageInstallation
@@ -67,4 +68,5 @@ if [ $# -gt 0 ]; then
             done
         ;;
     esac
+
 fi
