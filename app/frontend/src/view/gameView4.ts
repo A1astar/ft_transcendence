@@ -23,6 +23,7 @@ import {
     createTorch,
     createBaradDur,
     createPaddle,
+    createPaddleRotate,
     createBackgroundScene,
     createScoreBox,
     createVisionCone,
@@ -239,26 +240,18 @@ function setupScene(canvas: HTMLCanvasElement) {
 
     const leftPaddle = createPaddle(scene);
     leftPaddle.material = paddleMaterial;
-    scaling3DMesh(leftPaddle, 0.25, 0.5, 2);
-    update3DMeshPos(leftPaddle, -8, 0, 0);
     leftPaddle.parent = pongRoot;
 
     const rightPaddle = createPaddle(scene);
     rightPaddle.material = paddleMaterial;
-    scaling3DMesh(rightPaddle, 0.25, 0.5, 2);
-    update3DMeshPos(rightPaddle, 8, 0, 0);
     rightPaddle.parent = pongRoot;
 
-    const upPaddle = createPaddle(scene);
+    const upPaddle = createPaddleRotate(scene);
     upPaddle.material = paddleMaterial;
-    scaling3DMesh(upPaddle, 2, 0.5, 0.25);
-    update3DMeshPos(upPaddle, 0, 0, 4);
     upPaddle.parent = pongRoot;
 
-    const downPaddle = createPaddle(scene);
+    const downPaddle = createPaddleRotate(scene);
     downPaddle.material = paddleMaterial;
-    scaling3DMesh(downPaddle, 2, 0.5, 0.25);
-    update3DMeshPos(downPaddle, 0, 0, -4);
     downPaddle.parent = pongRoot;
 
     scaling3DMesh(pongRoot, 2, 2, 2);
@@ -266,7 +259,7 @@ function setupScene(canvas: HTMLCanvasElement) {
 
     const tower = createBaradDur(scene);
     scaling3DMesh(tower, 5, 5, 5);
-    update3DMeshPos(tower, -20, 0, -25);
+    update3DMeshPos(tower, -18, 0, -25);
 
     const visionCone = createVisionCone(scene);
     updateVisionConePos(scene, ball, visionCone);

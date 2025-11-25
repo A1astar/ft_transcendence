@@ -425,6 +425,77 @@ export function createPaddle(scene: any) {
     return paddleRoot;
 }
 
+export function createPaddleRotate(scene: any) {
+    const paddleRoot = new BABYLON.TransformNode("paddleRoot", scene);
+
+    const paddle = BABYLON.MeshBuilder.CreateBox("paddle", {}, scene);
+    paddle.scaling = new BABYLON.Vector3(0.25, 0.5, 2);
+    paddle.position.y = 0.25;
+    paddle.parent = paddleRoot;
+
+    for (let i = 0; i < 10; i++) {
+        const spike = BABYLON.MeshBuilder.CreateBox(`spike_${i}`, {}, scene);
+        spike.scaling = new BABYLON.Vector3(0.05, 0.2, 0.08);
+        spike.position.y = 0.55;
+        spike.position.x = -0.15;
+        spike.position.z = -0.9 + i * 0.2;
+        spike.parent = paddleRoot;
+    }
+
+    for (let i = 0; i < 10; i++) {
+        const spike = BABYLON.MeshBuilder.CreateBox(`spike_${i}`, {}, scene);
+        spike.scaling = new BABYLON.Vector3(0.05, 0.2, 0.08);
+        spike.position.y = 0.55;
+        spike.position.x = 0.15;
+        spike.position.z = -0.9 + i * 0.2;
+        spike.parent = paddleRoot;
+    }
+
+    const tower1 = BABYLON.MeshBuilder.CreateCylinder("tower", {diameter: 0.6}, scene);
+    tower1.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+    tower1.position.y = 0.5;
+    tower1.position.z = 0.9;
+    tower1.parent = paddleRoot;
+
+    const tower2 = BABYLON.MeshBuilder.CreateCylinder("tower", {diameter: 0.6}, scene);
+    tower2.scaling = new BABYLON.Vector3(0.5, 0.5, 0.5);
+    tower2.position.y = 0.5;
+    tower2.position.z = -0.9;
+    tower2.parent = paddleRoot;
+
+    const createTowerCrenels = (tower: any) => {
+        const nb = 12;
+        const radius = 0.3;
+        for (let i = 0; i < nb; i++) {
+            const spike = BABYLON.MeshBuilder.CreateBox(
+                `${tower.name}_crenel_${i}`,
+                {
+                    height: 0.25,
+                    width: 0.05,
+                    depth: 0.05,
+                },
+                scene,
+            );
+
+            const angle = (i / nb) * Math.PI * 2;
+            spike.position = new BABYLON.Vector3(
+                Math.cos(angle) * radius,
+                1,
+                Math.sin(angle) * radius,
+            );
+            spike.lookAt(new BABYLON.Vector3(0, 1, 0));
+            spike.parent = tower;
+        }
+    };
+
+    createTowerCrenels(tower1);
+    createTowerCrenels(tower2);
+
+    paddleRoot.rotation = new BABYLON.Vector3(0, BABYLON.Tools.ToRadians(90), 0);
+
+    return paddleRoot;
+}
+
 export function createBackgroundScene() {
     const largeGroundMat = new BABYLON.StandardMaterial("largeGroundMat");
     largeGroundMat.diffuseTexture = new BABYLON.Texture(backgroundTexture);
