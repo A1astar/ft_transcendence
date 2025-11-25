@@ -1,6 +1,4 @@
-declare const BABYLON: any; // Global BABYLON from CDN
-import {SERVER_BASE} from "./utils.js";
-
+declare const BABYLON: any;
 import {
     clearDiv,
     createVideoBackgroundDiv,
@@ -12,281 +10,222 @@ import {
     createLogoElement,
     createButtonForm,
     createBoxDiv,
+    createCanvas,
+    SERVER_BASE,
 } from "./utils.js";
+
+import {
+    gotMatchInfos,
+    createCamera,
+    createLight,
+    update3DMeshPos,
+    scaling3DMesh,
+    createTorch,
+    createBaradDur,
+    createPaddle,
+    createBackgroundScene,
+    createScoreBox2,
+    displayScore2,
+    createVisionCone,
+    updateVisionConePos,
+} from "./gameViewUtils.js";
 
 import {endGameView} from "./endGameView.js";
 
 const appDiv = document.getElementById("app");
+const groundTexture = "../../public/textures/pongTable.png";
+const eyeTexture = "../../public/textures/eye.png";
 
-function updateScore(GameState: any) {
-    if (GameState.ball.x == -10) GameState.score.left++;
-    if (GameState.ball.x == 10) GameState.score.right++;
+function setupWebSocket(
+    matchInfos: any,
+    ball: any,
+    leftPaddle: any,
+    rightPaddle: any,
+    scoreText: any,
+    onGameEnd?: (winner: string) => void,
+) {
+    const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+        const key = event.key.toLowerCase();
+        if (["w", "s", "p", "l"].includes(key)) {
+            ws.send(JSON.stringify({type: "keyPress", key}));
+        }
+    };
+
+    const handleKeyUp = (event: KeyboardEvent) => {
+        const key = event.key.toLowerCase();
+        if (["w", "s", "p", "l"].includes(key)) {
+            ws.send(JSON.stringify({type: "keyRelease", key}));
+        }
+    };
+
+    ws.onopen = () => {
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keyup", handleKeyUp);
+    };
+
+    let gameEnded = false;
+
+    ws.onmessage = (event) => {
+        if (gameEnded) return;
+        const message = JSON.parse(event.data);
+
+        if (message.type === "gameState") {
+            const gameState = message.data;
+
+            update3DMeshPos(ball, -gameState.ball.x, 0.25, gameState.ball.y);
+
+            update3DMeshPos(leftPaddle, -gameState.paddles.left.x, 0, gameState.paddles.left.y);
+
+            update3DMeshPos(rightPaddle, -gameState.paddles.right.x, 0, gameState.paddles.right.y);
+
+            if (gameState.score && appDiv) {
+                displayScore2(matchInfos, appDiv, gameState, scoreText);
+
+                if (gameState.score.left >= 5 || gameState.score.right >= 5) {
+                    const winner =
+                        gameState.score.left >= 3
+                            ? matchInfos.players[0].alias
+                            : matchInfos.players[1].alias;
+
+                    gameEnded = true;
+                    ws.close();
+                    document.removeEventListener("keydown", handleKeyDown);
+                    document.removeEventListener("keyup", handleKeyUp);
+
+                    if (onGameEnd) onGameEnd(winner);
+                    else endGameView(winner);
+                }
+            }
+        }
+    };
+
+    ws.onclose = () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        document.removeEventListener("keyup", handleKeyUp);
+    };
 }
 
-function displayScore(matchInfos: any, appDiv: HTMLElement, GameState: any) {
-    let scoreBoard = document.getElementById("scoreBoard");
+function setupScene(canvas: HTMLCanvasElement) {
+    const engine = new BABYLON.Engine(canvas, true);
+    const scene = new BABYLON.Scene(engine);
 
-    if (!scoreBoard) {
-        scoreBoard = createBoxDiv("scoreBoard");
-        scoreBoard.appendChild(
-            createSubheadingText(
-                `${matchInfos.players[0].alias}: \
-        ${GameState.score.left} - ${matchInfos.players[1].alias}: ${GameState.score.right}`,
-                "center",
-            ),
-        );
-        appDiv.appendChild(scoreBoard);
-    }
-    scoreBoard.innerHTML = "";
-    scoreBoard.appendChild(
-        createSubheadingText(
-            `${matchInfos.players[0].alias}: \
-    ${GameState.score.left} - ${matchInfos.players[1].alias}: ${GameState.score.right}`,
-            "center",
-        ),
+    const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+    groundMaterial.diffuseTexture = new BABYLON.Texture(groundTexture, scene);
+
+    const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
+    wallMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+
+    const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
+    ballMaterial.diffuseTexture = new BABYLON.Texture(eyeTexture, scene);
+
+    const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
+    paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+
+    createBackgroundScene();
+
+    const pongRoot = new BABYLON.TransformNode("pongRoot", scene);
+
+    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
+    ground.material = groundMaterial;
+    ground.parent = pongRoot;
+
+    const ball = BABYLON.MeshBuilder.CreateCylinder(
+        "ball",
+        {
+            diameter: 0.5,
+            height: 0.01,
+        },
+        scene,
     );
-    appDiv.appendChild(scoreBoard);
-}
+    ball.material = ballMaterial;
+    update3DMeshPos(ball, 0, 0.25, 0);
+    ball.parent = pongRoot;
 
-function createCamera(scene: any, canvas: HTMLCanvasElement) {
-    const camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 18, 8), scene);
+    const leftP = createPaddle(scene);
+    leftP.parent = pongRoot;
 
-    const target = BABYLON.Vector3.Zero();
-    camera.setTarget(target);
-    camera.lockedTarget = target;
+    const rightP = createPaddle(scene);
+    rightP.parent = pongRoot;
 
-    camera.fov = BABYLON.Tools.ToRadians(55);
-    camera.minZ = 0.1;
-    camera.maxZ = 1000;
+    const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
+    leftWall.material = wallMaterial;
+    scaling3DMesh(leftWall, 0.2, 0.5, 10);
+    update3DMeshPos(leftWall, -10, 0, 0);
+    leftWall.parent = pongRoot;
 
-    camera.inertia = 0;
-    camera.inputs.clear();
-}
+    const rightWall = BABYLON.MeshBuilder.CreateBox("rightWall", {}, scene);
+    rightWall.material = wallMaterial;
+    scaling3DMesh(rightWall, 0.2, 0.5, 10);
+    update3DMeshPos(rightWall, 10, 0, 0);
+    rightWall.parent = pongRoot;
 
-function createLight(scene: any) {
-    // ?This creates a light, aiming 0,1,0 - to the sky (non-mesh)
-    var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+    const upperWall = BABYLON.MeshBuilder.CreateBox("upperWall", {}, scene);
+    upperWall.material = wallMaterial;
+    scaling3DMesh(upperWall, 20.2, 0.5, 0.2);
+    update3DMeshPos(upperWall, 0, 0, -5);
+    upperWall.parent = pongRoot;
 
-    light.diffuse = new BABYLON.Color3(1, 1, 1);
-    // ?Default intensity is 1. Let's dim the light a small amount
-    light.intensity = 0.7;
-}
+    const lowerWall = BABYLON.MeshBuilder.CreateBox("lowerWall", {}, scene);
+    lowerWall.material = wallMaterial;
+    scaling3DMesh(lowerWall, 20.2, 0.5, 0.2);
+    update3DMeshPos(lowerWall, 0, 0, 5);
+    lowerWall.parent = pongRoot;
 
-function update3DMeshPos(meshElement: any, xPos: number, yPos: number, zPos: number) {
-    meshElement.position = new BABYLON.Vector3(xPos, yPos, zPos);
-}
+    const topleftTorch = createTorch(scene);
+    update3DMeshPos(topleftTorch, 10, 0, -5);
+    topleftTorch.parent = pongRoot;
 
-function scaling3DMesh(meshElement: any, xPos: number, yPos: number, zPos: number) {
-    meshElement.scaling = new BABYLON.Vector3(xPos, yPos, zPos);
-}
+    const topRightTorch = createTorch(scene);
+    update3DMeshPos(topRightTorch, -10, 0, -5);
+    topRightTorch.parent = pongRoot;
 
-function createSkybox(scene: any) {
-    const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size: 1000.0}, scene);
-    const skyboxMaterial = new BABYLON.StandardMaterial("skybox", scene);
-    skyboxMaterial.backFaceCulling = false;
-    skyboxMaterial.disableLighting = true;
-    skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("../../public/skybox/skybox", scene);
-    skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+    const bottomleftTorch = createTorch(scene);
+    update3DMeshPos(bottomleftTorch, 10, 0, 5);
+    bottomleftTorch.parent = pongRoot;
 
-    skybox.material = skyboxMaterial;
-    skybox.infiniteDistance = true;
+    const bottomRightTorch = createTorch(scene);
+    update3DMeshPos(bottomRightTorch, -10, 0, 5);
+    bottomRightTorch.parent = pongRoot;
+
+    scaling3DMesh(pongRoot, 2, 2, 2);
+
+    const tower = createBaradDur(scene);
+    scaling3DMesh(tower, 5, 5, 5);
+    update3DMeshPos(tower, -20, 0, -20);
+
+    const visionCone = createVisionCone(scene);
+    updateVisionConePos(scene, ball, visionCone);
+
+    const scoreText = createScoreBox2(scene);
+    createCamera(scene, canvas);
+    createLight(scene);
+
+    return {engine, scene, ball, leftP, rightP, visionCone, scoreText};
 }
 
 export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void) {
-    if (appDiv) {
-        clearDiv(appDiv);
+    if (!appDiv) return;
+    clearDiv(appDiv);
 
-        // Use the match ID from the passed matchInfos object
-        const gameId = matchInfos.id;
-        if (!gameId) {
-            console.error("No game ID found in match object");
-            return;
-        }
-
-        const canvas = document.createElement("canvas");
-        canvas.height = 1080;
-        canvas.width = 1920;
-
-        const engine = new BABYLON.Engine(canvas, true);
-        const scene = new BABYLON.Scene(engine);
-
-        // Create all game objects first
-        const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
-        groundMaterial.diffuseTexture = new BABYLON.Texture(
-            "../../public/textures/pongTable.png",
-            scene,
-        );
-
-        const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
-        wallMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
-
-        const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
-        ballMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
-
-        const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
-        paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
-
-        const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
-        ground.material = groundMaterial;
-
-        const ball = BABYLON.MeshBuilder.CreateSphere(
-            "sphere",
-            {diameter: 0.35, segments: 16}, // Reduced segments for better performance
-            scene,
-        );
-        ball.material = ballMaterial;
-        update3DMeshPos(ball, 0, 0.25, 0);
-
-        const upperWall = BABYLON.MeshBuilder.CreateBox("upperWall", {}, scene);
-        upperWall.material = wallMaterial;
-        scaling3DMesh(upperWall, 20.25, 0.5, 0.25);
-        update3DMeshPos(upperWall, 0, 0, -5);
-
-        const lowerWall = BABYLON.MeshBuilder.CreateBox("lowerWall", {}, scene);
-        lowerWall.material = wallMaterial;
-        scaling3DMesh(lowerWall, 20.25, 0.5, 0.25);
-        update3DMeshPos(lowerWall, 0, 0, 5);
-
-        const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
-        leftWall.material = wallMaterial;
-        scaling3DMesh(leftWall, 0.25, 0.5, 10);
-        update3DMeshPos(leftWall, -10, 0, 0); // Flip X coordinate
-
-        const rightWall = BABYLON.MeshBuilder.CreateBox("rightWall", {}, scene);
-        rightWall.material = wallMaterial;
-        scaling3DMesh(rightWall, 0.25, 0.5, 10);
-        update3DMeshPos(rightWall, 10, 0, 0); // Flip X coordinate
-
-        const leftPaddle = BABYLON.MeshBuilder.CreateBox("leftPaddle", {}, scene);
-        leftPaddle.material = paddleMaterial;
-        scaling3DMesh(leftPaddle, 0.25, 0.5, 2); // Using exact game dimensions
-        update3DMeshPos(leftPaddle, -8, 0, 0);
-
-        const rightPaddle = BABYLON.MeshBuilder.CreateBox("rightPaddle", {}, scene);
-        rightPaddle.material = paddleMaterial;
-        scaling3DMesh(rightPaddle, 0.25, 0.5, 2); // Using exact game dimensions
-        update3DMeshPos(rightPaddle, 8, 0, 0);
-
-        createCamera(scene, canvas);
-        createLight(scene);
-
-        // Connect to WebSocket
-
-        const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${gameId}`);
-
-        // Set up keyboard controls
-        const handleKeyDown = (event: KeyboardEvent) => {
-            const key = event.key.toLowerCase();
-            if (["w", "s", "p", "l"].includes(key)) {
-                ws.send(
-                    JSON.stringify({
-                        type: "keyPress",
-                        key: key,
-                    }),
-                );
-            }
-        };
-
-        const handleKeyUp = (event: KeyboardEvent) => {
-            const key = event.key.toLowerCase();
-            if (["w", "s", "p", "l"].includes(key)) {
-                ws.send(
-                    JSON.stringify({
-                        type: "keyRelease",
-                        key: key,
-                    }),
-                );
-            }
-        };
-
-        ws.onopen = () => {
-            console.log("Connected to game engine");
-            document.addEventListener("keydown", handleKeyDown);
-            document.addEventListener("keyup", handleKeyUp);
-        };
-
-        let gameEnded = false;
-
-        ws.onmessage = (event) => {
-            if (gameEnded) return;
-            const message = JSON.parse(event.data);
-            // console.log('Received game state:', message);
-
-            if (message.error) {
-                console.error("Game engine error:", message.error);
-                return;
-            }
-
-            if (message.type === "gameState") {
-                const gameState = message.data;
-                // console.log('Game state data:', gameState);
-
-                // Update ball position
-                if (ball && gameState.ball) {
-                    // Flip X coordinate to match camera view
-                    update3DMeshPos(ball, -gameState.ball.x, 0.25, gameState.ball.y);
-                }
-
-                // Update paddles position
-                if (leftPaddle && gameState.paddles && gameState.paddles.left) {
-                    // Flip X coordinate to match camera view
-                    update3DMeshPos(
-                        leftPaddle,
-                        -gameState.paddles.left.x,
-                        0,
-                        gameState.paddles.left.y,
-                    );
-                }
-                if (rightPaddle && gameState.paddles && gameState.paddles.right) {
-                    // Flip X coordinate to match camera view
-                    update3DMeshPos(
-                        rightPaddle,
-                        -gameState.paddles.right.x,
-                        0,
-                        gameState.paddles.right.y,
-                    );
-                }
-
-                // Update score if you have score elements
-                if (gameState.score) {
-                    updateScore(gameState);
-                    displayScore(matchInfos, appDiv, gameState);
-                    if (gameState.score.left >= 3 || gameState.score.right >= 3) {
-                        const winner =
-                            gameState.score.left >= 3
-                                ? matchInfos.players[0].alias
-                                : matchInfos.players[1].alias;
-                        gameEnded = true;
-                        ws.close();
-                        document.removeEventListener("keydown", handleKeyDown);
-                        document.removeEventListener("keyup", handleKeyUp);
-
-                        // Call the onGameEnd callback if provided (for tournament handling)
-                        if (onGameEnd) {
-                            onGameEnd(winner);
-                        } else {
-                            // Default behavior for non-tournament games
-                            endGameView(winner);
-                        }
-                        return;
-                    }
-                }
-            }
-        };
-
-        ws.onclose = () => {
-            console.log("Disconnected from game engine");
-            document.removeEventListener("keydown", handleKeyDown);
-            document.removeEventListener("keyup", handleKeyUp);
-        };
-
-        const render = () => scene.render();
-        engine.runRenderLoop(render);
-
-        const onResize = () => engine.resize();
-        window.addEventListener("resize", onResize);
-
-        appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
-        appDiv.appendChild(canvas);
+    if (!gotMatchInfos(matchInfos)) {
+        console.error("Invalid match object");
+        return;
     }
+
+    const canvas = createCanvas();
+    appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Sauron.mp4"));
+    appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
+    appDiv.appendChild(createHeadingText("Lord of Transcendence"));
+    appDiv.appendChild(canvas);
+
+    let {engine, scene, ball, leftP, rightP, visionCone, scoreText} = setupScene(canvas);
+    setupWebSocket(matchInfos, ball, leftP, rightP, scoreText, onGameEnd);
+
+    engine.runRenderLoop(() => {
+        updateVisionConePos(scene, ball, visionCone);
+        scene.render();
+    });
+    window.addEventListener("resize", () => engine.resize());
 }

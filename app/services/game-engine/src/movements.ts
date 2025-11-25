@@ -17,6 +17,10 @@ export function updateGame(game: Game) {
 			ball.x >= up.x - up.width/2 &&
 			ball.x <= up.x + up.width/2
 		) {
+			if(Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.2) {
+				ball.vx += 0.02;
+				ball.vy += 0.02;
+			}
 			ball.vy *= -1;
 		}
 
@@ -26,6 +30,10 @@ export function updateGame(game: Game) {
 			ball.x >= down.x - down.width/2 &&
 			ball.x <= down.x + down.width/2
 		) {
+			if(Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.2) {
+				ball.vx += 0.02;
+				ball.vy += 0.02;
+			}
 			ball.vy *= -1;
 		}
 	}
@@ -33,7 +41,7 @@ export function updateGame(game: Game) {
 		// collision for top and bottom walls (-5 to 5)
 		if (ball.y + ball.radius >= 5 || ball.y - ball.radius <= -5) {
 			ball.vy *= -1;
-		}		
+		}
 	}
 
 	// collision with left paddle
@@ -42,15 +50,23 @@ export function updateGame(game: Game) {
 		ball.y >= left.y - left.height/2 &&
 		ball.y <= left.y + left.height/2
 	) {
+			if(Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.2) {
+				ball.vx += 0.02;
+				ball.vy += 0.02;
+			}
 		ball.vx *= -1;
 	}
-	
+
 	// collision with right paddle
 	if (ball.x + ball.radius >= right.x - right.width &&
 		ball.x - ball.radius <= right.x &&
 		ball.y >= right.y - right.height/2 &&
 		ball.y <= right.y + right.height/2
 	) {
+			if(Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.2) {
+				ball.vx += 0.02;
+				ball.vy += 0.02;
+			}
 		ball.vx *= -1;
 	}
 
@@ -64,11 +80,11 @@ export function updateGame(game: Game) {
 			game.score.right--;
 			game.reset();
 		}
-		else if (ball.y < -5) {
+		else if (ball.y < -10) {
 			game.score.down--;
 			game.reset();
 		}
-		else if (ball.y > 5) {
+		else if (ball.y > 10) {
 			game.score.up--;
 			game.reset();
 		}
@@ -81,7 +97,7 @@ export function updateGame(game: Game) {
 		else if (ball.x > 10) {
 			game.score.left++;
 			game.reset();
-		}		
+		}
 	}
 }
 
@@ -90,11 +106,25 @@ export async function updatePaddle(game: Game) {
 	const right = game.paddles.right;
 	const up = game.paddles.up;
 	const down = game.paddles.down;
-	const maxY = 4;
-	const minY = -4;
-	const maxX = 8;
-	const minX = -8;
+	let maxY = 0;
+	let minY = 0;
+	let maxX = 0;
+	let minX = 0;
 
+	if(game.mode === 'remote4')
+	{
+		maxY = 8;
+		minY = -8;
+		maxX = 8;
+		minX = -8;
+	}
+	else
+	{
+		maxY = 4;
+		minY = -4;
+		maxX = 8;
+		minX = -8;
+	}
 	// Left and right paddle movement (vertical)
 	if (game.paddleMovement.leftUp && left.y > minY)
 		left.y -= left.speed;
