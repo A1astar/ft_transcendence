@@ -19,7 +19,7 @@ export function leftPaddleCollision(ball: Game["ball"], paddle: Game["paddles"][
     if (overlapX && overlapY) {
         ball.x = paddleRight + ball.radius;
 
-        if (Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.4) {
+        if (Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.2) {
             ball.vx = -0.22;
             ball.vy += 0.02;
         } else {
@@ -29,8 +29,6 @@ export function leftPaddleCollision(ball: Game["ball"], paddle: Game["paddles"][
 }
 
 export function rightPaddleCollision(ball: Game["ball"], paddle: Game["paddles"]["right"]) {
-    if (ball.vx <= 0) return;
-
     const paddleLeft = paddle.x - paddle.width;
     const paddleRight = paddle.x;
     const paddleTop = paddle.y - paddle.height / 2;
@@ -47,7 +45,7 @@ export function rightPaddleCollision(ball: Game["ball"], paddle: Game["paddles"]
     if (overlapX && overlapY) {
         ball.x = paddleLeft - ball.radius;
 
-        if (Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.4) {
+        if (Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.2) {
             ball.vx = 0.22;
             ball.vy += 0.02;
         } else {
@@ -57,26 +55,24 @@ export function rightPaddleCollision(ball: Game["ball"], paddle: Game["paddles"]
 }
 
 export function upPaddleCollision(ball: Game["ball"], paddle: Game["paddles"]["up"]) {
-    if (ball.vy >= 0) return;
-
-    const paddleTop = paddle.y - paddle.height;
-    const paddleBottom = paddle.y;
     const paddleLeft = paddle.x - paddle.width / 2;
     const paddleRight = paddle.x + paddle.width / 2;
+    const paddleTop = paddle.y - paddle.height / 2;
+    const paddleBottom = paddle.y + paddle.height / 2;
 
-    const nextBallTop = ball.y - ball.radius + ball.vy;
-    const nextBallBottom = ball.y + ball.radius + ball.vy;
     const nextBallLeft = ball.x - ball.radius + ball.vx;
     const nextBallRight = ball.x + ball.radius + ball.vx;
+    const nextBallTop = ball.y - ball.radius + ball.vy;
+    const nextBallBottom = ball.y + ball.radius + ball.vy;
 
-    const overlapY = nextBallBottom >= paddleTop && nextBallTop <= paddleBottom;
     const overlapX = nextBallRight >= paddleLeft && nextBallLeft <= paddleRight;
+    const overlapY = nextBallBottom >= paddleTop && nextBallTop <= paddleBottom;
 
     if (overlapX && overlapY) {
-        ball.y = paddleBottom + ball.radius;
+        ball.y = paddleTop - ball.radius;
 
-        if (Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.4) {
-            ball.vy = 0.22;
+        if (Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.2) {
+            ball.vy = -0.22;
             ball.vx += 0.02;
         } else {
             ball.vy *= -1;
@@ -85,26 +81,24 @@ export function upPaddleCollision(ball: Game["ball"], paddle: Game["paddles"]["u
 }
 
 export function downPaddleCollision(ball: Game["ball"], paddle: Game["paddles"]["down"]) {
-    if (ball.vy <= 0) return;
-
-    const paddleTop = paddle.y;
-    const paddleBottom = paddle.y + paddle.height;
     const paddleLeft = paddle.x - paddle.width / 2;
     const paddleRight = paddle.x + paddle.width / 2;
+    const paddleTop = paddle.y - paddle.height / 2;
+    const paddleBottom = paddle.y + paddle.height / 2;
 
-    const nextBallTop = ball.y - ball.radius + ball.vy;
-    const nextBallBottom = ball.y + ball.radius + ball.vy;
     const nextBallLeft = ball.x - ball.radius + ball.vx;
     const nextBallRight = ball.x + ball.radius + ball.vx;
+    const nextBallTop = ball.y - ball.radius + ball.vy;
+    const nextBallBottom = ball.y + ball.radius + ball.vy;
 
-    const overlapY = nextBallBottom >= paddleTop && nextBallTop <= paddleBottom;
     const overlapX = nextBallRight >= paddleLeft && nextBallLeft <= paddleRight;
+    const overlapY = nextBallBottom >= paddleTop && nextBallTop <= paddleBottom;
 
     if (overlapX && overlapY) {
-        ball.y = paddleTop - ball.radius;
+        ball.y = paddleBottom + ball.radius;
 
-        if (Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.4) {
-            ball.vy = -0.22;
+        if (Math.abs(ball.vx) < 0.2 && Math.abs(ball.vy) < 0.2) {
+            ball.vy = 0.22;
             ball.vx += 0.02;
         } else {
             ball.vy *= -1;

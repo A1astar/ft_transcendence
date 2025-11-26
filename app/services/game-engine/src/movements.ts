@@ -66,8 +66,8 @@ export async function updatePaddle(game: Game) {
     const right = game.paddles.right;
     const up = game.paddles.up;
     const down = game.paddles.down;
-    let maxY = game.mode === "remote4" ? 8 : 4;
-    let minY = game.mode === "remote4" ? -8 : -4;
+    let maxY = game.mode === "remote4" ? 8 : 3.5;
+    let minY = game.mode === "remote4" ? -8 : -3.5;
     let maxX = 8;
     let minX = -8;
 
