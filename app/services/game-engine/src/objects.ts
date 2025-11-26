@@ -17,13 +17,13 @@ export class Game {
 		up:0,
 		down:0
 	}
-	width = 20;     // Full scene width
-	height = 20;    // Scene height (-5 to 5)
+	width = 20;
+	height = 20;
 	ball = {
-		x: 0,       // Center of scene (-10 to 10)
-		y: 0,       // Center of scene (-5 to 5)
-		vx: 0.1,    // Ball velocity X
-		vy: 0.1,    // Ball velocity Y
+		x: 0,
+		y: 0,
+		vx: 0.1,
+		vy: 0.1,
 		radius: 0.35
 	};
 	paddles = {
@@ -44,8 +44,8 @@ export class Game {
 		downRight: false
 	};
 	reset() {
-		this.ball.vx = 0.1,    // Ball velocity X
-		this.ball.vy = 0.1,    // Ball velocity Y
+		this.ball.vx = 0.1,
+		this.ball.vy = 0.1,
 		this.ball.x = 0;
 		this.ball.y = 0;
 	}
