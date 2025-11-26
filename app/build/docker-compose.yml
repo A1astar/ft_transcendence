@@ -1,14 +1,20 @@
 name: transcendence
 services:
   reverse-proxy:
-    build: ../infrastructure/reverse-proxy/
+    build:
+      context: ..
+      dockerfile: infrastructure/reverse-proxy/Dockerfile
     ports:
       - "8080:80"
+      - "8443:443"
     networks:
       - microservices-network
+    volumes:
+      - ../frontend/certs:/etc/nginx/certs:ro
+      - ../infrastructure/reverse-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - gateway
-    restart: unless-stopped
+    restart: "no"
 
   gateway:
     build: ../services/gateway
@@ -19,7 +25,8 @@ services:
     depends_on:
       - authentication
       - game-orchestration
-    restart: unless-stopped
+      - game-engine
+    restart: "no"
 
   authentication:
     build: ../services/authentication
@@ -27,25 +34,26 @@ services:
       - "3001"
     networks:
       - microservices-network
-      - vault-network
-    environment:
-      - VAULT=ADDR=http://hashicorp-vault:8200
-      - VAULT_TOKEN=${VAULT_TOKEN:-your-dev-token}
-    depends_on:
-      - hashicorp-vault
+    # Temporarily disabled vault dependency for testing
+    # environment:
+    #   - VAULT=ADDR=http://hashicorp-vault:8200
+    #   - VAULT_TOKEN=${VAULT_TOKEN:-your-dev-token}
+    # depends_on:
+    #   - hashicorp-vault
     restart: unless-stopped
 
-  hashicorp-vault:
-    build: ../infrastructure/hashicorp-vault
-    ports:
-      - "8200"
-    networks:
-      - vault-network
-    volumes:
-      - vault-data:/vault/data
-    environment:
-      - VAULT_ADDR=http://0.0.0.0:8200
-    restart: unless-stopped
+  # Temporarily disabled for testing
+  # hashicorp-vault:
+  #   build: ../infrastructure/hashicorp-vault
+  #   ports:
+  #     - "8200"
+  #   networks:
+  #     - vault-network
+  #   volumes:
+  #     - vault-data:/vault/data
+  #   environment:
+  #     - VAULT_ADDR=http://0.0.0.0:8200
+  #   restart: unless-stopped
 
   game-orchestration:
     build: ../services/game-orchestration
@@ -55,13 +63,22 @@ services:
       - microservices-network
     restart: unless-stopped
 
+  game-engine:
+    build: ../services/game-engine
+    ports:
+      - "3003"
+    networks:
+      - microservices-network
+    restart: "no"
+
 networks:
   microservices-network:
     driver: bridge
 
-  vault-network:
-    driver: bridge
-    internal: false
+  # Temporarily disabled for testing
+  # vault-network:
+  #   driver: bridge
+  #   internal: false
 
   # monitoring-network:
   #   driver: bridge
@@ -71,8 +88,9 @@ networks:
   #   driver: bridge
   #   internal: true
 
-volumes:
-  vault-data:
+# Temporarily disabled for testing
+# volumes:
+#   vault-data:
 #   prometheus-data:
 #   grafana-data:
 #   elasticsearch-data:

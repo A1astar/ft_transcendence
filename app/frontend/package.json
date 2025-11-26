@@ -14,7 +14,7 @@
     "tw": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
     "tsx": "npx run tsx watch src",
     "ts": "tsc -w --preserveWatchOutput",
-    "serve": "http-server . -c-1 -p 8443 --ssl --cert certs/self.crt --key certs/self.key"
+    "serve" : "node server.js"
   },
   "dependencies": {
     "@babylonjs/core": "^8.38.0",
