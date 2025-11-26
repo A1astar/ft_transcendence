@@ -89,13 +89,13 @@ export class Remote4LobbyViewBinder implements ViewEventBinder {
     }
 
     async bind() {
-        const form = document.getElementById("remote4Form") as HTMLFormElement | null;
-        const aliasInput = document.getElementById("remote4AliasInput") as HTMLInputElement | null;
-
-        const startMatchmaking = async (aliasValue: string) => {
+        const startMatchmaking = async () => {
             const fetched = await getUsername();
-            const alias = aliasValue || fetched || "guest";
-            localStorage.setItem("remote4Alias", alias);
+            if (!fetched) {
+                alert("Remote matches are only available for logged-in users.");
+                return;
+            }
+            const alias = fetched;
 
             const matchRequest = {
                 player: { alias },
@@ -176,19 +176,8 @@ export class Remote4LobbyViewBinder implements ViewEventBinder {
         // Register popstate navigation handler
         window.addEventListener("popstate", this.navigationHandler);
 
-        // Form submit / join button
-        form?.addEventListener("submit", (ev) => {
-            ev.preventDefault();
-            const aliasVal = aliasInput?.value.trim() ?? "";
-            startMatchmaking(aliasVal);
-        });
-
-        const joinBtn = document.getElementById("joinRemote4Button");
-        joinBtn?.addEventListener("click", (ev) => {
-            ev.preventDefault();
-            const aliasVal = aliasInput?.value.trim() ?? "";
-            startMatchmaking(aliasVal);
-        });
+        // Auto-start matchmaking when lobby is entered (user is already checked on game menu click)
+        startMatchmaking();
     }
 
     unbind() {

@@ -132,7 +132,59 @@ export async function handleWebSocket(fastify: FastifyInstance, games: Map<strin
 				gameConnections.set(gameId, connections);
 			}
 			connections.add(connection);
-			playerside = resolvePlayerSide(game);
+
+			// Try to assign side from orchestration-provided assignments when possible.
+			// Prefer alias provided as a query param ?alias=xxx (frontends can add this),
+			// otherwise fall back to the old resolvePlayerSide behavior.
+			function getSideForAlias(alias: string): 'left' | 'right' | 'up' | 'down' | '' {
+				if (!game || !game.playerAliases) return '';
+				for (const side of ['left','right','up','down'] as const) {
+					if ((game.playerAliases as any)[side] === alias) return side;
+				}
+				return '';
+			}
+
+			let alias: string | undefined = undefined;
+			try {
+				// log the incoming websocket request url/query so we can debug alias parsing for players
+				try {
+					console.log(chalk.yellow(`WS connect URL: ${JSON.stringify((req as any).url ?? (req as any).raw?.url ?? '<unknown>')}`));
+					console.log(chalk.yellow(`WS connect parsed query: ${JSON.stringify((req as any).query ?? {})}`));
+				} catch (e) {
+					// best-effort logging
+				}
+				alias = (req.query as any)?.alias;
+			} catch (e) {
+				// ignore if query parsing not available
+			}
+
+			if (alias) {
+				const assignedSide = getSideForAlias(alias);
+				if (assignedSide) {
+					// if the side is free, occupy it and use it for this connection
+					if ((game as any).players[assignedSide] === 0) {
+						(game as any).players[assignedSide] = 1;
+						playerside = assignedSide;
+						
+					}
+				}
+			}
+
+			if (!playerside) {
+				playerside = resolvePlayerSide(game);
+			}
+			// console.log(chalk.blue(game.mode + ' ' + playerside));
+
+			// Determine which alias corresponds to the assigned side for logging
+			let sideAlias: string | undefined = undefined;
+			try {
+				sideAlias = alias ?? ((game.playerAliases as any)?.[playerside]);
+			} catch (e) {
+				// ignore
+			}
+
+			console.log(chalk.green(`Player assigned side: ${playerside}`));
+			console.log(chalk.green(`Player alias for side: ${sideAlias ?? '<none>'}`));
 			console.log(chalk.red(`Player connected to game ${gameId}`));
 
 			keyMovements(game, connection, playerside);

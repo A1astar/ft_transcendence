@@ -31,8 +31,9 @@ export async function getUsername(): Promise<string | null> {
     if (user && user.username) return user.username;
 
     // Fallback to guest stored locally
-    const guest = localStorage.getItem("guestUsername");
-    return guest ?? null;
+    // const guest = localStorage.getItem("guestUsername");
+    // return guest ?? null;
+    return null;
 }
 
 export function setGuestUsername(name: string) {

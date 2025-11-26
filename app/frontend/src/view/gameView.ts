@@ -49,39 +49,6 @@ function setupWebSocket(
     // const ws = new WebSocket(`${protocol}//${window.location.host}/api/game-engine/${matchInfos.id}`);
 
     const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
-    window.addEventListener("popstate", onPopState);
-    window.addEventListener("beforeunload", onBeforeUnload);
-    let gameEnded = false;
-    let hasLeftGame = false;
-
-    ws.onopen = () => {
-        document.addEventListener("keydown", handleKeyDown);
-        document.addEventListener("keyup", handleKeyUp);
-    };
-
-    ws.onclose = () => {
-        document.removeEventListener("keydown", handleKeyDown);
-        document.removeEventListener("keyup", handleKeyUp);
-    };
-
-    function leaveGame() {
-        if (hasLeftGame) {
-            return;
-        }
-        hasLeftGame = true;
-
-        if (ws && ws.readyState == WebSocket.OPEN) {
-            ws.send(JSON.stringify({type: "leave"}));
-        }
-    }
-
-    function onPopState(_event: PopStateEvent) {
-        leaveGame();
-    }
-
-    function onBeforeUnload(_event: BeforeUnloadEvent) {
-        leaveGame();
-    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
         const key = event.key.toLowerCase();
@@ -97,17 +64,24 @@ function setupWebSocket(
         }
     };
 
-    ws.onmessage = (event) => {
-        if (gameEnded) {
-            return;
-        }
+    ws.onopen = () => {
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keyup", handleKeyUp);
+    };
 
+    let gameEnded = false;
+
+    ws.onmessage = (event) => {
+        if (gameEnded) return;
         const message = JSON.parse(event.data);
 
         if (message.type === "gameState") {
             const gameState = message.data;
+
             update3DMeshPos(ball, -gameState.ball.x, 0.25, gameState.ball.y);
+
             update3DMeshPos(leftPaddle, -gameState.paddles.left.x, 0, gameState.paddles.left.y);
+
             update3DMeshPos(rightPaddle, -gameState.paddles.right.x, 0, gameState.paddles.right.y);
 
             if (gameState.score && appDiv) {
@@ -118,27 +92,22 @@ function setupWebSocket(
                         gameState.score.left >= 3
                             ? matchInfos.players[0].alias
                             : matchInfos.players[1].alias;
+
                     gameEnded = true;
                     ws.close();
                     document.removeEventListener("keydown", handleKeyDown);
                     document.removeEventListener("keyup", handleKeyUp);
 
-                    if (onGameEnd) {
-                        onGameEnd(winner);
-                    } else {
-                        endGameView(winner);
-                    }
+                    if (onGameEnd) onGameEnd(winner);
+                    else endGameView(winner);
                 }
             }
         }
+    };
 
-        if (message.type == "player_disconnected") {
-            hasLeftGame = true;
-            ws?.close();
-            window.removeEventListener("popstate", onPopState);
-            window.removeEventListener("beforeunload", onBeforeUnload);
-            endGameView(message.winner);
-        }
+    ws.onclose = () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        document.removeEventListener("keyup", handleKeyUp);
     };
 }
 

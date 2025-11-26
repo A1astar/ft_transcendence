@@ -176,13 +176,6 @@ function setupWebsocket(
                 }
             }
         }
-        if (message.type === "player_disconnected") {
-            hasLeftGame = true;
-            ws?.close();
-            window.removeEventListener("popstate", onPopState);
-            window.removeEventListener("beforeunload", onBeforeUnload);
-            endGameView(message.winner);
-        }
     };
 
     ws.onclose = () => {
