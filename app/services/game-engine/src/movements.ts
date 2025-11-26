@@ -71,13 +71,11 @@ export async function updatePaddle(game: Game) {
     let maxX = 8;
     let minX = -8;
 
-    // Left and right paddle movement (vertical)
     if (game.paddleMovement.leftUp && left.y > minY) left.y -= left.speed;
     if (game.paddleMovement.rightUp && right.y > minY) right.y -= right.speed;
     if (game.paddleMovement.leftDown && left.y < maxY) left.y += left.speed;
     if (game.paddleMovement.rightDown && right.y < maxY) right.y += right.speed;
 
-    // Up and down paddle movement (horizontal)
     if (game.paddleMovement.upLeft && up.x > minX) up.x -= up.speed;
     if (game.paddleMovement.upRight && up.x < maxX) up.x += up.speed;
     if (game.paddleMovement.downLeft && down.x > minX) down.x -= down.speed;
