@@ -7,12 +7,13 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css --minify",
-    "dev": "npx concurrently \"npm run ts\" \"npm run tw\"",
+    "dev": "npm run build:initial && npx concurrently \"npm run ts\" \"npm run tw\"",
     "start": "npm run build && npm run serve",
     "clean": "rm -rf dist",
+    "build:initial": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css",
     "tw": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
     "tsx": "npx run tsx watch src",
-    "ts": "tsc -w",
+    "ts": "tsc -w --preserveWatchOutput",
     "serve": "http-server . -c-1 -p 8443 --ssl --cert certs/self.crt --key certs/self.key"
   },
   "dependencies": {

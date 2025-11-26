@@ -57,7 +57,7 @@ export async function initAuthenticationService() {
         keepAliveTimeout: 72000,            // default: 72000ms (Node.js default)
 
         // Logging configuration
-        logger: true,                       // default: false (or pino options)
+        logger: false,                       // default: false (or pino options)
 
         // Max param length
         // maxParamLength: 100,                // default: 100
@@ -110,7 +110,8 @@ export async function initAuthenticationService() {
 
     fastify.register(fastifyCookie);
 
-    fastify.register(fastifySession, {
+    // Cast to any to avoid strict type mismatches with plugin option names
+    fastify.register(fastifySession as any, {
         // required
         secret: crypto.randomBytes(32).toString('hex'),
 
@@ -137,13 +138,10 @@ export async function initAuthenticationService() {
             partitioned: undefined,      // default
             encode: undefined,           // default (internal encoder)
         },
-    });
+    } as any);
 
-    fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) { if (err) { fastify.log.error(err);
-        throw err;
-    }
-    })
-    console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
+    // Don't start listening here - let main() handle it
+    console.log(color.gray('Fastify instance configured, ready for routes'));
 
     return fastify;
 }

@@ -1,16 +1,15 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
-import VaultClient from 'node-vault';
-
 import crypto from 'crypto';
 import color from 'chalk';
 
 import { initAuthenticationService } from './init.js';
-import { RegistrationFormat, UserFormat } from './format.js';
-import Database, { SQLiteDatabase } from "./database.js";
+import { RegistrationFormat, UserFormat, LoginFormat } from './format.js';
+import { SQLiteDatabase } from "./database.js";
 import { printRequest } from './print.js';
 import { User } from "./user.js";
+import { VaultService } from './vault.js';
 
 
 function printSession(request: FastifyRequest) {
@@ -19,17 +18,14 @@ function printSession(request: FastifyRequest) {
 }
 
 async function logAccount(request: FastifyRequest, reply: FastifyReply,
-            database: Database, sqlite: SQLiteDatabase) : Promise<boolean> {
+            sqlite: SQLiteDatabase, vaultClient: VaultService) : Promise<void> {
 
     console.log(color.bold.italic.yellow("----- LOGIN -----"));
-    console.log(color.red('Raw body:'), JSON.stringify(request.body, null, 2));
-    const user = request.body as UserFormat;
-
-    return true;
+    await sqlite.loginUser(request, reply);
 }
 
 function registerOAuth(path: string, request: FastifyRequest,
-        reply: FastifyReply, database: Database, sqlite: SQLiteDatabase) {
+    reply: FastifyReply, sqlite: SQLiteDatabase, vaultClient: VaultService) {
     let provider;
     const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
@@ -47,26 +43,26 @@ function registerOAuth(path: string, request: FastifyRequest,
     }
 }
 
-async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, vaultClient: ReturnType<typeof VaultClient>) {
+async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, vaultClient: VaultService) {
 
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;
 
-        console.log(color.bold.blue('Authentication'));
+        console.log(color.bold.blue('Authentication'), color.cyan(`${request.method} ${path}`));
+        
         switch (path) {
             case "/api/auth/login":
-                logAccount(request, reply, vaultClient);
+                await logAccount(request, reply, sqlite, vaultClient);
                 break;
             case "/api/auth/register":
-                // sqlite.registerAccount(request);
-                sqlite.registerUser(request.body as RegistrationFormat);
-                break;
-            case path?.startsWith('/api/auth/oauth'):
-                if (path)
-                    registerOAuth(path, request, reply, vaultClient);
+                await sqlite.registerUser(request, reply);
                 break;
             default:
-                reply.code(404).send({ error: "Route not found "});
+                if (path?.startsWith('/api/auth/oauth/')) {
+                    registerOAuth(path, request, reply, sqlite, vaultClient);
+                } else {
+                    reply.code(404).send({ error: "Route not found" });
+                }
                 break;
         }
     });
@@ -74,14 +70,24 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, v
 
 async function main() {
     try {
-        const fastify = initAuthenticationService();
+        const fastify = await initAuthenticationService();
         const sqlite = new SQLiteDatabase();
-        const vaultClient = VaultClient({
-
-        });
-        await vaultClient.initialized();
-
+        const vaultClient = new VaultService();
+        
+        // Try to initialize Vault, but don't fail if it's not available
+        try {
+            await vaultClient.initialize();
+        } catch (vaultError) {
+            console.log(color.yellow('Vault not available, continuing without it'));
+        }
+        
+        // Register routes BEFORE starting the server
         await manageRequest(fastify, sqlite, vaultClient);
+        
+        // Now start the server
+        await fastify.listen({ port: 3001, host: "0.0.0.0" });
+        //console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
+        console.log(color.green.bold("Authentication Service running on port 3001"));
 
     } catch (err) {
         console.error(err);
