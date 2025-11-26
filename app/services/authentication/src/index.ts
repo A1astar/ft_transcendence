@@ -57,6 +57,25 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, v
             case "/api/auth/register":
                 await sqlite.registerUser(request, reply);
                 break;
+            case "/api/auth/logout":
+                // destroy session if present
+                try {
+                    const sess = (request as any).session;
+                    if (sess && typeof sess.destroy === 'function') {
+                        sess.destroy(() => {});
+                    } else if (sess) {
+                        // clear session object
+                        for (const k of Object.keys(sess)) delete (sess as any)[k];
+                    }
+                    reply.code(200).send({ message: 'Logged out' });
+                } catch (err) {
+                    console.error('[auth] logout error', err);
+                    reply.code(500).send({ error: 'Logout failed' });
+                }
+                break;
+            case "/api/auth/userinfo":
+                await sqlite.getUserinfo(request, reply);
+                break;
             default:
                 if (path?.startsWith('/api/auth/oauth/')) {
                     registerOAuth(path, request, reply, sqlite, vaultClient);
