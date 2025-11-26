@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import color from 'chalk';
 
 import { initAuthenticationService } from './init.js';
-import { RegistrationFormat, UserFormat } from './format.js';
+import { RegistrationFormat, UserFormat, LoginFormat } from './format.js';
 import { SQLiteDatabase } from "./database.js";
 import { printRequest } from './print.js';
 import { User } from "./user.js";
@@ -18,14 +18,10 @@ function printSession(request: FastifyRequest) {
 }
 
 async function logAccount(request: FastifyRequest, reply: FastifyReply,
-            sqlite: SQLiteDatabase, vaultClient: VaultService) : Promise<boolean> {
+            sqlite: SQLiteDatabase, vaultClient: VaultService) : Promise<void> {
 
     console.log(color.bold.italic.yellow("----- LOGIN -----"));
-    console.log(color.red('Raw body:'), JSON.stringify(request.body, null, 2));
-    const user = request.body as UserFormat;
-
-    // TODO: Implement actual login flow using sqlite and vaultClient when ready
-    return true;
+    await sqlite.loginUser(request, reply);
 }
 
 function registerOAuth(path: string, request: FastifyRequest,
@@ -52,7 +48,8 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, v
     fastify.all('/*', async(request, reply) => {
         const path = request.raw.url;
 
-        console.log(color.bold.blue('Authentication'));
+        console.log(color.bold.blue('Authentication'), color.cyan(`${request.method} ${path}`));
+        
         switch (path) {
             case "/api/auth/login":
                 await logAccount(request, reply, sqlite, vaultClient);
@@ -60,12 +57,12 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, v
             case "/api/auth/register":
                 await sqlite.registerUser(request, reply);
                 break;
-            case path?.startsWith('/api/auth/oauth'):
-                if (path)
-                    registerOAuth(path, request, reply, sqlite, vaultClient);
-                break;
             default:
-                reply.code(404).send({ error: "Route not found "});
+                if (path?.startsWith('/api/auth/oauth/')) {
+                    registerOAuth(path, request, reply, sqlite, vaultClient);
+                } else {
+                    reply.code(404).send({ error: "Route not found" });
+                }
                 break;
         }
     });
@@ -76,9 +73,21 @@ async function main() {
         const fastify = await initAuthenticationService();
         const sqlite = new SQLiteDatabase();
         const vaultClient = new VaultService();
-        await vaultClient.initialize();
-
+        
+        // Try to initialize Vault, but don't fail if it's not available
+        try {
+            await vaultClient.initialize();
+        } catch (vaultError) {
+            console.log(color.yellow('Vault not available, continuing without it'));
+        }
+        
+        // Register routes BEFORE starting the server
         await manageRequest(fastify, sqlite, vaultClient);
+        
+        // Now start the server
+        await fastify.listen({ port: 3001, host: "0.0.0.0" });
+        //console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
+        console.log(color.green.bold("Authentication Service running on port 3001"));
 
     } catch (err) {
         console.error(err);

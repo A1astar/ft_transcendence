@@ -14,13 +14,13 @@ export class LoginViewBinder implements ViewEventBinder {
 	}
 	private onLoginClick = async (event: MouseEvent) => {
 		event.preventDefault();
-		const username = (document.getElementById("username") as HTMLInputElement | null)?.value;
+		const name = (document.getElementById("username") as HTMLInputElement | null)?.value;
 		const password = (document.getElementById("password") as HTMLInputElement | null)?.value;
 		try {
-			const res = await ApiClient.post("/api/auth/login", {username, password});
+			const res = await ApiClient.post("/api/auth/login", {name, password});
 			if (!res.ok) {
-				const err = await res.json().catch(() => ({message: "Login failed"}));
-				alert(err.message || "Login failed");
+				const err = await res.json();
+				alert(err.error || "Login failed");
 				return;
 			}
 			const data = await res.json().catch(() => null);

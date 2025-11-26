@@ -5,7 +5,7 @@ import fastifySession from '@fastify/session';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJWT from '@fastify/jwt';
 
-import { AuthenticationFormat, RegistrationFormat } from "./format.js";
+import { AuthenticationFormat, RegistrationFormat, LoginFormat } from "./format.js";
 import { User, generateId } from "./user.js";
 
 import crypto from 'crypto';
@@ -76,7 +76,6 @@ export class SQLiteDatabase {
 
         try {
             stmt.run(id, body.name, body.email ?? null, passwordStored);
-            // respond with created user id (do not send password)
             reply.code(201).send({ id, name: body.name, email: body.email ?? null });
         } catch (error: any) {
             console.error('[auth] registerUser error:', error);
@@ -93,5 +92,57 @@ export class SQLiteDatabase {
 
     printDatabase() {
         // this.sqlite.
-    };
+    }
+
+    async loginUser(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+        const body = request.body as LoginFormat;
+        console.log('[auth] loginUser body:', JSON.stringify(body));
+
+        if (!body || !body.name || !body.password) {
+            reply.code(400).send({ error: 'Invalid login - name and password required' });
+            return;
+        }
+
+        // Get user from database
+        const stmt = this.sqlite.prepare(`
+            SELECT id, name, email, password, created_at
+            FROM users 
+            WHERE name = ?
+        `);
+
+        try {
+            const user = stmt.get(body.name) as any;
+            
+            if (!user) {
+                console.log(`[auth] User not found: ${body.name}`);
+                reply.code(401).send({ error: 'Invalid credentials' });
+                return;
+            }
+
+            // Verify password
+            const [salt, storedHash] = user.password.split(':');
+            const derivedKey = crypto.scryptSync(body.password, salt, 64) as Buffer;
+            const providedHash = derivedKey.toString('hex');
+
+            if (providedHash !== storedHash) {
+                console.log(`[auth] Password mismatch for user: ${body.name}`);
+                reply.code(401).send({ error: 'Invalid credentials' });
+                return;
+            }
+
+            // Successful login
+            console.log(color.green(`[auth] Login successful for user: ${body.name}`));
+            reply.code(200).send({ 
+                id: user.id, 
+                name: user.name, 
+                email: user.email,
+                message: 'Login successful'
+            });
+
+        } catch (error: any) {
+            console.error('[auth] loginUser error:', error);
+            reply.code(500).send({ error: 'Internal server error during login' });
+            return;
+        }
+    }
 };

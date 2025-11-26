@@ -6,6 +6,11 @@ export interface RegistrationFormat {
     password: string;
 }
 
+export interface LoginFormat {
+    name: string;
+    password: string;
+}
+
 export interface AuthenticationFormat {
     name: string;
     email: string;
