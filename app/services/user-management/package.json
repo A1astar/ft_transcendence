@@ -1,0 +1,22 @@
+{
+  "name": "@ft_transcendence/user-management",
+  "version": "1.0.0",
+  "private": true,
+  "description": "User management service of transcendence app.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "start": "npm run build && node dist/index.js",
+    "watch": "tsx watch --clear-screen=false src"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.1",
+    "node-vault": "^0.10.9"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/request": "^2.48.13"
+  }
+}
