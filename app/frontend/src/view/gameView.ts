@@ -5,8 +5,6 @@ import {
     createHeadingText,
     createSubheadingText,
     createParagraphText,
-    createFormElement,
-    createInputElement,
     createLogoElement,
     createButtonForm,
     createBoxDiv,
@@ -162,6 +160,7 @@ function setupWebSocket(
             endGameView(message.winner);
         }
     };
+    })();
 }
 
 function setupScene(canvas: HTMLCanvasElement) {
