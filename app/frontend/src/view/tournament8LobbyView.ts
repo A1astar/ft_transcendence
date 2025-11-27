@@ -18,41 +18,41 @@ export function renderTournament8Lobby() {
     if (appDiv) {
         clearDiv(appDiv);
 
-        // Background and header
         appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Gandalf.mp4"));
-        appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
-        appDiv.appendChild(createHeadingText("Tournament 8 Players"));
 
-        // Create main container
         const mainContainer = document.createElement("div");
         mainContainer.className = "flex flex-col items-center justify-center min-h-screen p-8";
 
-        // Create tournament setup box
+        const logo = createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo");
+        logo.className += " mb-6";
+        mainContainer.appendChild(logo);
+
+        const heading = createHeadingText("Lord of Transcendence");
+        heading.className += " mb-8 mt-0 text-3xl text-center";
+        heading.style.marginTop = "0px";
+        mainContainer.appendChild(heading);
+
         const tournamentBox = createBoxDiv("tournamentSetup");
         tournamentBox.className += " max-w-6xl w-full";
 
-        // Tournament title
         const titleDiv = document.createElement("div");
         titleDiv.className = "text-center mb-8";
         const title = createSubheadingText("Enter Player Names for Tournament");
+        title.className += " mb-4 text-xl text-center";
         titleDiv.appendChild(title);
         tournamentBox.appendChild(titleDiv);
 
-        // Create grid for player forms (4 columns for 8 players)
         const playersGrid = document.createElement("div");
         playersGrid.className = "grid grid-cols-4 gap-4 mb-8";
 
-        // Create 8 player input forms
         for (let i = 1; i <= 8; i++) {
             const playerBox = document.createElement("div");
             playerBox.className = "bg-gray-800/40 p-4 rounded-lg border border-amber-700/30";
 
-            // Player number label
             const playerLabel = document.createElement("h3");
             playerLabel.className = "text-lg font-bold text-amber-400 mb-3 text-center";
             playerLabel.textContent = `Player ${i}`;
 
-            // Player name input
             const playerInput = createInputElement("text", `player${i}`, `Player ${i}`);
             playerInput.className += " w-full text-sm";
             playerInput.maxLength = 20;
@@ -65,7 +65,6 @@ export function renderTournament8Lobby() {
 
         tournamentBox.appendChild(playersGrid);
 
-        // Start tournament button
         const buttonContainer = document.createElement("div");
         buttonContainer.className = "text-center";
 
@@ -75,7 +74,6 @@ export function renderTournament8Lobby() {
         buttonContainer.appendChild(startButton);
         tournamentBox.appendChild(buttonContainer);
 
-        // Back button
         const backContainer = document.createElement("div");
         backContainer.className = "text-center mt-4";
         const backButton = createButtonLink("/gameMenu", "Back to Menu", "center");
