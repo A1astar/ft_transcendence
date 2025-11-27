@@ -6,7 +6,6 @@ import {renderLogin} from "./view/loginView.js";
 import {renderRegister} from "./view/registerView.js";
 import {renderNotFound} from "./view/notFoundView.js";
 import {renderProfile} from "./view/profileView.js";
-import {renderSettings} from "./view/settingsView.js";
 import {renderLocalLobby} from "./view/localLobbyView.js";
 import {renderRemote2Lobby} from "./view/remote2LobbyView.js";
 import {renderRemote4Lobby} from "./view/remote4LobbyView.js";
@@ -21,7 +20,6 @@ import {HomeViewBinder} from "./binder/homeViewBinder.js";
 import {LoginViewBinder} from "./binder/loginViewBinder.js";
 import {ProfileViewBinder} from "./binder/profileViewBinder.js";
 import {RegisterViewBinder} from "./binder/registerViewBinder.js";
-import {SettingsViewBinder} from "./binder/settingsViewBinder.js";
 import {LocalLobbyViewBinder} from "./binder/localLobbyViewBinder.js";
 import {Remote2LobbyViewBinder} from "./binder/Remote2LobbyViewBinder.js";
 import {Remote4LobbyViewBinder} from "./binder/Remote4LobbyViewBinder.js";
@@ -34,7 +32,6 @@ const viewMap: {[key: string]: () => void} = {
     "/register": renderRegister,
     "/guest": renderGuestLogin,
     "/profile": renderProfile,
-    "/settings": renderSettings,
     "/gameMenu": renderGameMenu,
     "/localLobby": renderLocalLobby,
     "/remote2Lobby": renderRemote2Lobby,
@@ -49,7 +46,6 @@ const bindMap: {[key: string]: ViewEventBinder} = {
     "/register": new RegisterViewBinder(),
     "/guest": new GuestViewBinder(),
     "/profile": new ProfileViewBinder(),
-    "/settings": new SettingsViewBinder(),
     "/gameMenu": new GameMenuViewBinder(),
     "/localLobby": new LocalLobbyViewBinder(),
     "/remote2Lobby": new Remote2LobbyViewBinder(),
@@ -62,6 +58,13 @@ export async function router(path: string): Promise<void> {
     console.log(path);
     let renderFunction = viewMap[path];
     let binderInterface = bindMap[path];
-    renderFunction ? renderFunction() : renderNotFound();
+    if (renderFunction) {
+        const result = renderFunction();
+        if (result !== undefined && result !== null && typeof (result as any).then === "function") {
+            await (result as Promise<any>);
+        }
+    } else {
+        renderNotFound();
+    }
     binderInterface?.bind();
 }

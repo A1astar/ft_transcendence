@@ -125,7 +125,6 @@ export async function handleWebSocket(fastify: FastifyInstance, games: Map<strin
 				return;
 			}
 
-			// add connection to game
 			let connections = gameConnections.get(gameId);
 			console.log(chalk.blue(connections?.size));
 			if (!connections) {
@@ -188,22 +187,58 @@ export async function handleWebSocket(fastify: FastifyInstance, games: Map<strin
 			console.log(chalk.green(`Player alias for side: ${sideAlias ?? '<none>'}`));
 			console.log(chalk.red(`Player connected to game ${gameId}`));
 
-			// handle keypress event
 			keyMovements(game, connection, playerside);
 
-			// close websocket
-			connection.on('close', () => {
-				connections.delete(connection);
+			function endGameOnLeave() {
+				if (connections) connections.delete(connection);
 				console.log(chalk.red(`Player disconnected from game ${gameId}`));
-			})
+				if (!game || !connections) return;
+				if (game.mode === 'remote2') {
+					let winner = '';
+					if (playerside === 'left') {
+						winner = (game as any).aliasRight || 'right';
+					} else if (playerside === 'right') {
+						winner = (game as any).aliasLeft || 'left';
+					} else {
+						winner = 'adversaire';
+					}
+					connections.forEach((conn: any) => {
+						conn.send(JSON.stringify({
+							type: 'player_disconnected',
+							winner
+						}));
+						conn.close();
+					});
+					gameConnections.delete(gameId);
+					games.delete(gameId);
+				} else if (game.mode === 'remote4') {
+					connections.forEach((conn: any) => {
+						conn.send(JSON.stringify({
+							type: 'player_disconnected',
+							winner: null
+						}));
+						conn.close();
+					});
+					gameConnections.delete(gameId);
+					games.delete(gameId);
+				}
+			}
+			connection.on('close', endGameOnLeave);
 
-			// handle error
 			connection.on('error',  (error:any) => {
 				console.error(`Websocket error: ${error}`);
-				connections.delete(connection);
-			})
+				endGameOnLeave();
+			});
 
-			// send ws reply
+			connection.on('message', (message: any) => {
+				try {
+					const data = JSON.parse(message.toString());
+					if (data.type === 'leave') {
+						endGameOnLeave();
+					}
+				} catch (error) {}
+			});
+
 			connection.send(JSON.stringify({
 				type: 'gameState',
 				gameId,
