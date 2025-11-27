@@ -48,6 +48,5 @@ export function renderGameMenu() {
 		appDiv.appendChild(remoteBox);
 		appDiv.appendChild(tournamentBox);
 		appDiv.appendChild(createButtonLink("/profile", "Profile", "top-right"));
-		appDiv.appendChild(createButtonLink("/settings", "Settings", "top-left"));
 	}
 }
