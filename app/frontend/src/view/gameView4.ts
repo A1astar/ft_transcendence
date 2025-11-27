@@ -56,6 +56,27 @@ function setupWebsocket(
 ) {
     const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
 
+    let hasLeftGame = false;
+
+    function leaveGame() {
+        if (hasLeftGame) return;
+        hasLeftGame = true;
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({type: "leave"}));
+        }
+    }
+
+    function onPopState(_event: PopStateEvent) {
+        leaveGame();
+    }
+
+    function onBeforeUnload(_event: BeforeUnloadEvent) {
+        leaveGame();
+    }
+
+    window.addEventListener("popstate", onPopState);
+    window.addEventListener("beforeunload", onBeforeUnload);
+
     const handleKeyDown = (event: KeyboardEvent) => {
         const key = event.key.toLowerCase();
         if (["w", "s", "p", "l"].includes(key)) {
@@ -152,6 +173,13 @@ function setupWebsocket(
                     return;
                 }
             }
+        }
+        if (message.type === "player_disconnected") {
+            hasLeftGame = true;
+            ws?.close();
+            window.removeEventListener("popstate", onPopState);
+            window.removeEventListener("beforeunload", onBeforeUnload);
+            endGameView(message.winner);
         }
     };
 
