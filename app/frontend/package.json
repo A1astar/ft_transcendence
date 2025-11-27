@@ -25,6 +25,7 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.16",
     "http-server": "^14.1.1",
-    "tailwindcss": "^4.1.16"
+    "tailwindcss": "^4.1.16",
+    "typescript": "^5.9.3"
   }
 }

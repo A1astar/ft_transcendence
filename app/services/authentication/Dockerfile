@@ -2,9 +2,10 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY *.json ./
+COPY package*.json tsconfig.json ./
 
-RUN npm ci --production
+# RUN npm ci --production
+RUN npm install
 
 COPY . .
 

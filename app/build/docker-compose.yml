@@ -23,24 +23,24 @@ services:
     networks:
       - microservices-network
     depends_on:
-      - authentication
+      # - authentication
       - game-orchestration
       - game-engine
     restart: "no"
 
-  authentication:
-    build: ../services/authentication
-    ports:
-      - "3001"
-    networks:
-      - microservices-network
+  # authentication:
+  #   build: ../services/authentication
+  #   ports:
+  #     - "3001"
+  #   networks:
+  #     - microservices-network
     # Temporarily disabled vault dependency for testing
     # environment:
     #   - VAULT=ADDR=http://hashicorp-vault:8200
     #   - VAULT_TOKEN=${VAULT_TOKEN:-your-dev-token}
     # depends_on:
     #   - hashicorp-vault
-    restart: unless-stopped
+    # restart: unless-stopped
 
   # Temporarily disabled for testing
   # hashicorp-vault:

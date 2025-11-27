@@ -21,8 +21,8 @@ export class VaultService {
     constructor(config?: VaultConfig) {
         const vaultConfig = {
             apiVersion: 'v1',
-            endpoint: process.env.VAULT_ADDR || 'http://hashicorp-vault:8200',
-            token: process.env.VAULT_TOKEN,
+            // endpoint: process.env.VAULT_ADDR || 'http://hashicorp-vault:8200',
+            // token: process.env.VAULT_TOKEN,
             requestOptions: {
                 timeout: 5000,
             },
@@ -91,9 +91,9 @@ export class VaultService {
     /**
      * Get JWT configuration
      */
-    async getJWTConfig(): Promise<{ secret_key: string; expiry: string } | null> {
-        return await this.getSecret('authentication/jwt');
-    }
+    // async getJWTConfig(): Promise<{ secret_key: string; expiry: string } | null> {
+    //      return await this.getSecret('authentication/jwt');
+    // }
 
     /**
      * Get OAuth configuration for a provider
