@@ -5,13 +5,15 @@ import { clearUserCache, logoutLocal } from "../authService.js";
 export class ProfileViewBinder implements ViewEventBinder {
 	bind() {
 		document.getElementById("logout")?.addEventListener("click", this.onLogoutClick);
+			console.log("ProfileViewBinder: bind called");
 	}
 	unbind() {
 		document.getElementById("logout")?.removeEventListener("click", this.onLogoutClick);
 	}
 
-	// use arrow so add/removeEventListener get the same reference
 	private onLogoutClick = async (e: Event) => {
+		console.log("logout click");
+
 		e.preventDefault();
 
 		try {
@@ -20,13 +22,11 @@ export class ProfileViewBinder implements ViewEventBinder {
 			console.warn("Logout request failed:", err);
 		}
 
-		// Clear client-side auth artifacts
 		try { clearUserCache(); } catch {}
 		try { logoutLocal(); } catch {}
 		try { localStorage.removeItem("token"); } catch {}
 		try { sessionStorage.removeItem("currentGameId"); } catch {}
 
-		// Navigate to login view
 		history.pushState({}, "", "/login");
 		window.dispatchEvent(new PopStateEvent("popstate"));
 	};

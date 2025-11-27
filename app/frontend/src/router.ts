@@ -58,6 +58,13 @@ export async function router(path: string): Promise<void> {
     console.log(path);
     let renderFunction = viewMap[path];
     let binderInterface = bindMap[path];
-    renderFunction ? renderFunction() : renderNotFound();
+    if (renderFunction) {
+        const result = renderFunction();
+        if (result !== undefined && result !== null && typeof (result as any).then === "function") {
+            await (result as Promise<any>);
+        }
+    } else {
+        renderNotFound();
+    }
     binderInterface?.bind();
 }
