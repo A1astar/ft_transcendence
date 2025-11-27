@@ -95,14 +95,13 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
     }
 
     async bind() {
-        // Bind join button to start matchmaking with chosen alias
-        const form = document.getElementById("remote2Form") as HTMLFormElement | null;
-        const aliasInput = document.getElementById("remote2AliasInput") as HTMLInputElement | null;
-
-        const startMatchmaking = async (aliasValue: string) => {
+        const startMatchmaking = async () => {
             const fetched = await getUsername();
-            const alias = aliasValue || fetched || "guest";
-            localStorage.setItem("remote2Alias", alias);
+            if (!fetched) {
+                alert("Remote matches are only available for logged-in users.");
+                return;
+            }
+            const alias = fetched;
 
             const matchRequest = {
                 player: { alias },
@@ -183,21 +182,8 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
 
         // Register navigation handler so that browser back/forward cancels matchmaking
         window.addEventListener("popstate", this.navigationHandler);
-
-        // If user submits the form (clicks Join), start matchmaking with input value
-        form?.addEventListener("submit", (ev) => {
-            ev.preventDefault();
-            const aliasVal = aliasInput?.value.trim() ?? "";
-            startMatchmaking(aliasVal);
-        });
-
-        // Also attach to button in case of direct click handlers
-        const joinBtn = document.getElementById("joinRemote2Button");
-        joinBtn?.addEventListener("click", (ev) => {
-            ev.preventDefault();
-            const aliasVal = aliasInput?.value.trim() ?? "";
-            startMatchmaking(aliasVal);
-        });
+        // Auto-start matchmaking when lobby is entered (user is already checked on game menu click)
+        startMatchmaking();
     }
 
     unbind() {

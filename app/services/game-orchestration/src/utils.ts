@@ -13,7 +13,8 @@ export function createMatch(
 		mode: matchMode,
 		tournamentRound: tournamentRound,
 		tournamentId: tournamentId ? tournamentId : "",
-		status: "running"
+		status: "running",
+		assignments: {}
 	};
 	return match;
 };

@@ -32,6 +32,7 @@ import {
 } from "./gameViewUtils.js";
 
 import {endGameView} from "./endGameView.js";
+import { getUsername } from "../authService.js";
 
 const appDiv = document.getElementById("app");
 const groundTexture = "../../public/textures/pongTable.png";
@@ -54,7 +55,20 @@ function setupWebsocket(
     scoreText: any,
     onGameEnd?: (winner: string) => void,
 ) {
-    const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
+    (async () => {
+        let alias = null;
+        if (!alias) {
+            try {
+                const fetched = await getUsername();
+                alias = fetched ?? alias;
+            } catch (e) {
+                // ignore
+            }
+        }
+        const url = alias && alias.length > 0 && matchInfos.mode === 'remote4'
+            ? `ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}?alias=${encodeURIComponent(alias)}`
+            : `ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`;
+        const ws = new WebSocket(url);
 
     const handleKeyDown = (event: KeyboardEvent) => {
         const key = event.key.toLowerCase();
@@ -70,15 +84,15 @@ function setupWebsocket(
         }
     };
 
-    ws.onopen = () => {
-        console.log("Connected to game engine");
-        document.addEventListener("keydown", handleKeyDown);
-        document.addEventListener("keyup", handleKeyUp);
-    };
+        ws.onopen = () => {
+            console.log("Connected to game engine");
+            document.addEventListener("keydown", handleKeyDown);
+            document.addEventListener("keyup", handleKeyUp);
+        };
 
     let gameEnded = false;
 
-    ws.onmessage = (event) => {
+        ws.onmessage = (event) => {
         if (gameEnded) return;
         const message = JSON.parse(event.data);
 
@@ -155,11 +169,12 @@ function setupWebsocket(
         }
     };
 
-    ws.onclose = () => {
-        console.log("Disconnected from game engine");
-        document.removeEventListener("keydown", handleKeyDown);
-        document.removeEventListener("keyup", handleKeyUp);
-    };
+        ws.onclose = () => {
+            console.log("Disconnected from game engine");
+            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("keyup", handleKeyUp);
+        };
+    })();
 }
 
 function setupScene(canvas: HTMLCanvasElement) {

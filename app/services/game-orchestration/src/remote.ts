@@ -16,6 +16,20 @@ async function createAndStartMatch(players: Player[]): Promise<Match> {
   else
     match = createMatch(players, "remote4", 0);
   try {
+    // attach a side assignment map to the match according to join order
+    const sideOrder2: Array<'left'|'right'> = ['left','right'];
+    const sideOrder4: Array<'left'|'right'|'up'|'down'> = ['left','right','up','down'];
+    const sideOrder: Array<'left'|'right'|'up'|'down'> = match.players.length === 2 ? sideOrder2 : sideOrder4;
+    const assignments: Record<string, string> = {};
+    for (let i = 0; i < match.players.length && i < sideOrder.length; i++) {
+      const side = sideOrder[i] as string;
+      const player = match.players[i];
+      if (!player || !player.alias) continue;
+      assignments[side] = player.alias;
+    }
+    // attach assignments to the match payload sent to game-engine
+    (match as any).assignments = assignments;
+
     const res = await fetch("http://localhost:3003/game-engine/start", {
       method: "POST",
       headers: {"Content-Type": "application/json"},

@@ -1,6 +1,5 @@
-import {renderGame} from "../view/gameView.js";
-import { SERVER_BASE } from "../view/utils.js";
 import {ViewEventBinder} from "./binderInterface.js";
+import { getUsername } from "../authService.js";
 
 export class GameMenuViewBinder implements ViewEventBinder {
     bind() {
@@ -26,12 +25,22 @@ export class GameMenuViewBinder implements ViewEventBinder {
 
     private onRemote2Click = async (event: MouseEvent) => {
         event.preventDefault();
+        const user = await getUsername();
+        if (!user) {
+            alert("Remote matches are only available for logged-in users.");
+            return;
+        }
         history.pushState({}, "", "/remote2Lobby");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }
 
     private onRemote4Click = async (event: MouseEvent) => {
         event.preventDefault();
+        const user = await getUsername();
+        if (!user) {
+            alert("Remote matches are only available for logged-in users.");
+            return;
+        }
         history.pushState({}, "", "/remote4Lobby");
         window.dispatchEvent(new PopStateEvent("popstate"));
     }

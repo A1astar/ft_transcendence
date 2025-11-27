@@ -11,6 +11,8 @@ export interface Player {
 export class Game {
     id = randomUUID();
     mode = "";
+    // mapping side -> player alias (populated from orchestration assignments)
+    playerAliases: Record<string, string> = {};
     players = {left: 0, right: 0, up: 0, down: 0};
     ball = {x: 0, y: 2, vx: 0.1, vy: 0.1, radius: 0.35};
     paddles = {
