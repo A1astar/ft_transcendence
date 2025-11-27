@@ -29,7 +29,10 @@ export async function renderProfile() {
             accountFormDiv.appendChild(createParagraphText("Email: " + userData.email));
 
             const sessionFormDiv = createFormElement("sessionForm");
-            sessionFormDiv.appendChild(createButtonForm("Logout", "logout"));
+            // create logout button as type="button" to avoid submitting the form
+            const logoutBtn = createButtonForm("Logout", "logout");
+            logoutBtn.type = "button";
+            sessionFormDiv.appendChild(logoutBtn);
 
             const statFormDiv = createFormElement("statForm");
             statFormDiv.appendChild(createParagraphText("played: " + userData.gamePlayed));

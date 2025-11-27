@@ -121,7 +121,7 @@ export async function initAuthenticationService() {
         sessionName: 'session',          // default request decorator name
         store: undefined,                // default in-memory store (not for production)
         idGenerator: undefined,          // default internal id generator
-        saveUninitialized: true,         // default
+        saveUninitialized: false,        // default
         rolling: false,                  // default
         ttl: undefined,                  // default (store decides; often based on cookie)
 
@@ -140,7 +140,6 @@ export async function initAuthenticationService() {
         },
     } as any);
 
-    // Don't start listening here - let main() handle it
     console.log(color.gray('Fastify instance configured, ready for routes'));
 
     return fastify;

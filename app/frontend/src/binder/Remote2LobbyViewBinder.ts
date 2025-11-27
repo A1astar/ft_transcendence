@@ -1,5 +1,6 @@
 import {renderGame} from "../view/gameView.js";
 import {SERVER_BASE} from "../view/utils.js";
+import { getUsername } from "../authService.js";
 import {ViewEventBinder} from "./binderInterface.js";
 
 export class Remote2LobbyViewBinder implements ViewEventBinder {
@@ -99,7 +100,8 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
         const aliasInput = document.getElementById("remote2AliasInput") as HTMLInputElement | null;
 
         const startMatchmaking = async (aliasValue: string) => {
-            const alias = aliasValue || localStorage.getItem("guestUsername") || "guest";
+            const fetched = await getUsername();
+            const alias = aliasValue || fetched || "guest";
             localStorage.setItem("remote2Alias", alias);
 
             const matchRequest = {

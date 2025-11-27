@@ -132,6 +132,18 @@ export class SQLiteDatabase {
 
             // Successful login
             console.log(color.green(`[auth] Login successful for user: ${body.name}`));
+            // Set session so the client receives a session cookie
+            try {
+                const sess = (request as any).session;
+                if (sess) {
+                    sess.userId = user.id;
+                    sess.username = user.name;
+                }
+            } catch (e) {
+                // If session isn't available, continue without failing login
+                console.warn('[auth] session unavailable, continuing without session');
+            }
+
             reply.code(200).send({ 
                 id: user.id, 
                 name: user.name, 
@@ -143,6 +155,48 @@ export class SQLiteDatabase {
             console.error('[auth] loginUser error:', error);
             reply.code(500).send({ error: 'Internal server error during login' });
             return;
+        }
+    }
+    
+    async getUserinfo(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+        try {
+            const sess = (request as any).session;
+            const userId = sess?.userId;
+            if (!userId) {
+                reply.code(401).send({ error: 'Not authenticated' });
+                return;
+            }
+
+            const stmt = this.sqlite.prepare(`
+                SELECT id, name as username, email
+                FROM users
+                WHERE id = ?
+            `);
+
+            const user = stmt.get(userId) as any;
+            if (!user) {
+                reply.code(401).send({ error: 'Not authenticated' });
+                return;
+            }
+
+            // Basic stats placeholders; replace with real aggregates if you have a games table
+            const gamePlayed = 0;
+            const gameWon = 0;
+            const gameLost = 0;
+            const winRate = 0;
+
+            reply.code(200).send({
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                gamePlayed,
+                gameWon,
+                gameLost,
+                winRate,
+            });
+        } catch (err) {
+            console.error('[auth] getUserinfo error:', err);
+            reply.code(500).send({ error: 'Server error' });
         }
     }
 };
