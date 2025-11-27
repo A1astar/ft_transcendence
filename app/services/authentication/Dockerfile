@@ -8,7 +8,7 @@ RUN npm ci --production
 
 COPY . .
 
-RUN npm run build
+RUN npm run start
 
 EXPOSE 3001
 

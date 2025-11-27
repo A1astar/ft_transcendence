@@ -9,7 +9,6 @@ WORKDIR /
 RUN mkdir -p /etc/nginx/ssl
 
 COPY ../../frontend .
-# COPY frontend ./frontend
 
 COPY nginx.conf /etc/nginx/nginx.conf
 

@@ -61,6 +61,14 @@ if [ $# -gt 0 ]; then
             cd $project_dir && npm install && npm run build:all
         ;;
 
+        "reverse-proxy")
+            checkNodeVersion
+            checkPackageInstallation
+            cd $project_dir
+            npm install
+            npm run start:service
+        ;;
+
         "local-clean")
             cd $project_dir && npm run clean
             for directory in "${directories[@]}"; do

@@ -1,7 +1,8 @@
 IMAGE = reverse-proxy \
 		authentication \
         gateway \
-        game-orchestration
+        game-orchestration \
+		reverse-proxy
 
 IMAGE := $(addprefix transcendence-, $(IMAGE))
 
@@ -10,6 +11,9 @@ REVERSE_PROXY=Dockerfile
 REVERSE_PROXY_CONFIG_FILE=infrastructure/reverse-proxy/nginx.conf
 
 all: clean build up
+
+prod:
+	docker compose -f $(COMPOSE_FILE)
 
 build:
 	docker compose -f $(COMPOSE_FILE) build --no-cache
@@ -21,21 +25,31 @@ down:
 	docker compose -f $(COMPOSE_FILE) down --rmi local
 
 reverse-proxy: build-reverse-proxy run-reverse-proxy
+	cd build && ./build.sh reverse-proxy
 
 build-reverse-proxy:
-# 	docker build -t reverse-proxy -f $(REVERSE_PROXY)
-	docker build -t reverse-proxy -f Dockerfile .
+	docker rm -f $(docker ps -a -q) || true
+	docker rmi -f reverse-proxy || true
+	cp package.json frontend/package-global.json
+	cp tsconfig.json frontend/tsconfig-global.json
+	cp frontend/package.json frontend/package-local.json
+	cp frontend/tsconfig.json frontend/tsconfig-local.json
+	docker build -t reverse-proxy -f Dockerfile . --no-cache
 
 run-reverse-proxy:
-	docker run -d --name reverse-proxy -p 8443:443 transcendence-reverse-proxy
+	@echo here
+	rm frontend/tsconfig-local.json frontend/tsconfig-global.json
+	rm frontend/package-local.json frontend/package-global.json
+	-docker rm -f reverse-proxy || true
+	docker run -d --name reverse-proxy -p 8443:443 reverse-proxy
 
-local-run: reverse-proxy
+local-run:
 	cd build && ./build.sh local-run
 
-local-watch: reverse-proxy
+local-watch:
 	cd build && ./build.sh local-watch
 
-local-build: reverse-proxy
+local-build:
 	cd build && ./build.sh local-build
 
 local-clean:

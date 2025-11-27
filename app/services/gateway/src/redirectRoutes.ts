@@ -66,13 +66,12 @@ export async function routeRequest(fastify: FastifyInstance) {
     routeServices(fastify, "api/game-engine", 3003);
     routeServices(fastify, "api/user-management", 3004);
 
-
-    fastify.register(fastifyStatic, {
-        root: frontendPath,
-        prefix: '/',
-        index: ['index.html'],
-        wildcard: false
-    });
+    // fastify.register(fastifyStatic, {
+    //     root: frontendPath,
+    //     prefix: '/',
+    //     index: ['index.html'],
+    //     wildcard: false
+    // });
 
     fastify.get('/*', async (req, reply) => {
         return reply.sendFile('index.html');
