@@ -1,5 +1,7 @@
-import fastify, { FastifyInstance } from "fastify";
+import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import fastifyStatic from '@fastify/static';
+
+import '@fastify/static'; //lets Typescript know about the types
 
 import { fileURLToPath } from 'url';
 import color from 'chalk';
@@ -61,21 +63,33 @@ function routeServices(fastify: FastifyInstance, basePath: string, port: number)
 
 export async function routeRequest(fastify: FastifyInstance) {
 
+    await fastify.register(fastifyStatic, {
+    root: frontendPath,
+    prefix: '/',            // optional: default '/'
+    index: ['index.html'],  // optional
+    wildcard: false,        // avoid catching /api/*
+  });
+
     routeServices(fastify, "api/auth", 3001);
     routeServices(fastify, "api/game-orchestration", 3002);
     routeServices(fastify, "api/game-engine", 3003);
     routeServices(fastify, "api/user-management", 3004);
 
 
-    fastify.register(fastifyStatic, {
-        root: frontendPath,
-        prefix: '/',
-        index: ['index.html'],
-        wildcard: false
-    });
+    // fastify.register(fastifyStatic, {
+    //     root: frontendPath,
+    //     prefix: '/',
+    //     index: ['index.html'],
+    //     wildcard: false
+    // });
 
-    fastify.get('/*', async (req, reply) => {
-        return reply.sendFile('index.html');
+    // fastify.get('/*', async (req, reply) => {
+    //     return reply.sendFile('index.html');
+    // });
+
+    // SPA fallback
+    fastify.get('/*', async (_req: FastifyRequest, reply: FastifyReply) => {
+    return reply.sendFile('index.html');
     });
 
 }

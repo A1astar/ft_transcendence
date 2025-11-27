@@ -3,7 +3,7 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Copy root tsconfig
-COPY tsconfig.json .
+COPY package*.json tsconfig.json ./
 
 # Copy frontend
 COPY frontend ./frontend
@@ -12,6 +12,7 @@ COPY frontend ./frontend
 WORKDIR /app/frontend
 RUN npm install
 RUN npm run build
+#RUN openssl
 
 # Remove node_modules to keep the image clean (optional for builder stage but good practice if we were keeping it)
 # RUN rm -rf node_modules

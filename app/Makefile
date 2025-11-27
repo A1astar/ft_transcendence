@@ -6,8 +6,10 @@ IMAGE = reverse-proxy \
 IMAGE := $(addprefix transcendence-, $(IMAGE))
 
 COMPOSE_FILE=./build/docker-compose.yml
+PROJECT_DIR := $(abspath .)
+FRONTEND_DIR := $(PROJECT_DIR)/frontend
 
-all: clean build up
+all: clean local-build build up
 
 build:
 	docker compose -f $(COMPOSE_FILE) build --no-cache
@@ -29,6 +31,20 @@ local-build:
 
 local-clean:
 	cd build && ./build.sh local-clean
+
+# ---- Frontend shortcuts (no more manual npm commands) ----
+frontend-install:
+	cd build && ./build.sh frontend-install
+
+frontend-build:
+	cd build && ./build.sh frontend-build
+
+frontend-serve:
+	cd build && ./build.sh frontend-serve
+
+# Run backend watchers + HTTPS/WSS dev server together
+local-watch-all:
+	$(MAKE) -j2 local-watch frontend-serve
 
 local-re: local-clean local-run
 
