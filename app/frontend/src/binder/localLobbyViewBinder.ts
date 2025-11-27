@@ -1,12 +1,14 @@
 import {renderGame} from "../view/gameView.js";
 import {SERVER_BASE} from "../view/utils.js";
 import {ViewEventBinder} from "./binderInterface.js";
+import { getUsername } from "../authService.js";
 
 export class LocalLobbyViewBinder implements ViewEventBinder {
     async bind() {
-        const guestUsername = localStorage.getItem("guestUsername");
+        const fetched = await getUsername();
+        const alias = fetched || localStorage.getItem("guestUsername");
         const matchRequest1 = {
-            player: {alias: guestUsername || "guest"},
+            player: {alias: alias || "guest"},
             mode: "local" as const,
             tournamentRound: 0,
         };

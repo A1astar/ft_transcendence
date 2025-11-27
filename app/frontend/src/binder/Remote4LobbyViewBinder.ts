@@ -1,6 +1,7 @@
 import { renderGame4 } from "../view/gameView4.js";
 import {SERVER_BASE} from "../view/utils.js";
 import {ViewEventBinder} from "./binderInterface.js";
+import { getUsername } from "../authService.js";
 
 export class Remote4LobbyViewBinder implements ViewEventBinder {
     private activeController: AbortController | null = null;
@@ -92,7 +93,8 @@ export class Remote4LobbyViewBinder implements ViewEventBinder {
         const aliasInput = document.getElementById("remote4AliasInput") as HTMLInputElement | null;
 
         const startMatchmaking = async (aliasValue: string) => {
-            const alias = aliasValue || localStorage.getItem("guestUsername") || "guest";
+            const fetched = await getUsername();
+            const alias = aliasValue || fetched || "guest";
             localStorage.setItem("remote4Alias", alias);
 
             const matchRequest = {
