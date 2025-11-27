@@ -5,8 +5,6 @@ import {
     createHeadingText,
     createSubheadingText,
     createParagraphText,
-    createFormElement,
-    createInputElement,
     createLogoElement,
     createButtonForm,
     createBoxDiv,
@@ -31,6 +29,7 @@ import {
 } from "./gameViewUtils.js";
 
 import {endGameView} from "./endGameView.js";
+import { getUsername } from "../authService.js";
 
 const appDiv = document.getElementById("app");
 const groundTexture = "../../public/textures/pongTable.png";
@@ -44,7 +43,32 @@ function setupWebSocket(
     scoreText: any,
     onGameEnd?: (winner: string) => void,
 ) {
-    const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
+    (async () => {
+        // determine alias for this match.
+        // If this is a remote2 match prefer the remote2 alias, then logged-in username, then guestUsername
+        let alias: string | null = null;
+        if (matchInfos?.mode === 'remote2') {
+            if (!alias) {
+                try {
+                    const fetched = await getUsername();
+                    alias = fetched ?? null;
+                } catch (e) {
+                    // ignore
+                }
+            }
+        } else {
+            try {
+                const fetched = await getUsername();
+                alias = fetched ?? alias;
+            } catch (e) {
+                // ignore
+            }
+            if (!alias) alias = localStorage.getItem("guestUsername") || null;
+        }
+        const url = alias && alias.length > 0 && matchInfos.mode === 'remote2'
+            ? `ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}?alias=${encodeURIComponent(alias)}`
+            : `ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`;
+        const ws = new WebSocket(url);
     window.addEventListener("popstate", onPopState);
     window.addEventListener("beforeunload", onBeforeUnload);
     let gameEnded = false;
@@ -136,6 +160,7 @@ function setupWebSocket(
             endGameView(message.winner);
         }
     };
+    })();
 }
 
 function setupScene(canvas: HTMLCanvasElement) {

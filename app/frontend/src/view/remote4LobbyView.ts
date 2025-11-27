@@ -4,12 +4,8 @@ import {
 	createHeadingText,
 	createSubheadingText,
 	createParagraphText,
-	createFormElement,
-	createInputElement,
 	createLogoElement,
-	createButtonForm,
 	createBoxDiv,
-	createButtonLink
 } from "./utils.js";
 
 const appDiv = document.getElementById("app");
@@ -39,18 +35,9 @@ export function renderRemote4Lobby() {
 		title.className += " mb-4 text-xl text-center";
 		box.appendChild(title);
 
-		const inputForm = createFormElement("remote4Form");
-		const aliasInput = createInputElement("text", "remote4Alias", "Enter alias for this match");
-		aliasInput.id = "remote4AliasInput";
-		aliasInput.className += " w-full mb-4";
-		inputForm.appendChild(aliasInput);
-
-		const joinButton = createButtonForm("Join Queue", "joinRemote4");
-		joinButton.id = "joinRemote4Button";
-		joinButton.className += " w-full text-lg py-2";
-		inputForm.appendChild(joinButton);
-
-		box.appendChild(inputForm);
+		const info = createParagraphText("Matchmaking will start automatically for logged-in users.");
+		info.className += " mb-4";
+		box.appendChild(info);
 		mainContainer.appendChild(box);
 		appDiv.appendChild(mainContainer);
 	}

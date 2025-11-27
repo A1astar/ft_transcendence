@@ -17,6 +17,7 @@ export interface Match {
 	tournamentRound: number;
 	tournamentId: string;
 	status: "waiting" | "running" | "finished";
+	assignments?: Record<string, string>;
 }
 
 export const queues = {
