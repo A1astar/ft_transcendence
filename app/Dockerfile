@@ -4,11 +4,11 @@ LABEL version="1.0"
 
 RUN apk update && apk add --no-cache openssl
 
-WORKDIR /
+WORKDIR /app
 
 RUN mkdir -p /etc/nginx/ssl
 
-COPY ../../frontend .
+COPY frontend ./frontend
 # COPY frontend ./frontend
 
 COPY nginx.conf /etc/nginx/nginx.conf

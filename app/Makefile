@@ -5,7 +5,9 @@ IMAGE = reverse-proxy \
 
 IMAGE := $(addprefix transcendence-, $(IMAGE))
 
-COMPOSE_FILE=./build/docker-compose.yml
+COMPOSE_FILE=build/docker-compose.yml
+REVERSE_PROXY=Dockerfile
+REVERSE_PROXY_CONFIG_FILE=infrastructure/reverse-proxy/nginx.conf
 
 all: clean build up
 
@@ -18,13 +20,22 @@ up:
 down:
 	docker compose -f $(COMPOSE_FILE) down --rmi local
 
-local-run:
+reverse-proxy: build-reverse-proxy run-reverse-proxy
+
+build-reverse-proxy:
+# 	docker build -t reverse-proxy -f $(REVERSE_PROXY)
+	docker build -t reverse-proxy -f Dockerfile .
+
+run-reverse-proxy:
+	docker run -d --name reverse-proxy -p 8443:443 transcendence-reverse-proxy
+
+local-run: reverse-proxy
 	cd build && ./build.sh local-run
 
-local-watch:
+local-watch: reverse-proxy
 	cd build && ./build.sh local-watch
 
-local-build:
+local-build: reverse-proxy
 	cd build && ./build.sh local-build
 
 local-clean:

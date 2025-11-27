@@ -1,14 +1,14 @@
 name: transcendence
 services:
-  reverse-proxy:
-    build: ../infrastructure/reverse-proxy/
-    ports:
-      - "8080:80"
-    networks:
-      - microservices-network
-    depends_on:
-      - gateway
-    restart: unless-stopped
+  # reverse-proxy:
+  #   build: ../infrastructure/reverse-proxy/
+  #   ports:
+  #     - "8080:80"
+  #   networks:
+  #     - microservices-network
+  #   depends_on:
+  #     - gateway
+  #   restart: unless-stopped
 
   gateway:
     build: ../services/gateway
@@ -27,25 +27,25 @@ services:
       - "3001"
     networks:
       - microservices-network
-      - vault-network
-    environment:
-      - VAULT=ADDR=http://hashicorp-vault:8200
-      - VAULT_TOKEN=${VAULT_TOKEN:-your-dev-token}
-    depends_on:
-      - hashicorp-vault
+    #   - vault-network
+    # environment:
+    #   - VAULT=ADDR=http://hashicorp-vault:8200
+    #   - VAULT_TOKEN=${VAULT_TOKEN:-your-dev-token}
+    # depends_on:
+    #   - hashicorp-vault
     restart: unless-stopped
 
-  hashicorp-vault:
-    build: ../infrastructure/hashicorp-vault
-    ports:
-      - "8200"
-    networks:
-      - vault-network
-    volumes:
-      - vault-data:/vault/data
-    environment:
-      - VAULT_ADDR=http://0.0.0.0:8200
-    restart: unless-stopped
+  # hashicorp-vault:
+  #   build: ../infrastructure/hashicorp-vault
+  #   ports:
+  #     - "8200"
+  #   networks:
+  #     - vault-network
+  #   volumes:
+  #     - vault-data:/vault/data
+  #   environment:
+  #     - VAULT_ADDR=http://0.0.0.0:8200
+  #   restart: unless-stopped
 
   game-orchestration:
     build: ../services/game-orchestration
