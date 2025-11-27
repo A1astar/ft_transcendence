@@ -32,7 +32,6 @@ import {
 } from "./gameViewUtils.js";
 
 import {endGameView} from "./endGameView.js";
-import { getUsername } from "../authService.js";
 
 const appDiv = document.getElementById("app");
 const groundTexture = "../../public/textures/pongTable.png";
@@ -55,20 +54,9 @@ function setupWebsocket(
     scoreText: any,
     onGameEnd?: (winner: string) => void,
 ) {
-    (async () => {
-        let alias = null;
-        if (!alias) {
-            try {
-                const fetched = await getUsername();
-                alias = fetched ?? alias;
-            } catch (e) {
-                // ignore
-            }
-        }
-        const url = alias && alias.length > 0 && matchInfos.mode === 'remote4'
-            ? `ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}?alias=${encodeURIComponent(alias)}`
-            : `ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`;
-        const ws = new WebSocket(url);
+    const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
+    // const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    // const ws = new WebSocket(`${protocol}//${window.location.host}/api/game-engine/${matchInfos.id}`);
 
     let hasLeftGame = false;
 
@@ -105,15 +93,15 @@ function setupWebsocket(
         }
     };
 
-        ws.onopen = () => {
-            console.log("Connected to game engine");
-            document.addEventListener("keydown", handleKeyDown);
-            document.addEventListener("keyup", handleKeyUp);
-        };
+    ws.onopen = () => {
+        console.log("Connected to game engine");
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keyup", handleKeyUp);
+    };
 
     let gameEnded = false;
 
-        ws.onmessage = (event) => {
+    ws.onmessage = (event) => {
         if (gameEnded) return;
         const message = JSON.parse(event.data);
 
@@ -188,21 +176,13 @@ function setupWebsocket(
                 }
             }
         }
-        if (message.type === "player_disconnected") {
-            hasLeftGame = true;
-            ws?.close();
-            window.removeEventListener("popstate", onPopState);
-            window.removeEventListener("beforeunload", onBeforeUnload);
-            endGameView(message.winner);
-        }
     };
 
-        ws.onclose = () => {
-            console.log("Disconnected from game engine");
-            document.removeEventListener("keydown", handleKeyDown);
-            document.removeEventListener("keyup", handleKeyUp);
-        };
-    })();
+    ws.onclose = () => {
+        console.log("Disconnected from game engine");
+        document.removeEventListener("keydown", handleKeyDown);
+        document.removeEventListener("keyup", handleKeyUp);
+    };
 }
 
 function setupScene(canvas: HTMLCanvasElement) {

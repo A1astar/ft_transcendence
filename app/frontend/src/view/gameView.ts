@@ -5,6 +5,8 @@ import {
     createHeadingText,
     createSubheadingText,
     createParagraphText,
+    createFormElement,
+    createInputElement,
     createLogoElement,
     createButtonForm,
     createBoxDiv,
@@ -29,7 +31,6 @@ import {
 } from "./gameViewUtils.js";
 
 import {endGameView} from "./endGameView.js";
-import { getUsername } from "../authService.js";
 
 const appDiv = document.getElementById("app");
 const groundTexture = "../../public/textures/pongTable.png";
@@ -43,65 +44,11 @@ function setupWebSocket(
     scoreText: any,
     onGameEnd?: (winner: string) => void,
 ) {
-    (async () => {
-        // determine alias for this match.
-        // If this is a remote2 match prefer the remote2 alias, then logged-in username, then guestUsername
-        let alias: string | null = null;
-        if (matchInfos?.mode === 'remote2') {
-            if (!alias) {
-                try {
-                    const fetched = await getUsername();
-                    alias = fetched ?? null;
-                } catch (e) {
-                    // ignore
-                }
-            }
-        } else {
-            try {
-                const fetched = await getUsername();
-                alias = fetched ?? alias;
-            } catch (e) {
-                // ignore
-            }
-            if (!alias) alias = localStorage.getItem("guestUsername") || null;
-        }
-        const url = alias && alias.length > 0 && matchInfos.mode === 'remote2'
-            ? `ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}?alias=${encodeURIComponent(alias)}`
-            : `ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`;
-        const ws = new WebSocket(url);
-    window.addEventListener("popstate", onPopState);
-    window.addEventListener("beforeunload", onBeforeUnload);
-    let gameEnded = false;
-    let hasLeftGame = false;
 
-    ws.onopen = () => {
-        document.addEventListener("keydown", handleKeyDown);
-        document.addEventListener("keyup", handleKeyUp);
-    };
+    // const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    // const ws = new WebSocket(`${protocol}//${window.location.host}/api/game-engine/${matchInfos.id}`);
 
-    ws.onclose = () => {
-        document.removeEventListener("keydown", handleKeyDown);
-        document.removeEventListener("keyup", handleKeyUp);
-    };
-
-    function leaveGame() {
-        if (hasLeftGame) {
-            return;
-        }
-        hasLeftGame = true;
-
-        if (ws && ws.readyState == WebSocket.OPEN) {
-            ws.send(JSON.stringify({type: "leave"}));
-        }
-    }
-
-    function onPopState(_event: PopStateEvent) {
-        leaveGame();
-    }
-
-    function onBeforeUnload(_event: BeforeUnloadEvent) {
-        leaveGame();
-    }
+    const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
 
     const handleKeyDown = (event: KeyboardEvent) => {
         const key = event.key.toLowerCase();
@@ -117,17 +64,24 @@ function setupWebSocket(
         }
     };
 
-    ws.onmessage = (event) => {
-        if (gameEnded) {
-            return;
-        }
+    ws.onopen = () => {
+        document.addEventListener("keydown", handleKeyDown);
+        document.addEventListener("keyup", handleKeyUp);
+    };
 
+    let gameEnded = false;
+
+    ws.onmessage = (event) => {
+        if (gameEnded) return;
         const message = JSON.parse(event.data);
 
         if (message.type === "gameState") {
             const gameState = message.data;
+
             update3DMeshPos(ball, -gameState.ball.x, 0.25, gameState.ball.y);
+
             update3DMeshPos(leftPaddle, -gameState.paddles.left.x, 0, gameState.paddles.left.y);
+
             update3DMeshPos(rightPaddle, -gameState.paddles.right.x, 0, gameState.paddles.right.y);
 
             if (gameState.score && appDiv) {
@@ -138,29 +92,23 @@ function setupWebSocket(
                         gameState.score.left >= 3
                             ? matchInfos.players[0].alias
                             : matchInfos.players[1].alias;
+
                     gameEnded = true;
                     ws.close();
                     document.removeEventListener("keydown", handleKeyDown);
                     document.removeEventListener("keyup", handleKeyUp);
 
-                    if (onGameEnd) {
-                        onGameEnd(winner);
-                    } else {
-                        endGameView(winner);
-                    }
+                    if (onGameEnd) onGameEnd(winner);
+                    else endGameView(winner);
                 }
             }
         }
-
-        if (message.type == "player_disconnected") {
-            hasLeftGame = true;
-            ws?.close();
-            window.removeEventListener("popstate", onPopState);
-            window.removeEventListener("beforeunload", onBeforeUnload);
-            endGameView(message.winner);
-        }
     };
-    })();
+
+    ws.onclose = () => {
+        document.removeEventListener("keydown", handleKeyDown);
+        document.removeEventListener("keyup", handleKeyUp);
+    };
 }
 
 function setupScene(canvas: HTMLCanvasElement) {
