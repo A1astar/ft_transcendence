@@ -8,7 +8,6 @@ type UserInfo = {
     gameLost?: number;
     winRate?: number;
 };
-
 let cachedUser: UserInfo | null = null;
 
 export async function getFullUser(forceRefresh = false): Promise<UserInfo | null> {
