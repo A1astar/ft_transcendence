@@ -32,6 +32,7 @@ import {
 } from "./gameViewUtils.js";
 
 import {endGameView} from "./endGameView.js";
+import { getUsername } from "../authService.js";
 
 const appDiv = document.getElementById("app");
 const groundTexture = "../../public/textures/pongTable.png";
@@ -54,9 +55,22 @@ function setupWebsocket(
     scoreText: any,
     onGameEnd?: (winner: string) => void,
 ) {
-    const ws = new WebSocket(`wss://${SERVER_BASE}:8443/api/game-engine/${matchInfos.id}`);
-    // const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    // const ws = new WebSocket(`${protocol}//${window.location.host}/api/game-engine/${matchInfos.id}`);
+    (async () => {
+        // Determine alias: prefer logged-in username, then guest stored locally
+        let alias: string | null = null;
+        try {
+            const fetched = await getUsername();
+            if (fetched) alias = fetched;
+        } catch (e) {
+            // ignore
+        }
+
+        // Build websocket URL using page protocol (wss for https) and port 8443
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const port = 8443;
+        let url = `${protocol}://${SERVER_BASE}:${port}/api/game-engine/${matchInfos.id}`;
+        if (alias && alias.length > 0) url += `?alias=${encodeURIComponent(alias)}`;
+        const ws = new WebSocket(url);
 
     let hasLeftGame = false;
 
@@ -93,15 +107,15 @@ function setupWebsocket(
         }
     };
 
-    ws.onopen = () => {
-        console.log("Connected to game engine");
-        document.addEventListener("keydown", handleKeyDown);
-        document.addEventListener("keyup", handleKeyUp);
-    };
+        ws.onopen = () => {
+            console.log("Connected to game engine");
+            document.addEventListener("keydown", handleKeyDown);
+            document.addEventListener("keyup", handleKeyUp);
+        };
 
     let gameEnded = false;
 
-    ws.onmessage = (event) => {
+        ws.onmessage = (event) => {
         if (gameEnded) return;
         const message = JSON.parse(event.data);
 
@@ -116,24 +130,25 @@ function setupWebsocket(
             if (ball && gameState.ball) {
                 update3DMeshPos(ball, gameState.ball.x, 0.25, gameState.ball.y);
             }
-            if (leftPaddle && gameState.paddles && gameState.paddles.right) {
-                update3DMeshPos(leftPaddle, gameState.paddles.right.x, 0, gameState.paddles.right.y);
+            if (leftPaddle && gameState.paddles && gameState.paddles.left) {
+                update3DMeshPos(leftPaddle, gameState.paddles.left.x, 0, gameState.paddles.left.y);
             }
-            if (rightPaddle && gameState.paddles && gameState.paddles.left) {
+            if (rightPaddle && gameState.paddles && gameState.paddles.right) {
                 update3DMeshPos(
                     rightPaddle,
-                    gameState.paddles.left.x,
+                    gameState.paddles.right.x,
                     0,
-                    gameState.paddles.left.y,
+                    gameState.paddles.right.y,
                 );
             }
-            if (upPaddle && gameState.paddles && gameState.paddles.down) {
-                update3DMeshPos(upPaddle, gameState.paddles.down.x, 0, gameState.paddles.down.y);
+            if (upPaddle && gameState.paddles && gameState.paddles.up) {
+                update3DMeshPos(upPaddle, gameState.paddles.up.x, 0, gameState.paddles.up.y);
             }
-            if (downPaddle && gameState.paddles && gameState.paddles.up) {
-                update3DMeshPos(downPaddle, gameState.paddles.up.x, 0, gameState.paddles.up.y);
+            if (downPaddle && gameState.paddles && gameState.paddles.down) {
+                update3DMeshPos(downPaddle, gameState.paddles.down.x, 0, gameState.paddles.down.y);
             }
 
+            // Update score
             if (gameState.score && appDiv) {
                 updateScore(gameState);
                 displayScore4(matchInfos, appDiv, gameState, scoreText);
@@ -144,29 +159,23 @@ function setupWebsocket(
                     gameState.score.up,
                     gameState.score.down,
                 ];
-                const playersWithPositiveScore = scores.filter((score) => score > 0);
+                const playersWithPositiveScore = scores.filter((score) => score >= 0);
 
-                if (playersWithPositiveScore.length === 1) {
-                    const getPlayerNameForSide = (side: string) => {
-                        if (matchInfos.assignments && matchInfos.assignments[side]) {
-                            return matchInfos.assignments[side];
-                        }
-                        const sideIndex = ["left", "right", "up", "down"].indexOf(side);
-                        return matchInfos.players[sideIndex]?.alias || `Player ${sideIndex + 1}`;
-                    };
+                if (
+                    playersWithPositiveScore.length === 1 ||
+                    scores.some((score) => score > 1000000)
+                ) {
+                    const maxScore = Math.max(...scores);
+                    let winnerIndex = scores.findIndex((score) => score === maxScore);
 
-                    const playerNames = {
-                        left: getPlayerNameForSide("left"),
-                        right: getPlayerNameForSide("right"),
-                        up: getPlayerNameForSide("up"),
-                        down: getPlayerNameForSide("down"),
-                    };
+                    const playerNames = [
+                        matchInfos.players[0]?.alias || "Player 1",
+                        matchInfos.players[1]?.alias || "Player 2",
+                        matchInfos.players[2]?.alias || "Player 3",
+                        matchInfos.players[3]?.alias || "Player 4",
+                    ];
 
-                    const winningSide = ["left", "right", "up", "down"].find(
-                        (side, index) => scores[index] > 0
-                    );
-
-                    const winner = winningSide ? playerNames[winningSide as keyof typeof playerNames] : "Unknown";
+                    const winner = playerNames[winnerIndex];
                     gameEnded = true;
                     ws.close();
                     document.removeEventListener("keydown", handleKeyDown);
@@ -181,13 +190,21 @@ function setupWebsocket(
                 }
             }
         }
+        if (message.type === "player_disconnected") {
+            hasLeftGame = true;
+            ws?.close();
+            window.removeEventListener("popstate", onPopState);
+            window.removeEventListener("beforeunload", onBeforeUnload);
+            endGameView(message.winner);
+        }
     };
 
-    ws.onclose = () => {
-        console.log("Disconnected from game engine");
-        document.removeEventListener("keydown", handleKeyDown);
-        document.removeEventListener("keyup", handleKeyUp);
-    };
+        ws.onclose = () => {
+            console.log("Disconnected from game engine");
+            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("keyup", handleKeyUp);
+        };
+    })();
 }
 
 function setupScene(canvas: HTMLCanvasElement) {
