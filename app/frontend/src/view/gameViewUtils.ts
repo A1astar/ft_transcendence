@@ -616,8 +616,8 @@ export function displayScore4(
     const downScore = gameState.score.down;
 
     scoreText.text =
-        `${leftPlayerName}: ${leftScore}  ${rightPlayerName}: ${rightScore}\n` +
-        `${upPlayerName}: ${upScore}  ${downPlayerName}: ${downScore}`;
+        `${rightPlayerName}: ${rightScore} ${leftPlayerName}: ${leftScore}\n` +
+        `${downPlayerName}: ${downScore} ${upPlayerName}: ${upScore}`;
 }
 
 
