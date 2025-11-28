@@ -595,19 +595,29 @@ export function displayScore4(
     gameState: any,
     scoreText: any,
 ) {
-    const player1Name = matchInfos.players[0].alias;
-    const player2Name = matchInfos.players[1].alias;
-    const player3Name = matchInfos.players[2].alias;
-    const player4Name = matchInfos.players[3].alias;
+    // Map sides to player names using assignments
+    const getPlayerNameForSide = (side: string) => {
+        if (matchInfos.assignments && matchInfos.assignments[side]) {
+            return matchInfos.assignments[side];
+        }
+        // Fallback: try to find by index
+        const sideIndex = ["left", "right", "up", "down"].indexOf(side);
+        return matchInfos.players[sideIndex]?.alias || `Player ${sideIndex + 1}`;
+    };
 
-    const player1Score = gameState.score.left;
-    const player2Score = gameState.score.right;
-    const player3Score = gameState.score.up;
-    const player4Score = gameState.score.down;
+    const leftPlayerName = getPlayerNameForSide("left");
+    const rightPlayerName = getPlayerNameForSide("right");
+    const upPlayerName = getPlayerNameForSide("up");
+    const downPlayerName = getPlayerNameForSide("down");
+
+    const leftScore = gameState.score.left;
+    const rightScore = gameState.score.right;
+    const upScore = gameState.score.up;
+    const downScore = gameState.score.down;
 
     scoreText.text =
-        `${player1Name}: ${player1Score}  ${player2Name}: ${player2Score}\n` +
-        `${player3Name}: ${player3Score}  ${player4Name}: ${player4Score}`;
+        `${leftPlayerName}: ${leftScore}  ${rightPlayerName}: ${rightScore}\n` +
+        `${upPlayerName}: ${upScore}  ${downPlayerName}: ${downScore}`;
 }
 
 
