@@ -116,29 +116,31 @@ export function renderTournamentIntermediate(info: TournamentIntermediateInfo, o
 
     // Action buttons
     const buttonContainer = document.createElement("div");
-    buttonContainer.className = "flex gap-4 justify-center";
+    // keep container size unchanged; align items vertically and center text inside buttons
+    buttonContainer.className = "flex gap-4 justify-center items-center";
 
     if (info.currentRound === info.totalRounds) {
         // Tournament finished
-        const backButton = createButtonLink("/gameMenu", "Back to Menu", "center");
-        backButton.className += " text-lg px-8 py-3 bg-green-600 hover:bg-green-700";
+    const backButton = createButtonLink("/gameMenu", "Back to Menu", "center");
+    backButton.className += " text-lg px-8 py-3 bg-green-600 hover:bg-green-700 text-center";
         buttonContainer.appendChild(backButton);
     } else if (info.nextMatch) {
         // Next game ready
         const buttonText = info.currentRound === 0 ? "Start First Game" : "Start Next Game";
         const nextGameButton = createButtonForm(buttonText, "nextGame");
-        nextGameButton.className += " text-lg px-8 py-3 bg-blue-600 hover:bg-blue-700";
+        nextGameButton.className += " text-base px-8 py-3 bg-blue-600 hover:bg-blue-700 text-center";
         nextGameButton.addEventListener("click", (e) => {
             e.preventDefault();
             onNextGame();
         });
         buttonContainer.appendChild(nextGameButton);
+        // Exit button
+        const exitButton = createButtonLink("/gameMenu", "Exit Tournament", "center");
+        exitButton.className += " text-base px-4 py-2 bg-red-600 hover:bg-red-700 ml-4 text-center";
+        buttonContainer.appendChild(exitButton);
     }
 
-    // Exit button
-    const exitButton = createButtonLink("/gameMenu", "Exit Tournament", "center");
-    exitButton.className += " text-sm px-4 py-2 bg-red-600 hover:bg-red-700 ml-4";
-    buttonContainer.appendChild(exitButton);
+
 
     resultsBox.appendChild(buttonContainer);
     mainContainer.appendChild(resultsBox);

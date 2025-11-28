@@ -27,7 +27,7 @@ export class ProfileViewBinder implements ViewEventBinder {
 		try { localStorage.removeItem("token"); } catch {}
 		try { sessionStorage.removeItem("currentGameId"); } catch {}
 
-		history.pushState({}, "", "/login");
+		history.pushState({}, "", "/");
 		window.dispatchEvent(new PopStateEvent("popstate"));
 	};
 }
