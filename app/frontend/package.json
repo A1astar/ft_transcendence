@@ -8,13 +8,12 @@
   "scripts": {
     "build": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css --minify",
     "dev": "npm run build:initial && npx concurrently \"npm run ts\" \"npm run tw\"",
-    "start": "npm run build && npm run serve",
+    "start": "npm run build",
     "clean": "rm -rf dist",
     "build:initial": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css",
     "tw": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
     "tsx": "npx run tsx watch src",
-    "ts": "tsc -w --preserveWatchOutput",
-    "serve": "http-server . -c-1 -p 8443 --ssl --cert certs/self.crt --key certs/self.key"
+    "ts": "tsc -w --preserveWatchOutput"
   },
   "dependencies": {
     "@babylonjs/core": "^8.38.0",
@@ -24,7 +23,6 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.16",
-    "http-server": "^14.1.1",
     "tailwindcss": "^4.1.16"
   }
 }

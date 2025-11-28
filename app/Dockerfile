@@ -1,8 +1,16 @@
+# FROM node:20-alpine AS build-frontend
 FROM nginx:1.29.1-alpine-slim
 
 LABEL version="1.0"
 
-RUN apk update && apk add --no-cache openssl
+RUN apk update && apk add --no-cache \
+    bash \
+    openssl \
+    curl \
+    jq \
+    nodejs \
+    python3 \
+    npm
 
 COPY entrypoint.sh /usr/local/bin
 
