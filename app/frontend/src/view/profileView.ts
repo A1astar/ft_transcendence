@@ -69,65 +69,7 @@ export async function renderProfile() {
             accountFormDiv.appendChild(emailBox);
             accountBoxDiv.appendChild(accountFormDiv);
 
-            const statBoxDiv = createBoxDiv("statsBox");
-            statBoxDiv.className += " flex-1 px-3 py-1 min-w-[320px] max-w-[480px]";
-            statBoxDiv.appendChild(createSubheadingText("Game Stats"));
-
-            const statRow1 = document.createElement("div");
-            statRow1.className = "flex flex-row gap-2 mb-1";
-
-            const playedBox = document.createElement("div");
-            playedBox.className =
-                "bg-gray-800/30 rounded-lg px-2 py-1 flex-1 flex flex-col items-center";
-            const playedLabel = createParagraphText("Played:");
-            playedLabel.className += " font-semibold mb-1";
-            playedBox.appendChild(playedLabel);
-            const playedValue = createParagraphText(userData.gamePlayed);
-            playedValue.className += " text-lg";
-            playedBox.appendChild(playedValue);
-            statRow1.appendChild(playedBox);
-
-            const winRateBox = document.createElement("div");
-            winRateBox.className =
-                "bg-gray-800/30 rounded-lg px-2 py-1 flex-1 flex flex-col items-center";
-            const winRateLabel = createParagraphText("Win Rate:");
-            winRateLabel.className += " font-semibold mb-1";
-            winRateBox.appendChild(winRateLabel);
-            const winRateValue = createParagraphText(userData.winRate + "%");
-            winRateValue.className += " text-lg";
-            winRateBox.appendChild(winRateValue);
-            statRow1.appendChild(winRateBox);
-
-            const statRow2 = document.createElement("div");
-            statRow2.className = "flex flex-row gap-2 mb-1";
-
-            const wonBox = document.createElement("div");
-            wonBox.className =
-                "bg-gray-800/30 rounded-lg px-2 py-1 flex-1 flex flex-col items-center";
-            const wonLabel = createParagraphText("Won:");
-            wonLabel.className += " font-semibold mb-1";
-            wonBox.appendChild(wonLabel);
-            const wonValue = createParagraphText(userData.gameWon);
-            wonValue.className += " text-lg";
-            wonBox.appendChild(wonValue);
-            statRow2.appendChild(wonBox);
-
-            const lostBox = document.createElement("div");
-            lostBox.className =
-                "bg-gray-800/30 rounded-lg px-2 py-1 flex-1 flex flex-col items-center";
-            const lostLabel = createParagraphText("Lost:");
-            lostLabel.className += " font-semibold mb-1";
-            lostBox.appendChild(lostLabel);
-            const lostValue = createParagraphText(userData.gameLost);
-            lostValue.className += " text-lg";
-            lostBox.appendChild(lostValue);
-            statRow2.appendChild(lostBox);
-
-            statBoxDiv.appendChild(statRow1);
-            statBoxDiv.appendChild(statRow2);
-
             boxesRow.appendChild(accountBoxDiv);
-            boxesRow.appendChild(statBoxDiv);
             mainContainer.appendChild(boxesRow);
 
             const sessionBoxDiv = createBoxDiv("sessionBox");
