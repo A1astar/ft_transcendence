@@ -157,21 +157,17 @@ function setupWebsocket(
                     gameState.score.up,
                     gameState.score.down,
                 ];
-                const playersWithPositiveScore = scores.filter((score) => score >= 0);
+                const playersWithPositiveScore = scores.filter((score) => score > 0);
 
-                if (
-                    playersWithPositiveScore.length === 1 ||
-                    scores.some((score) => score > 1000000)
-                ) {
-                    const maxScore = Math.max(...scores);
-                    let winnerIndex = scores.findIndex((score) => score === maxScore);
-
+                if (playersWithPositiveScore.length === 1) {
                     const playerNames = [
                         matchInfos.players[0]?.alias || "Player 1",
                         matchInfos.players[1]?.alias || "Player 2",
                         matchInfos.players[2]?.alias || "Player 3",
                         matchInfos.players[3]?.alias || "Player 4",
                     ];
+
+                    let winnerIndex = scores.findIndex((score) => score > 0);
 
                     const winner = playerNames[winnerIndex];
                     gameEnded = true;
