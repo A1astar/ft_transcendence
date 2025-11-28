@@ -207,6 +207,9 @@ function setupScene(canvas: HTMLCanvasElement) {
     const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
     ballMaterial.diffuseTexture = new BABYLON.Texture(eyeTexture, scene);
 
+    const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
+    paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+
     createBackgroundScene();
 
     const pongRoot = new BABYLON.TransformNode("pongRoot", scene);
