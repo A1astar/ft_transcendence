@@ -160,16 +160,29 @@ function setupWebsocket(
                 const playersWithPositiveScore = scores.filter((score) => score > 0);
 
                 if (playersWithPositiveScore.length === 1) {
-                    const playerNames = [
-                        matchInfos.players[0]?.alias || "Player 1",
-                        matchInfos.players[1]?.alias || "Player 2",
-                        matchInfos.players[2]?.alias || "Player 3",
-                        matchInfos.players[3]?.alias || "Player 4",
-                    ];
+                    // Map sides to player names using assignments
+                    const getPlayerNameForSide = (side: string) => {
+                        if (matchInfos.assignments && matchInfos.assignments[side]) {
+                            return matchInfos.assignments[side];
+                        }
+                        // Fallback: try to find by index
+                        const sideIndex = ["left", "right", "up", "down"].indexOf(side);
+                        return matchInfos.players[sideIndex]?.alias || `Player ${sideIndex + 1}`;
+                    };
 
-                    let winnerIndex = scores.findIndex((score) => score > 0);
+                    const playerNames = {
+                        left: getPlayerNameForSide("left"),
+                        right: getPlayerNameForSide("right"),
+                        up: getPlayerNameForSide("up"),
+                        down: getPlayerNameForSide("down"),
+                    };
 
-                    const winner = playerNames[winnerIndex];
+                    // Find winning side
+                    const winningSide = ["left", "right", "up", "down"].find(
+                        (side, index) => scores[index] > 0
+                    );
+
+                    const winner = winningSide ? playerNames[winningSide as keyof typeof playerNames] : "Unknown";
                     gameEnded = true;
                     ws.close();
                     document.removeEventListener("keydown", handleKeyDown);
@@ -213,9 +226,6 @@ function setupScene(canvas: HTMLCanvasElement) {
 
     const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
     ballMaterial.diffuseTexture = new BABYLON.Texture(eyeTexture, scene);
-
-    const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
-    paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
 
     createBackgroundScene();
 
