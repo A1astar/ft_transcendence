@@ -13,12 +13,6 @@ const frontendPath = path.join(__dirname, '../../../frontend');
 
 // Get server host from request (since we're connecting to remote servers)
 function getServerHostFromRequest(req: any): string {
-    const host = req.headers.host;
-    if (host) {
-        const hostname = host.split(':')[0];
-        return hostname;
-    }
-
     return 'localhost';
 }
 
@@ -31,14 +25,15 @@ function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
     );
 }
 
-function routeServices(fastify: FastifyInstance, basePath: string, port: number) {
+function routeServices(fastify: FastifyInstance, basePath: string, serviceName: string, port: number) {
     fastify.route({
         method: ['GET', 'POST', 'PUT', 'DELETE'],
         url: `/${basePath}/*`,
         handler: async (req, reply) => {
             try {
-                const serverHost = getServerHostFromRequest(req);
-                const serviceUrl = `http://${serverHost}:${port}`;
+                // In Docker network, we must use service name to reach other containers
+                // 'localhost' would refer to the gateway container itself
+                const serviceUrl = `http://${serviceName}:${port}`;
 
                 const res = await fetch(`${serviceUrl}${req.url}`, {
                 method: req.method,
@@ -70,10 +65,10 @@ export async function routeRequest(fastify: FastifyInstance) {
     wildcard: false,        // avoid catching /api/*
   });
 
-    routeServices(fastify, "api/auth", 3001);
-    routeServices(fastify, "api/game-orchestration", 3002);
-    routeServices(fastify, "api/game-engine", 3003);
-    routeServices(fastify, "api/user-management", 3004);
+    routeServices(fastify, "api/auth", "authentication", 3001);
+    routeServices(fastify, "api/game-orchestration", "game-orchestration", 3002);
+    routeServices(fastify, "api/game-engine", "game-engine", 3003);
+    routeServices(fastify, "api/user-management", "authentication", 3004);
 
 
     // fastify.register(fastifyStatic, {

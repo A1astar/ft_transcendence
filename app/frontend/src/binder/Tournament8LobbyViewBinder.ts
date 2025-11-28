@@ -50,7 +50,7 @@ export class Tournament8LobbyViewBinder implements ViewEventBinder {
 
                 // Get next match
                 const matchData = await fetch(
-                    `http://${SERVER_BASE}:3002/api/game-orchestration/tournament/match-ended`,
+                    `https://${SERVER_BASE}:8443/api/game-orchestration/tournament/match-ended`,
                     {
                         method: "POST",
                         headers: {"Content-Type": "application/json"},
@@ -84,7 +84,7 @@ export class Tournament8LobbyViewBinder implements ViewEventBinder {
     private handleTournamentGameEnd = async (winner: string, match: any) => {
         try {
             // Register winner for next round
-            await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/tournament`, {
+            await fetch(`https://${SERVER_BASE}:8443/api/game-orchestration/tournament`, {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({
@@ -125,7 +125,7 @@ export class Tournament8LobbyViewBinder implements ViewEventBinder {
 
     private startMatch = async (matchId: string) => {
         const response = await fetch(
-            `http://${SERVER_BASE}:3002/api/game-orchestration/tournament/start-match`,
+            `https://${SERVER_BASE}:8443/api/game-orchestration/tournament/start-match`,
             {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
@@ -161,7 +161,7 @@ export class Tournament8LobbyViewBinder implements ViewEventBinder {
                 };
 
                 const res = await fetch(
-                    `http://${SERVER_BASE}:3002/api/game-orchestration/tournament`,
+                    `https://${SERVER_BASE}:8443/api/game-orchestration/tournament`,
                     {
                         method: "POST",
                         headers: {

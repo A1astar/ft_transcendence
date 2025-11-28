@@ -28,19 +28,13 @@ services:
       - game-engine
     restart: "no"
 
-  # authentication:
-  #   build: ../services/authentication
-  #   ports:
-  #     - "3001"
-  #   networks:
-  #     - microservices-network
-    # Temporarily disabled vault dependency for testing
-    # environment:
-    #   - VAULT=ADDR=http://hashicorp-vault:8200
-    #   - VAULT_TOKEN=${VAULT_TOKEN:-your-dev-token}
-    # depends_on:
-    #   - hashicorp-vault
-    # restart: unless-stopped
+  authentication:
+    build: ../services/authentication
+    ports:
+      - "3001"
+    networks:
+      - microservices-network
+    restart: unless-stopped
 
   # Temporarily disabled for testing
   # hashicorp-vault:
@@ -61,6 +55,9 @@ services:
       - "3002"
     networks:
       - microservices-network
+    environment:
+      - GAME_ENGINE_HOST=game-engine
+      - GAME_ENGINE_PORT=3003
     restart: unless-stopped
 
   game-engine:

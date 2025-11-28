@@ -43,7 +43,7 @@ export class apiService {
     }
 }
 
-export const API_URL = `http://${SERVER_BASE}:3000`;
+export const API_URL = `https://${SERVER_BASE}:8443`;
 export const ApiClient = new apiService(API_URL);
 
 //set all request to Nginx gateway

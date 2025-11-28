@@ -54,7 +54,7 @@ function setupWebsocket(
     scoreText: any,
     onGameEnd?: (winner: string) => void,
 ) {
-    const ws = new WebSocket(`ws://${SERVER_BASE}:3003/api/game-engine/${matchInfos.id}`);
+    const ws = new WebSocket(`wss://${SERVER_BASE}:8443/api/game-engine/${matchInfos.id}`);
     // const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     // const ws = new WebSocket(`${protocol}//${window.location.host}/api/game-engine/${matchInfos.id}`);
 

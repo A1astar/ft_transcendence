@@ -1,13 +1,14 @@
 import { FastifyInstance } from "fastify";
 import { Player, MatchRequest, Match, queues, tournamentQueues } from "./objects.js";
-import { createMatch } from "./utils.js"
+import { createMatch } from "./utils.js";
+import { GAME_ENGINE_START_ENDPOINT } from "./config.js";
 import { randomUUID } from "crypto";
 
 // Store tournament matches that are created but not started
 const tournamentMatches = new Map<string, Match[]>();
 
 async function startMatch(match: Match) {
-  const res = await fetch("http://localhost:3003/game-engine/start", {
+  const res = await fetch(GAME_ENGINE_START_ENDPOINT, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify(match),

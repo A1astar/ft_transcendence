@@ -9,7 +9,7 @@ import { AuthenticationFormat, RegistrationFormat, LoginFormat } from "./format.
 import { User, generateId } from "./user.js";
 
 import crypto from 'crypto';
-import color from 'chalk';
+import chalk from 'chalk';
 
 export interface Session {
     id: string,
@@ -131,7 +131,7 @@ export class SQLiteDatabase {
             }
 
             // Successful login
-            console.log(color.green(`[auth] Login successful for user: ${body.name}`));
+            console.log(chalk.green(`[auth] Login successful for user: ${body.name}`));
             // Set session so the client receives a session cookie
             try {
                 const sess = (request as any).session;

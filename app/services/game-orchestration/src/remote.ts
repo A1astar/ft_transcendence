@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { Player, MatchRequest, Match, queues } from "./objects.js";
-import { createMatch } from "./utils.js"
+import { createMatch } from "./utils.js";
+import { GAME_ENGINE_START_ENDPOINT } from "./config.js";
 
 // Keep track of active matches to prevent double-creation
 let activeMatches = new Map<string, Match>();
@@ -30,7 +31,7 @@ async function createAndStartMatch(players: Player[]): Promise<Match> {
     // attach assignments to the match payload sent to game-engine
     (match as any).assignments = assignments;
 
-    const res = await fetch("http://localhost:3003/game-engine/start", {
+    const res = await fetch(GAME_ENGINE_START_ENDPOINT, {
       method: "POST",
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify(match)

@@ -20,7 +20,7 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
             // Attempt to tell server we leave the queue
             if (this.activeMatchRequest) {
                 try {
-                    await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
+                    await fetch(`https://${SERVER_BASE}:8443/api/game-orchestration/remote2/leave`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(this.activeMatchRequest),
@@ -71,7 +71,7 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
 
     private async pollForMatch2(signal: AbortSignal, matchRequest: any): Promise<any> {
         const res = await fetch(
-            `http://${SERVER_BASE}:3002/api/game-orchestration/remote2/status?alias=${encodeURIComponent(
+            `https://${SERVER_BASE}:8443/api/game-orchestration/remote2/status?alias=${encodeURIComponent(
                 matchRequest.player.alias,
             )}`,
             {
@@ -132,7 +132,7 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
 
             try {
                 // Join queue
-                const res = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2`, {
+                const res = await fetch(`https://${SERVER_BASE}:8443/api/game-orchestration/remote2`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(matchRequest),
@@ -165,7 +165,7 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
                 if (error instanceof Error && error.name === "AbortError") {
                     console.log("Matchmaking cancelled by user");
                     try {
-                        await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
+                        await fetch(`https://${SERVER_BASE}:8443/api/game-orchestration/remote2/leave`, {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify(matchRequest),
@@ -203,7 +203,7 @@ export class Remote2LobbyViewBinder implements ViewEventBinder {
             }
 
             if (this.activeMatchRequest) {
-                fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/remote2/leave`, {
+                fetch(`https://${SERVER_BASE}:8443/api/game-orchestration/remote2/leave`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(this.activeMatchRequest),

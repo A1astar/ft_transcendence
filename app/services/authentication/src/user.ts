@@ -1,4 +1,4 @@
-import { RegistrationFormat  } from "./format";
+import { RegistrationFormat  } from "./format.js";
 import crypto from 'crypto';
 
 const idGenerator = generateId();

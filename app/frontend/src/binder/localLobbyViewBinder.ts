@@ -19,7 +19,7 @@ export class LocalLobbyViewBinder implements ViewEventBinder {
         };
 
         try {
-            const res1 = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/local`, {
+            const res1 = await fetch(`https://${SERVER_BASE}:8443/api/game-orchestration/local`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -28,7 +28,7 @@ export class LocalLobbyViewBinder implements ViewEventBinder {
             });
             if (!res1.ok) throw new Error("First player request failed");
 
-            const res2 = await fetch(`http://${SERVER_BASE}:3002/api/game-orchestration/local`, {
+            const res2 = await fetch(`https://${SERVER_BASE}:8443/api/game-orchestration/local`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

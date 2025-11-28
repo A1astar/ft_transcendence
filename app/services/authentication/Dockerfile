@@ -5,7 +5,8 @@ WORKDIR /app
 COPY package*.json tsconfig.json ./
 
 # RUN npm ci --production
-RUN npm install
+RUN apk add --no-cache git openssh-client \
+    && npm install
 
 COPY . .
 
