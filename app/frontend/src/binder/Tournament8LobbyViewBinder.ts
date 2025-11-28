@@ -97,7 +97,7 @@ export class Tournament8LobbyViewBinder implements ViewEventBinder {
 
             // Get next match info to show next players
             const nextMatchData = await fetch(
-                `http://${SERVER_BASE}:3002/api/game-orchestration/tournament/match-ended`,
+                `https://${SERVER_BASE}:8443/api/game-orchestration/tournament/match-ended`,
                 {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
