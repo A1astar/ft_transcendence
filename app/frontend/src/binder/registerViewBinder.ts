@@ -30,10 +30,14 @@ export class RegisterViewBinder implements ViewEventBinder {
 		// send `name` to match backend expected field
 		const res = await ApiClient.post("/api/auth/register", { email, name: username, password });
 		if (!res.ok) {
-			const err = await res.json().catch(() => ({ message: "Registration failed" }));
-			alert(err.message || "Registration failed");
+			const err = await res.json().catch(() => ({ error: "Registration failed" }));
+			alert(err.error || err.message || "Registration failed");
 			return;
 		}
+		
+		// Clear any existing session data from localStorage
+		localStorage.removeItem("token");
+		
 		alert("Registration successful! Please log in.");
 		history.pushState({}, "", "/login");
 		window.dispatchEvent(new PopStateEvent("popstate"));

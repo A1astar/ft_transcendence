@@ -99,13 +99,10 @@ async function main() {
         } catch (vaultError) {
             console.log(color.yellow('Vault not available, continuing without it'));
         }
-        
-        // Register routes BEFORE starting the server
         await manageRequest(fastify, sqlite, vaultClient);
         
         // Now start the server
         await fastify.listen({ port: 3001, host: "0.0.0.0" });
-        //console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
         console.log(color.green.bold("Authentication Service running on port 3001"));
 
     } catch (err) {

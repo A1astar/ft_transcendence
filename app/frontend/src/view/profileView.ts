@@ -87,7 +87,7 @@ export async function renderProfile() {
             const box = createBoxDiv("errorBox");
             box.className += " max-w-md mx-auto mt-16 p-8";
             box.appendChild(createSubheadingText("Error"));
-            box.appendChild(createParagraphText("Failed to load profile"));
+            box.appendChild(createParagraphText("User not logged in"));
             appDiv.appendChild(box);
         }
     }

@@ -7,6 +7,13 @@ import fastifyJWT from '@fastify/jwt';
 
 import { AuthenticationFormat, RegistrationFormat, LoginFormat } from "./format.js";
 import { User, generateId } from "./user.js";
+import { 
+    validateRegistrationData, 
+    validateLoginData, 
+    ValidationError, 
+    sendValidationError,
+    checkRateLimit 
+} from "./validators.js";
 
 import crypto from 'crypto';
 import chalk from 'chalk';
@@ -54,40 +61,69 @@ export class SQLiteDatabase {
     }
 
     async registerUser(request: FastifyRequest, reply: FastifyReply) : Promise<void> {
-        const body = request.body as RegistrationFormat;
-        console.log('[auth] registerUser body:', JSON.stringify(body));
-
-        if (!body || !body.name || !body.password) {
-            reply.code(400).send({ error: 'Invalid registration payload' });
+        // Rate limiting - prevent abuse
+        const clientIp = request.ip || 'unknown';
+        if (!checkRateLimit(`register:${clientIp}`, 10, 60000)) {
+            reply.code(429).send({ error: 'Too many registration attempts. Please try again later.' });
             return;
         }
-
-        const id = crypto.randomUUID();
-
-        // Hash password using scrypt with a random salt
-        const salt = crypto.randomBytes(16).toString('hex');
-        const derivedKey = crypto.scryptSync(body.password, salt, 64) as Buffer;
-        const passwordStored = `${salt}:${derivedKey.toString('hex')}`;
-
-        const stmt = this.sqlite.prepare(`
-            INSERT INTO users (id, name, email, password)
-            VALUES (?, ?, ?, ?)
-        `);
 
         try {
-            stmt.run(id, body.name, body.email ?? null, passwordStored);
-            reply.code(201).send({ id, name: body.name, email: body.email ?? null });
-        } catch (error: any) {
-            console.error('[auth] registerUser error:', error);
-            if (error && error.code === 'SQLITE_CONSTRAINT') {
-                reply.code(409).send({ error: 'User with this name or email already exists' });
+            // Validate and sanitize input
+            const validatedData = validateRegistrationData(request.body);
+
+            const id = crypto.randomUUID();
+            // Hash password using scrypt with a random salt
+            const salt = crypto.randomBytes(16).toString('hex');
+            const derivedKey = crypto.scryptSync(validatedData.password, salt, 64) as Buffer;
+            const passwordStored = `${salt}:${derivedKey.toString('hex')}`;
+
+            const stmt = this.sqlite.prepare(`
+                INSERT INTO users (id, name, email, password)
+                VALUES (?, ?, ?, ?)
+            `);
+
+            try {
+                stmt.run(id, validatedData.name, validatedData.email, passwordStored);
+                
+                // Explicitly clear any session data to prevent auto-login after registration
+                try {
+                    const sess = (request as any).session;
+                    if (sess) {
+                        // Clear session to ensure user must login explicitly
+                        for (const key of Object.keys(sess)) {
+                            delete (sess as any)[key];
+                        }
+                    }
+                } catch (e) {
+                    // Session clearing failed, but registration succeeded
+                    console.warn('[auth] Failed to clear session after registration:', e);
+                }
+                
+                reply.code(201).send({ 
+                    id, 
+                    name: validatedData.name, 
+                    email: validatedData.email 
+                });
+            } catch (error: any) {
+                console.error('[auth] registerUser database error:', error);
+                if (error && error.code === 'SQLITE_CONSTRAINT') {
+                    reply.code(409).send({ error: 'User with this name or email already exists' });
+                    return;
+                }
+                reply.code(500).send({ error: 'Failed to register user' });
                 return;
             }
-            reply.code(500).send({ error: 'Failed to register user' });
-            return;
-        }
 
-        this.printDatabase();
+            this.printDatabase();
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                sendValidationError(reply, error);
+            } else {
+                console.error('[auth] registerUser unexpected error:', error);
+                reply.code(500).send({ error: 'Internal server error' });
+            }
+        }
     }
 
     printDatabase() {
@@ -95,43 +131,48 @@ export class SQLiteDatabase {
     }
 
     async loginUser(request: FastifyRequest, reply: FastifyReply): Promise<void> {
-        const body = request.body as LoginFormat;
-        console.log('[auth] loginUser body:', JSON.stringify(body));
-
-        if (!body || !body.name || !body.password) {
-            reply.code(400).send({ error: 'Invalid login - name and password required' });
+        // Rate limiting - prevent brute force attacks
+        const clientIp = request.ip || 'unknown';
+        if (!checkRateLimit(`login:${clientIp}`, 20, 60000)) {
+            reply.code(429).send({ error: 'Too many login attempts. Please try again later.' });
             return;
         }
 
-        // Get user from database
-        const stmt = this.sqlite.prepare(`
-            SELECT id, name, email, password, created_at
-            FROM users 
-            WHERE name = ?
-        `);
-
         try {
-            const user = stmt.get(body.name) as any;
+            // Validate and sanitize input
+            const validatedData = validateLoginData(request.body);
+            
+            console.log('[auth] loginUser - attempting login for user:', validatedData.name);
+
+            // Get user from database
+            const stmt = this.sqlite.prepare(`
+                SELECT id, name, email, password, created_at
+                FROM users 
+                WHERE name = ?
+            `);
+
+            const user = stmt.get(validatedData.name) as any;
             
             if (!user) {
-                console.log(`[auth] User not found: ${body.name}`);
+                console.log(`[auth] User not found: ${validatedData.name}`);
                 reply.code(401).send({ error: 'Invalid credentials' });
                 return;
             }
 
             // Verify password
             const [salt, storedHash] = user.password.split(':');
-            const derivedKey = crypto.scryptSync(body.password, salt, 64) as Buffer;
+            const derivedKey = crypto.scryptSync(validatedData.password, salt, 64) as Buffer;
             const providedHash = derivedKey.toString('hex');
 
             if (providedHash !== storedHash) {
-                console.log(`[auth] Password mismatch for user: ${body.name}`);
+                console.log(`[auth] Password mismatch for user: ${validatedData.name}`);
                 reply.code(401).send({ error: 'Invalid credentials' });
                 return;
             }
 
             // Successful login
-            console.log(chalk.green(`[auth] Login successful for user: ${body.name}`));
+            console.log(chalk.green(`[auth] Login successful for user: ${validatedData.name}`));
+            
             // Set session so the client receives a session cookie
             try {
                 const sess = (request as any).session;
@@ -151,10 +192,13 @@ export class SQLiteDatabase {
                 message: 'Login successful'
             });
 
-        } catch (error: any) {
-            console.error('[auth] loginUser error:', error);
-            reply.code(500).send({ error: 'Internal server error during login' });
-            return;
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                sendValidationError(reply, error);
+            } else {
+                console.error('[auth] loginUser unexpected error:', error);
+                reply.code(500).send({ error: 'Internal server error during login' });
+            }
         }
     }
     
