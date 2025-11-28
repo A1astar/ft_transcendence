@@ -128,25 +128,24 @@ function setupWebsocket(
             if (ball && gameState.ball) {
                 update3DMeshPos(ball, gameState.ball.x, 0.25, gameState.ball.y);
             }
-            if (leftPaddle && gameState.paddles && gameState.paddles.left) {
-                update3DMeshPos(leftPaddle, gameState.paddles.left.x, 0, gameState.paddles.left.y);
+            if (leftPaddle && gameState.paddles && gameState.paddles.right) {
+                update3DMeshPos(leftPaddle, gameState.paddles.right.x, 0, gameState.paddles.right.y);
             }
-            if (rightPaddle && gameState.paddles && gameState.paddles.right) {
+            if (rightPaddle && gameState.paddles && gameState.paddles.left) {
                 update3DMeshPos(
                     rightPaddle,
-                    gameState.paddles.right.x,
+                    gameState.paddles.left.x,
                     0,
-                    gameState.paddles.right.y,
+                    gameState.paddles.left.y,
                 );
             }
-            if (upPaddle && gameState.paddles && gameState.paddles.up) {
-                update3DMeshPos(upPaddle, gameState.paddles.up.x, 0, gameState.paddles.up.y);
+            if (upPaddle && gameState.paddles && gameState.paddles.down) {
+                update3DMeshPos(upPaddle, gameState.paddles.down.x, 0, gameState.paddles.down.y);
             }
-            if (downPaddle && gameState.paddles && gameState.paddles.down) {
-                update3DMeshPos(downPaddle, gameState.paddles.down.x, 0, gameState.paddles.down.y);
+            if (downPaddle && gameState.paddles && gameState.paddles.up) {
+                update3DMeshPos(downPaddle, gameState.paddles.up.x, 0, gameState.paddles.up.y);
             }
 
-            // Update score
             if (gameState.score && appDiv) {
                 updateScore(gameState);
                 displayScore4(matchInfos, appDiv, gameState, scoreText);
@@ -160,12 +159,10 @@ function setupWebsocket(
                 const playersWithPositiveScore = scores.filter((score) => score > 0);
 
                 if (playersWithPositiveScore.length === 1) {
-                    // Map sides to player names using assignments
                     const getPlayerNameForSide = (side: string) => {
                         if (matchInfos.assignments && matchInfos.assignments[side]) {
                             return matchInfos.assignments[side];
                         }
-                        // Fallback: try to find by index
                         const sideIndex = ["left", "right", "up", "down"].indexOf(side);
                         return matchInfos.players[sideIndex]?.alias || `Player ${sideIndex + 1}`;
                     };
@@ -177,7 +174,6 @@ function setupWebsocket(
                         down: getPlayerNameForSide("down"),
                     };
 
-                    // Find winning side
                     const winningSide = ["left", "right", "up", "down"].find(
                         (side, index) => scores[index] > 0
                     );

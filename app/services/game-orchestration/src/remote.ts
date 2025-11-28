@@ -17,8 +17,10 @@ async function createAndStartMatch(players: Player[]): Promise<Match> {
     match = createMatch(players, "remote4", 0);
   try {
     // attach a side assignment map to the match according to join order
+    // NOTE: Les noms left/right/up/down côté serveur sont inversés visuellement dans le frontend
+    // Pour que joueur 1 apparaisse à gauche visuellement, on l'assigne à 'right' côté serveur
     const sideOrder2: Array<'left'|'right'> = ['left','right'];
-    const sideOrder4: Array<'left'|'right'|'up'|'down'> = ['left','right','up','down'];
+    const sideOrder4: Array<'left'|'right'|'up'|'down'> = ['right','left','down','up'];
     const sideOrder: Array<'left'|'right'|'up'|'down'> = match.players.length === 2 ? sideOrder2 : sideOrder4;
     const assignments: Record<string, string> = {};
     for (let i = 0; i < match.players.length && i < sideOrder.length; i++) {
@@ -36,7 +38,7 @@ async function createAndStartMatch(players: Player[]): Promise<Match> {
       body: JSON.stringify(match)
     });
     console.log("Game engine response:", await res.json());
-    
+
     activeMatches.set(playerKey, match);
     setTimeout(() => activeMatches.delete(playerKey), 5000);
     return match;
