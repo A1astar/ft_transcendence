@@ -586,7 +586,7 @@ export function displayScore2(
     const player1Score = gameState.score.left;
     const player2Score = gameState.score.right;
 
-    scoreText.text = `${player1Name}: ${player1Score}  -  ${player2Score} : ${player2Name}`;
+    scoreText.text = `${player1Name}: ${player1Score}  -  ${player2Score} :${player2Name}`;
 }
 
 export function displayScore4(
