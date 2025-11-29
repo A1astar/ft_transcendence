@@ -243,4 +243,49 @@ export class SQLiteDatabase {
             reply.code(500).send({ error: 'Server error' });
         }
     }
+
+    async loginOrRegisterOAuthUser(request: FastifyRequest, oauthUser: { email: string, name: string }): Promise<any> {
+        // Check if user exists by email
+        const stmt = this.sqlite.prepare(`
+            SELECT id, name, email, password
+            FROM users
+            WHERE email = ?
+        `);
+        let user = stmt.get(oauthUser.email) as any;
+
+        if (!user) {
+            // Register new user
+            const id = crypto.randomUUID();
+            // Generate a random password for OAuth users
+            const password = crypto.randomBytes(16).toString('hex');
+            const salt = crypto.randomBytes(16).toString('hex');
+            const derivedKey = crypto.scryptSync(password, salt, 64) as Buffer;
+            const passwordStored = `${salt}:${derivedKey.toString('hex')}`;
+
+            // Handle potential name collision
+            let name = oauthUser.name;
+            let suffix = 1;
+            while (true) {
+                 const nameCheck = this.sqlite.prepare('SELECT 1 FROM users WHERE name = ?').get(name);
+                 if (!nameCheck) break;
+                 name = `${oauthUser.name}${suffix++}`;
+            }
+
+            const insertStmt = this.sqlite.prepare(`
+                INSERT INTO users (id, name, email, password)
+                VALUES (?, ?, ?, ?)
+            `);
+            insertStmt.run(id, name, oauthUser.email, passwordStored);
+            user = { id, name, email: oauthUser.email };
+        }
+
+        // Set session
+        const sess = (request as any).session;
+        if (sess) {
+            sess.userId = user.id;
+            sess.username = user.name;
+        }
+
+        return user;
+    }
 };

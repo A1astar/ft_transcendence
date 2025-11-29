@@ -82,9 +82,15 @@ export async function renderLogin() {
         formDiv1.appendChild(createButtonForm("Login", "login"));
 
         const formDiv2 = createFormElement("oauth2Form");
-        formDiv1.method = "POST";
-        formDiv2.action = "/api/auth/oauth/google";
-        formDiv2.appendChild(createButtonForm("Login with Google", "google"));
+        // We don't strictly need a form for a simple redirect, but keeping structure.
+        // Changing to use a button that redirects via JS or simple GET if the form method was GET.
+        // But since the backend plugin expects a GET request to redirect to Google, 
+        // and form submission with POST might be weird if the plugin expects GET.
+        // fastify-oauth2 typically handles GET for the start path.
+        
+        const googleBtn = createButtonForm("Login with Google", "google");
+        // Click handler is managed by LoginViewBinder
+        formDiv2.appendChild(googleBtn);
         formDiv2.appendChild(createButtonForm("Login with Intra 42", "intra42"));
 
         const loginBoxDiv = createBoxDiv("loginBoxDiv");

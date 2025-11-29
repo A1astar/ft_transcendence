@@ -33,17 +33,13 @@ export class LoginViewBinder implements ViewEventBinder {
 		}
 	};
 	private onGoogleClick(this: HTMLElement, event: MouseEvent) {
-		const res = ApiClient.get("/api/auth/google");
-		if (res) {
-			// redirect to Google OAuth URL
-			window.location.href = (res as unknown as {url: string}).url;
-		}
+		event.preventDefault();
+		window.location.href = "/api/auth/oauth/google";
 	}
 	private onIntra42Click(this: HTMLElement, event: MouseEvent) {
-		const res = ApiClient.get("/api/auth/intra-42");
-		if (res) {
-			// redirect to Google OAuth URL
-			window.location.href = (res as unknown as {url: string}).url;
-		}
+		event.preventDefault();
+		// Assuming similar path for intra42 or placeholder
+		// window.location.href = "/api/auth/oauth/intra42"; 
+		console.log("Intra42 login not implemented yet");
 	}
 }

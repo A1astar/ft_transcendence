@@ -71,6 +71,7 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceName: 
                     method: req.method,
                     headers: fetchHeaders(req.headers),
                     body: ['POST','PUT'].includes(req.method) ? JSON.stringify(req.body) : undefined,
+                    redirect: 'manual'
                 });
                 const data = await res.text();
                 res.headers.forEach((value, key) => reply.header(key, value));

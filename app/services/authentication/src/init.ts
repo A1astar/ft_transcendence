@@ -7,6 +7,8 @@ import fastifyJWT from '@fastify/jwt';
 import crypto from 'crypto';
 import color from 'chalk';
 
+import fastifyOAuth2 from '@fastify/oauth2';
+
 export async function initAuthenticationService() {
     const fastify = Fastify({
         // AJV options for schema validation
@@ -109,6 +111,20 @@ export async function initAuthenticationService() {
     });
 
     fastify.register(fastifyCookie);
+
+    fastify.register(fastifyOAuth2, {
+        name: 'googleOAuth2',
+        scope: ['profile', 'email'],
+        credentials: {
+            client: {
+                id: process.env.GOOGLE_CLIENT_ID || 'GOOGLE_CLIENT_ID',
+                secret: process.env.GOOGLE_CLIENT_SECRET || 'GOOGLE_CLIENT_SECRET',
+            },
+            auth: fastifyOAuth2.GOOGLE_CONFIGURATION
+        },
+        startRedirectPath: '/api/auth/oauth/google',
+        callbackUri: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8080/api/auth/oauth/google/callback'
+    });
 
     // Cast to any to avoid strict type mismatches with plugin option names
     fastify.register(fastifySession as any, {

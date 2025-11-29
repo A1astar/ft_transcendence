@@ -35,7 +35,10 @@ services:
     networks:
       - microservices-network
     # Temporarily disabled vault dependency for testing
-    # environment:
+    environment:
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_CALLBACK_URL=https://localhost:8443/api/auth/oauth/google/callback
     #   - VAULT=ADDR=http://hashicorp-vault:8200
     #   - VAULT_TOKEN=${VAULT_TOKEN:-your-dev-token}
     # depends_on:
