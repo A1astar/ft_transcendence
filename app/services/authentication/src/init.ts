@@ -120,7 +120,7 @@ export async function initAuthenticationService() {
                 id: process.env.GOOGLE_CLIENT_ID || 'GOOGLE_CLIENT_ID',
                 secret: process.env.GOOGLE_CLIENT_SECRET || 'GOOGLE_CLIENT_SECRET',
             },
-            auth: fastifyOAuth2.GOOGLE_CONFIGURATION
+            auth: (fastifyOAuth2 as any).GOOGLE_CONFIGURATION
         },
         startRedirectPath: '/api/auth/oauth/google',
         callbackUri: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8080/api/auth/oauth/google/callback'
