@@ -5,7 +5,6 @@ import cors from "@fastify/cors";
 import { localMatch } from "./local.js";
 import { remoteMatch2, remoteMatch4 } from "./remote.js";
 import { tournamentMatch } from "./tournament.js";
-import { testMatch } from "./api-test.js";
 import chalk from 'chalk';
 
 
@@ -21,7 +20,6 @@ async function start() {
   remoteMatch2(fastify);
   remoteMatch4(fastify);
   tournamentMatch(fastify);
-  testMatch(fastify);
 
   try {
     await fastify.listen({ port: 3002, host: "0.0.0.0" });
