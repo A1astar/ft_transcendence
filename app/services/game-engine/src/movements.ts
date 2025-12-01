@@ -1,77 +1,83 @@
-import { Game } from "./objects.js";
+import {Game} from "./objects.js";
+
+import {
+    upPaddleCollision,
+    downPaddleCollision,
+    leftPaddleCollision,
+    rightPaddleCollision,
+    widthWallsCollision,
+} from "./collisions.js";
+
+function updatedScore(gameMode: Game["mode"], ball: Game["ball"], score: Game["score"]): boolean {
+    if (gameMode === "remote4") {
+        if (ball.x < -10) {
+            score.left--;
+            return true;
+        } else if (ball.x > 10) {
+            score.right--;
+            return true;
+        } else if (ball.y < -10) {
+            score.down--;
+            return true;
+        } else if (ball.y > 10) {
+            score.up--;
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        if (ball.x < -10) {
+            score.right++;
+            return true;
+        } else if (ball.x > 10) {
+            score.left++;
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+function updateBallPos(ball: Game["ball"]) {
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+}
 
 export function updateGame(game: Game) {
-	const left = game.paddles.left;
-	const right = game.paddles.right;
-	const ball = game.ball;
+    updateBallPos(game.ball);
 
-	ball.x += ball.vx;
-	ball.y += ball.vy;
+    leftPaddleCollision(game.ball, game.paddles.left);
+    rightPaddleCollision(game.ball, game.paddles.right);
 
-	// collision for top bottom
-	if (ball.y - ball.radius <= 0 || ball.y + ball.radius >= game.height)
-		ball.vy *= -1;
+    if (game.mode === "remote4") {
+        upPaddleCollision(game.ball, game.paddles.up);
+        downPaddleCollision(game.ball, game.paddles.down);
+    } else {
+        widthWallsCollision(game.ball);
+    }
 
-	// collision with left paddles
-	if (ball.x - ball.radius <= left.x + left.width &&
-		ball.y >= left.y &&
-		ball.y <= left.y + left.height
-	)
-		ball.vx *= -1;
-	
-	// collision with right paddles
-	if (ball.x + ball.radius >= right.x &&
-		ball.y >= right.y &&
-		ball.y <= right.y + right.height
-	)
-		ball.vx *= -1;
-
-	// ball out of game
-	if (ball.x < left.x) {
-		game.score.right++;
-		game.reset();
-	}
-	else if (ball.x > right.x + right.width) {
-		game.score.left++;
-		game.reset();
-	}
+    if (updatedScore(game.mode, game.ball, game.score)) {
+        game.reset();
+    }
 }
 
 export async function updatePaddle(game: Game) {
-	const left = game.paddles.left;
-	const right = game.paddles.right;
-	if (game.paddleMovement.leftUp == true && left.y >= 0)
-		left.y -= left.speed;
-	if (game.paddleMovement.rightUp == true && right.y >= 0)
-		right.y -= right.speed;
-	if (game.paddleMovement.leftDown == true && left.y + left.height <= game.height)
-		left.y += left.speed;
-	if (game.paddleMovement.rightDown == true && right.y + right.height <= game.height)
-		right.y += right.speed;
+    const left = game.paddles.left;
+    const right = game.paddles.right;
+    const up = game.paddles.up;
+    const down = game.paddles.down;
+    let maxY = game.mode === "remote4" ? 8 : 3.5;
+    let minY = game.mode === "remote4" ? -8 : -3.5;
+    let maxX = 8;
+    let minX = -8;
+
+    if (game.paddleMovement.leftUp && left.y > minY) left.y -= left.speed;
+    if (game.paddleMovement.rightUp && right.y > minY) right.y -= right.speed;
+    if (game.paddleMovement.leftDown && left.y < maxY) left.y += left.speed;
+    if (game.paddleMovement.rightDown && right.y < maxY) right.y += right.speed;
+
+    if (game.paddleMovement.upLeft && up.x > minX) up.x -= up.speed;
+    if (game.paddleMovement.upRight && up.x < maxX) up.x += up.speed;
+    if (game.paddleMovement.downLeft && down.x > minX) down.x -= down.speed;
+    if (game.paddleMovement.downRight && down.x < maxX) down.x += down.speed;
 }
-
-// export async function paddleMoveUp(game: Game, side: "left"|"right") {
-
-// 	const left = game.paddles.left;
-// 	const right = game.paddles.right;
-// 	if (side == "left") {
-// 		if (left.y >= 0)
-// 			game.paddles.left.y -= 20;
-// 	}
-// 	else if (side == "right")
-// 		if (right.y >= 0)
-// 			game.paddles.right.y -= 20;
-// }
-
-// export async function paddleMoveDown(game: Game, side: "left"|"right") {
-
-// 	const left = game.paddles.left;
-// 	const right = game.paddles.right;
-// 	if (side == "left") {
-// 		if (left.y + left.height <= game.height)
-// 			game.paddles.left.y += 20;
-// 	}
-// 	else if (side == "right")
-// 		if (right.y + right.height <= game.height)
-// 			game.paddles.right.y += 20;
-// }

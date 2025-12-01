@@ -1,5 +1,5 @@
 export interface Player {
-	id: string;
+	id?: string;
 	alias: string
 }
 
@@ -7,7 +7,7 @@ export interface MatchRequest {
 	player: Player;
 	mode: "local" | "remote2" | "remote4" | "tournament4" | "tournament8";
 	tournamentRound: number;
-	tournamentId: string;
+	tournamentId?: string;
 }
 
 export interface Match {
@@ -17,6 +17,7 @@ export interface Match {
 	tournamentRound: number;
 	tournamentId: string;
 	status: "waiting" | "running" | "finished";
+	assignments?: Record<string, string>;
 }
 
 export const queues = {

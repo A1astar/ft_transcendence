@@ -1,43 +1,41 @@
-import { randomUUID } from "crypto";
+import {randomUUID} from "crypto";
 
 export const games = new Map<string, Game>();
 export const gameConnections = new Map<string, Set<any>>();
 
 export interface Player {
-	id: string;
-	alias: string;
-};
- 
-export class Game {
-	id = randomUUID();
-	mode = '';
-	players = {
-		left: 0,
-		right: 0
-	}
-	width = 800;
-	height = 600;
-	ball = {
-		x: 400,
-		y: 300,
-		vx: 4,
-		vy: 3,
-		radius: 10
-	};
-	paddles = {
-		left: { x: 30, y: 250, width: 10, height: 100, speed: 10 },
-		right: { x: 760, y: 250, width: 10, height: 100, speed: 10 }
-	};
-	score = { left: 0, right: 0 };
-	paddleMovement = {
-		leftUp: false,
-		leftDown: false,
-		rightUp: false,
-		rightDown: false
-	};
+    id: string;
+    alias: string;
+}
 
-	reset() {
-		this.ball.x = 400;
-		this.ball.y = 300;
-	}
+export class Game {
+    id = randomUUID();
+    mode = "";
+    // mapping side -> player alias (populated from orchestration assignments)
+    playerAliases: Record<string, string> = {};
+    players = {left: 0, right: 0, up: 0, down: 0};
+    ball = {x: 0, y: 2, vx: 0.1, vy: 0.1, radius: 0.35};
+    paddles = {
+        left: {x: -9, y: 0, width: 0.25, height: 2, speed: 0.3},
+        right: {x: 9, y: 0, width: 0.25, height: 2, speed: 0.3},
+        up: {x: 0, y: 9, width: 2, height: 0.25, speed: 0.3},
+        down: {x: 0, y: -9, width: 2, height: 0.25, speed: 0.3},
+    };
+    score = {left: 0, right: 0, up: 0, down: 0};
+    paddleMovement = {
+        leftUp: false,
+        leftDown: false,
+        rightUp: false,
+        rightDown: false,
+        upLeft: false,
+        upRight: false,
+        downLeft: false,
+        downRight: false,
+    };
+    reset() {
+        this.ball.vx = 0.1;
+        this.ball.vy = 0.1;
+        this.ball.x = 0;
+        this.ball.y = 2;
+    }
 }

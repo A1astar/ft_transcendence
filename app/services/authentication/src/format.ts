@@ -1,7 +1,8 @@
 import { User } from "./user.js"
 
-export interface RegisterFormat {
+export interface RegistrationFormat {
     name: string;
+    email: string;
     password: string;
 }
 
@@ -10,30 +11,60 @@ export interface LoginFormat {
     password: string;
 }
 
-export interface DeleteFormat {
+export interface AuthenticationFormat {
     name: string;
-    password: string;
+    email: string;
+    passwordHash: string;
 }
 
 export interface UserFormat {
-    name: string;
-    password: string;
+  id: number;                    // primary key
+  email: string;
+  passwordHash: string;
+
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  role?: string;                 // admin, user, etc.
+  status?: string;               // active, suspended, etc.
+
+  profileImageUrl?: string;
+
+  lastLoginAt?: string;          // ISO timestamp
+  createdAt: string;
+  updatedAt: string;
+  deletedAt?: string;
 }
 
-function passwordValid(password: string) : boolean {
-    if (password.length < 12 && password.length > 64)
-        throw new Error("Password must contain a least 12 - 64 character");
-    return true;
-}
+export interface SessionFormat {
+  id: number;                    // primary key
+  sessionId: string;             // cookie or token identifier
+  userId?: number;               // null for guests
 
-function usernameValid(username: string) : boolean {
-    // if (username.length == 0 && /^[a-zA-Z0-9])
-    return true;
-}
+  accessToken?: string;
+  refreshToken?: string;
+  csrfToken?: string;
+  scope?: string;                // OAuth scopes or custom permissions
 
-export function userFormatCorrect(user: UserFormat) : boolean {
+  ipAddress?: string;
+  userAgent?: string;
+  deviceType?: string;
+  os?: string;
+  browser?: string;
 
-    if (usernameValid(user.name) && passwordValid(user.password))
-        return true;
-    return false;
+  isActive: boolean;
+  isRevoked: boolean;
+  failedAttempts: number;
+
+  loginMethod?: string;          // password, oauth_google, etc.
+  mfaPassed?: boolean;
+  riskLevel?: "low" | "medium" | "high";
+  location?: string;
+
+  sessionData?: Record<string, any>;
+
+  createdAt: string;
+  updatedAt: string;
+  lastAccessedAt: string;
+  expiresAt: string;
 }

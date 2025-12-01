@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { Player, MatchRequest, Match, queues } from "./objects.js";
-import { createMatch } from "./utils.js"
+import { createMatch } from "./utils.js";
+import { GAME_ENGINE_START_ENDPOINT } from "./config.js";
 
 
 export async function localMatch(fastify: FastifyInstance) {
@@ -11,7 +12,7 @@ export async function localMatch(fastify: FastifyInstance) {
 	if (queues.local.length == 2) {
 	  const matchPlayers = queues.local.splice(0,2);
 	  const match: Match = createMatch(matchPlayers, "local", 0);
-	  const res = await fetch("http://localhost:3003/game-engine/start", {
+	  const res = await fetch(GAME_ENGINE_START_ENDPOINT, {
 		method: "POST",
 		headers: {"Content-Type": "application/json"},
 		body: JSON.stringify(match)

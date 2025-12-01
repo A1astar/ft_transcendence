@@ -2,14 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY *.json ./
+RUN apk add --no-cache git openssh-client
 
-RUN npm ci --production
+COPY package*.json tsconfig.json ./
+
+# RUN npm ci --production
+RUN npm install
 
 COPY . .
 
 RUN npm run build
 
-EXPOSE 3000
+EXPOSE 3004
 
 CMD ["npm", "start"]

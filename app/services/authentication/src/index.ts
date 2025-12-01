@@ -1,289 +1,184 @@
+import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import session from '@fastify/session';
-import fastifyCookie from '@fastify/cookie';
-import Database from "./database.js";
-import { userFormatCorrect, RegisterFormat } from './format.js';
-import BetterSQLite3Database from "better-sqlite3"
-import { User } from "./user.js";
-import HashiCorpVault from 'node-vault';
+
+import crypto from 'crypto';
 import color from 'chalk';
 
-function printRequest(request: FastifyRequest) {
-    console.log(color.bold.italic.blue('\n----- REQUEST -----'));
-    // console.log(request);
-    // console.log(request.body)
-    // console.log(request.query)
-    // console.log(request.params)
-    // console.log(request.headers)
-    // console.log(request.raw) <---
-    // console.log(request.server) <---
-    // console.log(request.id)
-    // console.log(request.ip)
-    // console.log(request.ips)
-    // console.log(request.host)
-    // console.log(request.hostname)
-    // console.log(request.port)
-    // console.log(request.protocol)
-    // console.log(request.url)
-    // console.log(request.routeOptions.method)
-    // console.log(request.routeOptions.bodyLimit)
-    // console.log(request.routeOptions.method)
-    // console.log(request.routeOptions.url)
-    // console.log(request.routeOptions.attachValidation)
-    // console.log(request.routeOptions.logLevel)
-    // console.log(request.routeOptions.version)
-    // console.log(request.routeOptions.exposeHeadRoute)
-    // console.log(request.routeOptions.prefixTrailingSlash)
-    // console.log(request.routeOptions.logLevel)
-    // request.log.info('some info')
+import { initAuthenticationService } from './init.js';
+import { RegistrationFormat, UserFormat, LoginFormat } from './format.js';
+import { SQLiteDatabase } from "./database.js";
+import { printRequest } from './print.js';
+import { User } from "./user.js";
+import { VaultService } from './vault.js';
+
+
+function printSession(request: FastifyRequest) {
+    console.log(color.bold.white('Session ID:'));
+    console.log(color.bold.white('Cookie ID:'));
 }
 
-function getRequestHeaders(request: FastifyRequest) : object {
-    if (!request.headers)
-        return {};
-    return Object.entries(request.headers);
-}
+async function logAccount(request: FastifyRequest, reply: FastifyReply,
+            sqlite: SQLiteDatabase, vaultClient: VaultService) : Promise<void> {
 
-function getRequestBody(request: FastifyRequest) : object {
-    if (!request.body || typeof request.body !== 'object')
-        return {};
-    return Object.entries(request.body);
-}
-
-function logAccount(request: FastifyRequest, database: Database) {
     console.log(color.bold.italic.yellow("----- LOGIN -----"));
-    printRequest(request);
+    await sqlite.loginUser(request, reply);
 }
 
-function registerAccount(request: FastifyRequest, database: Database) {
+async function registerOAuth(path: string, request: FastifyRequest,
+    reply: FastifyReply, sqlite: SQLiteDatabase, vaultClient: VaultService, fastify: FastifyInstance) {
+    let provider;
+    const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
-    console.log(color.bold.italic.yellow("\n----- REGISTER -----"));
+    if (oauthMatch) {
+        provider = oauthMatch[1];
+        console.log(color.bold.blue(provider));
+    }
 
-    const headers = getRequestHeaders(request);
-    const userInfo = getRequestBody(request) as RegisterFormat;
+    switch (provider) {
+        case 'google':
+            if (path.includes('/callback')) {
+                try {
+                    const token = await (fastify as any).googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
 
-    if (userFormatCorrect(userInfo))
-        database.addUser(userInfo);
+                    const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+                        headers: {
+                            Authorization: `Bearer ${token.token.access_token}`
+                        }
+                    });
+                    const userInfo = await userInfoRes.json();
+
+                    const user = await sqlite.loginOrRegisterOAuthUser(request, {
+                        email: userInfo.email,
+                        name: userInfo.name || userInfo.email.split('@')[0]
+                    });
+
+                    // Redirect to frontend
+                    reply.redirect('/gameMenu');
+                } catch (err) {
+                    console.error('OAuth callback error:', err);
+                    reply.redirect('/login?error=oauth_failed');
+                }
+            } else {
+                // Start flow handled by plugin usually, but if we are here, it might be the start request
+                // intercepted by our wildcard.
+                // We should let the plugin handle it if possible, but since we are in a wildcard handler,
+                // we might need to delegate.
+                // However, fastify-oauth2 adds a route. Fastify routes take precedence.
+                // If we reached here, maybe the plugin route didn't catch it?
+                // Or maybe the regex match above is catching it?
+                // The plugin registers '/api/auth/oauth/google'.
+                // If the request is exactly that, the plugin handler should run.
+                // If we are here, maybe something is wrong or we are handling it manually?
+                // Actually, if fastify.all('/*') is defined, it might intercept.
+                // I will try to rely on the plugin route for start.
+                // If we are here for start, it's an issue.
+                // But for callback, we need to handle it.
+
+                // If it is NOT callback, and it IS google, we should probably do nothing and let the plugin route handle?
+                // But we are already inside the handler for the request.
+                // We can't easily "pass" to the next handler in this structure.
+
+                // Workaround: explicitly call the start redirect if needed.
+                // But simpler: check if it is exactly the start path.
+                if (path === '/api/auth/oauth/google') {
+                     // It seems the plugin didn't catch it or we shadowed it.
+                     // We can trigger the redirect manually?
+                     // (fastify as any).googleOAuth2.startRedirectPath(request, reply);
+                     // Not exposed like that easily.
+                     // Let's assume the plugin route works and we only get here for callback
+                     // because callback route is NOT registered by the plugin (only the URI is config).
+
+                     reply.code(404).send({ error: "Expected plugin to handle this" });
+                }
+            }
+            break;
+        case 'intra42':
+            console.log(color.bold.cyan('intra42'));
+            break;
+        default:
+            reply.code(409).send({ error: "Wrong oauth provider." });
+    }
 }
 
-async function manageRequest(fastify: FastifyInstance, database: Database) {
+async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, vaultClient: VaultService) {
 
     fastify.all('/*', async(request, reply) => {
-        const path = request.raw.url;
+        // request.raw.url contains the full path and query string (e.g. /foo?bar=baz)
+        const fullPath = request.raw.url;
+        // We parse it to get just the pathname for switching
+        const urlObj = new URL(fullPath || '', 'http://localhost');
+        const pathname = urlObj.pathname;
 
-        switch (path) {
-            case "/auth/login":
-                logAccount(request, database);
+        // If the path matches the Google OAuth start path, and fastify-oauth2 registered a route,
+        // Fastify should have handled it if it was a specific route.
+        // But if we are here, it means we matched /*.
+        // We'll try to avoid interfering if it's the start path, but currently we are interfering.
+        // However, fastify-oauth2 registers the route.
+
+        console.log(color.bold.blue('Authentication'), color.cyan(`${request.method} ${fullPath}`));
+
+        switch (pathname) {
+            case "/api/auth/login":
+                await logAccount(request, reply, sqlite, vaultClient);
                 break;
-            case "/auth/register":
-                registerAccount(request, database);
+            case "/api/auth/register":
+                await sqlite.registerUser(request, reply);
+                break;
+            case "/api/auth/logout":
+                // destroy session if present
+                try {
+                    const sess = (request as any).session;
+                    if (sess && typeof sess.destroy === 'function') {
+                        sess.destroy(() => {});
+                    } else if (sess) {
+                        // clear session object
+                        for (const k of Object.keys(sess)) delete (sess as any)[k];
+                    }
+                    reply.code(200).send({ message: 'Logged out' });
+                } catch (err) {
+                    console.error('[auth] logout error', err);
+                    reply.code(500).send({ error: 'Logout failed' });
+                }
+                break;
+            case "/api/auth/userinfo":
+                await sqlite.getUserinfo(request, reply);
                 break;
             default:
-                reply.code(404).send({ error: "Route not found "});
+                if (pathname.startsWith('/api/auth/oauth/')) {
+                    await registerOAuth(fullPath || '', request, reply, sqlite, vaultClient, fastify);
+                } else {
+                    reply.code(404).send({ error: "Route not found" });
+                }
                 break;
         }
     });
 }
 
-function initAuthenticationService(fastify: FastifyInstance) {
-    fastify.register(fastifyCookie);
-    fastify.register(session, {
-        secret: 'a random secret that shoud be longer than length 32',
-        cookie: { secure: false, maxAge: 3600 * 1000 },
-    });
-
-    fastify.listen({ port: 3001, host: "0.0.0.0" }, function (err, address) {
-    if (err) {
-        fastify.log.error(err);
-        throw err;
-    }
-    })
-    console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
-}
-
-function start() {
-
-    const fastify = Fastify({
-        // AJV options for schema validation
-        ajv: {
-            customOptions: {},
-            plugins: []
-        },
-
-        // Body size limit (bytes)
-        bodyLimit: 1048576,                 // default: 1MB
-
-        // Case sensitivity for routes
-        // caseSensitive: true,                // default: true
-
-        // Connection timeout (milliseconds)
-        connectionTimeout: 0,               // default: 0 (disabled)
-
-        // Disable request logging
-        disableRequestLogging: false,       // default: false
-
-        // Expose HEAD routes for GET routes
-        exposeHeadRoutes: true,             // default: true
-
-        // Force close connections on close
-        forceCloseConnections: false,       // default: false
-
-        // Custom request ID generator
-        // genReqId: (req) => {                // default: incremental counter
-        //     return `req-${Date.now()}-${Math.random()}`;
-        // },
-
-        // HTTP/2 support
-        // http2: false,                       // default: false
-
-        // HTTP/2 session timeout
-        // http2SessionTimeout: 72000,         // default: 72000ms (72s)
-
-        // HTTPS/TLS options
-        // https: undefined,                   // default: undefined (provide { key, cert } for HTTPS)
-
-        // Ignore trailing slashes in routes
-        // ignoreTrailingSlash: false,         // default: false
-
-        // Ignore duplicate slashes in routes
-        // ignoreDuplicateSlashes: false,      // default: false
-
-        // Keep-alive timeout
-        keepAliveTimeout: 72000,            // default: 72000ms (Node.js default)
-
-        // Logging configuration
-        logger: true,                       // default: false (or pino options)
-
-        // Max param length
-        // maxParamLength: 100,                // default: 100
-
-        // Max request headers count
-        maxRequestsPerSocket: 0,            // default: 0 (unlimited)
-
-        // On protocol error behavior
-        // onProtocolError: 'error',           // default: 'error' | 'ignore'
-
-        // Plugin timeout
-        pluginTimeout: 10000,               // default: 10000ms (10s)
-
-        // Query string parser
-        // querystringParser: undefined,       // default: undefined (uses Node's)
-
-        // Request ID header name
-        requestIdHeader: false,             // default: false (or string header name)
-
-        // Request ID log label
-        requestIdLogLabel: 'reqId',         // default: 'reqId'
-
-        // Request timeout
-        requestTimeout: 0,                  // default: 0 (disabled)
-
-        // Return 503 on closing
-        return503OnClosing: true,           // default: true
-
-        // Rewrite URL function
-        rewriteUrl: undefined,              // default: undefined
-
-        // Schema controller
-        schemaController: undefined,        // default: undefined
-
-        // Schema error formatter
-        schemaErrorFormatter: undefined,    // default: undefined
-
-        // Serializer options
-        serializerOpts: {},                 // default: {}
-
-        // Server factory (custom server)
-        serverFactory: undefined,           // default: undefined
-
-        // Trust proxy
-        trustProxy: false,                  // default: false (or true, string, number, function)
-
-        // Versioning options
-        // versioning: undefined,              // default: undefined
-    });
-
-    const vault = HashiCorpVault({
-        // API version
-        apiVersion: 'v1',                    // default: 'v1' (can be 'v1' or 'v2')
-
-        // Vault server endpoint
-        endpoint: 'http://vault:8200',       // default: process.env.VAULT_ADDR || 'http://127.0.0.1:8200'
-
-        // Authentication token
-        token: 'your-vault-token',           // default: process.env.VAULT_TOKEN
-
-        // Namespace (Vault Enterprise feature)
-        namespace: 'admin',                  // default: undefined
-
-        // Path prefix for all requests
-        pathPrefix: '',                      // default: '' (e.g., '/v1' is added automatically)
-
-
-        // Custom request options (passed to 'request' library)
-        requestOptions: {
-            // Request timeout (milliseconds)
-            timeout: 10000,                      // default: 10000 (10 seconds)
-
-            // TLS/SSL options
-            ca: undefined,                     // CA certificate
-            cert: undefined,                   // Client certificate
-            key: undefined,                    // Client key
-            rejectUnauthorized: true,          // default: true (verify SSL certificates)
-
-            // Proxy settings
-            proxy: undefined,                  // HTTP proxy URL
-
-            // Keep-alive
-            forever: false,                    // default: false (use keep-alive)
-
-            // Other HTTP options
-            headers: {},                       // Custom headers
-            agentOptions: {},                  // HTTP agent options
-        },
-
-        // Mustache-style templating for paths
-        mustache: undefined,                 // default: undefined
-
-        // Debug mode (logs requests)
-        debug: undefined,                    // default: undefined
-
-        // Custom status codes to treat as success
-        noCustomHTTPVerbs: false,            // default: false
-
-        // Custom HTTP client
-        // rpInitialized: undefined,            // default: undefined (uses 'request-promise')
-    });
-
-    const database = new Database();
-    const betterSQLite3 = new BetterSQLite3Database("database.db", {
-        // Read-only mode
-        readonly: false,                    // default: false
-
-        // File must exist (throws error if not)
-        fileMustExist: false,              // default: false
-
-        // Connection timeout (milliseconds)
-        timeout: 5000,                     // default: 5000ms
-
-        // Verbose mode - logs SQL statements
-        verbose: undefined,                // default: undefined (or function to log)
-        // verbose: console.log,           // Example: log all SQL
-
-        // Native binding options
-        nativeBinding: undefined,          // default: undefined (path to native module)
-    });
-
-    betterSQLite3.exec(`
-    `);
-
+async function main() {
     try {
-        initAuthenticationService(fastify);
-        manageRequest(fastify, database);
+        const fastify = await initAuthenticationService();
+        const sqlite = new SQLiteDatabase();
+        const vaultClient = new VaultService();
+
+        // Try to initialize Vault, but don't fail if it's not available
+        try {
+            await vaultClient.initialize();
+        } catch (vaultError) {
+            console.log(color.yellow('Vault not available, continuing without it'));
+        }
+
+        // Register routes BEFORE starting the server
+        await manageRequest(fastify, sqlite, vaultClient);
+
+        // Now start the server
+        await fastify.listen({ port: 3001, host: "0.0.0.0" });
+        //console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
+        console.log(color.green.bold("Authentication Service running on port 3001"));
 
     } catch (err) {
         console.error(err);
+        process.exit(1);
     }
 }
 
-start();
+main();

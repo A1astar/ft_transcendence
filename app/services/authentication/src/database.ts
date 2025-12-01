@@ -1,86 +1,291 @@
-import { User, generateId } from "./user.js"
-import { UserFormat } from "./format.js";
+import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
+import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
-export default class Database {
-    private users: Map<string, User> = new Map();
+import fastifySession from '@fastify/session';
+import fastifyCookie from '@fastify/cookie';
+import fastifyJWT from '@fastify/jwt';
 
-    // getUser(username: string) : User {
-    //     return this.users.get(username);
-    // }
+import { AuthenticationFormat, RegistrationFormat, LoginFormat } from "./format.js";
+import { User, generateId } from "./user.js";
+import { 
+    validateRegistrationData, 
+    validateLoginData, 
+    ValidationError, 
+    sendValidationError,
+    checkRateLimit 
+} from "./validators.js";
 
-    async authenticateUser(req: UserFormat) : Promise<boolean> {
-        const user = this.users.get(req.name);
+import crypto from 'crypto';
+import chalk from 'chalk';
 
-        if (!user)
-            return false;
-        // should decode / decrypt first
-        if (user.password == req.password)
-            return false;
-        return true;
-    }
-
-    addUser(req: UserFormat) {
-        let user = new User(req.name, req.password);
-
-        this.users.set(user.name, user);
-    }
-
-    deleteUser(req: UserFormat) {
-        const user = this.users.get(req.name);
-
-        if (!user)
-            return;
-
-        this.users.delete(user.name);
-    }
+export interface Session {
+    id: string,
+    userId: string
 }
 
-/*
-// Database Connection
-db.close()
-db.pragma(string, options?)
-db.checkpoint(databaseName?)
-db.function(name, options?, function)
-db.aggregate(name, options)
-db.table(name, definition)
-db.loadExtension(path)
-db.backup(destination, options?)
-db.serialize(options?)
-db.defaultSafeIntegers(toggle?)
-db.unsafeMode(unsafe?)
+export class SQLiteDatabase {
+    private sqlite: BetterSQLite3Database;
 
-// Query Execution
-db.exec(sql)                                    // Execute SQL without return
-db.prepare(sql)                                 // Returns statement object
+    constructor() {
+        this.sqlite = new BetterSQLite3("user-management.db", {
+            // Read-only mode
+            readonly: false,                    // default: false
 
-// Prepared Statements
-stmt.run([...bindParameters])                   // Execute, returns info object
-stmt.get([...bindParameters])                   // Returns first row or undefined
-stmt.all([...bindParameters])                   // Returns array of all rows
-stmt.iterate([...bindParameters])               // Returns iterator
-stmt.pluck(toggleState?)                        // Returns only first column
-stmt.expand(toggleState?)                       // Returns objects with column names
-stmt.raw(toggleState?)                          // Returns arrays instead of objects
-stmt.columns()                                  // Returns column information
-stmt.bind([...bindParameters])                  // Bind parameters permanently
-stmt.safeIntegers(toggleState?)                 // Handle large integers safely
+            // File must exist (throws error if not)
+            fileMustExist: false,              // default: false
 
-// Transactions
-db.transaction(function)                        // Returns transaction function
-transaction.default()                           // Set as default mode
-transaction.deferred()                          // Deferred transaction
-transaction.immediate()                         // Immediate transaction
-transaction.exclusive()                         // Exclusive transaction
+            // Connection timeout (milliseconds)
+            timeout: 5000,                     // default: 5000ms
 
-// Database Information
-db.memory                                       // Boolean - in-memory database
-db.readonly                                     // Boolean - read-only mode
-db.name                                         // Database file path
-db.open                                         // Boolean - connection open
-db.inTransaction                                // Boolean - in transaction
+            // Verbose mode - logs SQL statements
+            verbose: undefined,                // default: undefined (or function to log)
+            // verbose: console.log,           // Example: log all SQL
 
-// Statement Information
-stmt.reader                                     // Boolean - is SELECT statement
-stmt.readonly                                   // Boolean - read-only statement
-stmt.source                                     // Original SQL source
-*/
+            // Native binding options
+            nativeBinding: undefined,          // default: undefined (path to native module)
+        });
+
+        this.sqlite.exec(`
+                CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                pseudo TEXT,
+                name TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                email TEXT,
+                created_at INTEGER DEFAULT (strftime('%s', 'now'))
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
+            CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+        `);
+    }
+
+    async registerUser(request: FastifyRequest, reply: FastifyReply) : Promise<void> {
+        // Rate limiting - prevent abuse
+        const clientIp = request.ip || 'unknown';
+        if (!checkRateLimit(`register:${clientIp}`, 10, 60000)) {
+            reply.code(429).send({ error: 'Too many registration attempts. Please try again later.' });
+            return;
+        }
+
+        try {
+            // Validate and sanitize input
+            const validatedData = validateRegistrationData(request.body);
+
+            const id = crypto.randomUUID();
+            // Hash password using scrypt with a random salt
+            const salt = crypto.randomBytes(16).toString('hex');
+            const derivedKey = crypto.scryptSync(validatedData.password, salt, 64) as Buffer;
+            const passwordStored = `${salt}:${derivedKey.toString('hex')}`;
+
+            const stmt = this.sqlite.prepare(`
+                INSERT INTO users (id, name, email, password)
+                VALUES (?, ?, ?, ?)
+            `);
+
+            try {
+                stmt.run(id, validatedData.name, validatedData.email, passwordStored);
+                
+                // Explicitly clear any session data to prevent auto-login after registration
+                try {
+                    const sess = (request as any).session;
+                    if (sess) {
+                        // Clear session to ensure user must login explicitly
+                        for (const key of Object.keys(sess)) {
+                            delete (sess as any)[key];
+                        }
+                    }
+                } catch (e) {
+                    // Session clearing failed, but registration succeeded
+                    console.warn('[auth] Failed to clear session after registration:', e);
+                }
+                
+                reply.code(201).send({ 
+                    id, 
+                    name: validatedData.name, 
+                    email: validatedData.email 
+                });
+            } catch (error: any) {
+                console.error('[auth] registerUser database error:', error);
+                if (error && error.code === 'SQLITE_CONSTRAINT') {
+                    reply.code(409).send({ error: 'User with this name or email already exists' });
+                    return;
+                }
+                reply.code(500).send({ error: 'Failed to register user' });
+                return;
+            }
+
+            this.printDatabase();
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                sendValidationError(reply, error);
+            } else {
+                console.error('[auth] registerUser unexpected error:', error);
+                reply.code(500).send({ error: 'Internal server error' });
+            }
+        }
+    }
+
+    printDatabase() {
+        // this.sqlite.
+    }
+
+    async loginUser(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+        // Rate limiting - prevent brute force attacks
+        const clientIp = request.ip || 'unknown';
+        if (!checkRateLimit(`login:${clientIp}`, 20, 60000)) {
+            reply.code(429).send({ error: 'Too many login attempts. Please try again later.' });
+            return;
+        }
+
+        try {
+            // Validate and sanitize input
+            const validatedData = validateLoginData(request.body);
+            
+            console.log('[auth] loginUser - attempting login for user:', validatedData.name);
+
+            // Get user from database
+            const stmt = this.sqlite.prepare(`
+                SELECT id, name, email, password, created_at
+                FROM users 
+                WHERE name = ?
+            `);
+
+            const user = stmt.get(validatedData.name) as any;
+            
+            if (!user) {
+                console.log(`[auth] User not found: ${validatedData.name}`);
+                reply.code(401).send({ error: 'Invalid credentials' });
+                return;
+            }
+
+            // Verify password
+            const [salt, storedHash] = user.password.split(':');
+            const derivedKey = crypto.scryptSync(validatedData.password, salt, 64) as Buffer;
+            const providedHash = derivedKey.toString('hex');
+
+            if (providedHash !== storedHash) {
+                console.log(`[auth] Password mismatch for user: ${validatedData.name}`);
+                reply.code(401).send({ error: 'Invalid credentials' });
+                return;
+            }
+
+            // Successful login
+            console.log(chalk.green(`[auth] Login successful for user: ${validatedData.name}`));
+            
+            // Set session so the client receives a session cookie
+            try {
+                const sess = (request as any).session;
+                if (sess) {
+                    sess.userId = user.id;
+                    sess.username = user.name;
+                }
+            } catch (e) {
+                // If session isn't available, continue without failing login
+                console.warn('[auth] session unavailable, continuing without session');
+            }
+
+            reply.code(200).send({ 
+                id: user.id, 
+                name: user.name, 
+                email: user.email,
+                message: 'Login successful'
+            });
+
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                sendValidationError(reply, error);
+            } else {
+                console.error('[auth] loginUser unexpected error:', error);
+                reply.code(500).send({ error: 'Internal server error during login' });
+            }
+        }
+    }
+    
+    async getUserinfo(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+        try {
+            const sess = (request as any).session;
+            const userId = sess?.userId;
+            if (!userId) {
+                reply.code(401).send({ error: 'Not authenticated' });
+                return;
+            }
+
+            const stmt = this.sqlite.prepare(`
+                SELECT id, name as username, email
+                FROM users
+                WHERE id = ?
+            `);
+
+            const user = stmt.get(userId) as any;
+            if (!user) {
+                reply.code(401).send({ error: 'Not authenticated' });
+                return;
+            }
+
+            // Basic stats placeholders; replace with real aggregates if you have a games table
+            const gamePlayed = 0;
+            const gameWon = 0;
+            const gameLost = 0;
+            const winRate = 0;
+
+            reply.code(200).send({
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                gamePlayed,
+                gameWon,
+                gameLost,
+                winRate,
+            });
+        } catch (err) {
+            console.error('[auth] getUserinfo error:', err);
+            reply.code(500).send({ error: 'Server error' });
+        }
+    }
+
+    async loginOrRegisterOAuthUser(request: FastifyRequest, oauthUser: { email: string, name: string }): Promise<any> {
+        // Check if user exists by email
+        const stmt = this.sqlite.prepare(`
+            SELECT id, name, email, password
+            FROM users
+            WHERE email = ?
+        `);
+        let user = stmt.get(oauthUser.email) as any;
+
+        if (!user) {
+            // Register new user
+            const id = crypto.randomUUID();
+            // Generate a random password for OAuth users
+            const password = crypto.randomBytes(16).toString('hex');
+            const salt = crypto.randomBytes(16).toString('hex');
+            const derivedKey = crypto.scryptSync(password, salt, 64) as Buffer;
+            const passwordStored = `${salt}:${derivedKey.toString('hex')}`;
+
+            // Handle potential name collision
+            let name = oauthUser.name;
+            let suffix = 1;
+            while (true) {
+                 const nameCheck = this.sqlite.prepare('SELECT 1 FROM users WHERE name = ?').get(name);
+                 if (!nameCheck) break;
+                 name = `${oauthUser.name}${suffix++}`;
+            }
+
+            const insertStmt = this.sqlite.prepare(`
+                INSERT INTO users (id, name, email, password)
+                VALUES (?, ?, ?, ?)
+            `);
+            insertStmt.run(id, name, oauthUser.email, passwordStored);
+            user = { id, name, email: oauthUser.email };
+        }
+
+        // Set session
+        const sess = (request as any).session;
+        if (sess) {
+            sess.userId = user.id;
+            sess.username = user.name;
+        }
+
+        return user;
+    }
+};

@@ -1,13 +1,23 @@
+export function getServerBase(): string {
+    const currentUrl = window.location.href;
+    const match = currentUrl.match(/https?:\/\/([^:\/]+)/);
+    const host = match ? match[1] : "localhost";
+    return `${host}`;
+}
+
+export const SERVER_BASE = getServerBase();
+
 export function clearDiv(Div: HTMLElement | null): void {
     if (Div) {
         Div.innerHTML = "";
     }
 }
 
-export function createBoxDiv(id : string): HTMLDivElement {
+export function createBoxDiv(id: string): HTMLDivElement {
     const boxDiv = document.createElement("div");
     boxDiv.id = id;
-    boxDiv.className = "bg-gradient-to-br from-gray-800 via-gray-900 to-black p-8 rounded-3xl \
+    boxDiv.className =
+        "bg-gradient-to-br from-gray-800 via-gray-900 to-black p-8 rounded-3xl \
     shadow-2xl w-96 border-4 border-amber-900/60 backdrop-blur-md ring-2 ring-amber-700/40";
     return boxDiv;
 }
@@ -34,7 +44,7 @@ export function createVideoBackgroundDiv(videoPath: string): HTMLVideoElement {
 export function createLogoElement(
     logoPath: string,
     logoName: string,
-    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center"
+    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center",
 ): HTMLImageElement {
     const logoImg = document.createElement("img");
     logoImg.src = logoPath;
@@ -77,7 +87,7 @@ export function createLogoElement(
 
 export function createHeadingText(
     text: string,
-    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center"
+    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center",
 ): HTMLHeadingElement {
     const titleH1 = document.createElement("h1");
     titleH1.className =
@@ -115,7 +125,7 @@ export function createHeadingText(
 
 export function createSubheadingText(
     text: string,
-    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center"
+    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center",
 ): HTMLHeadingElement {
     const subtitleH2 = document.createElement("h2");
     subtitleH2.className =
@@ -153,7 +163,7 @@ export function createSubheadingText(
 
 export function createParagraphText(
     text: string,
-    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center"
+    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center",
 ): HTMLParagraphElement {
     const quoteP = document.createElement("p");
     quoteP.className =
@@ -231,10 +241,7 @@ export function createButtonLink(
     return backLink;
 }
 
-export function createButtonForm(
-    text: string,
-    id: string
-): HTMLButtonElement {
+export function createButtonForm(text: string, id: string): HTMLButtonElement {
     const button = document.createElement("button");
     button.type = "submit";
     button.id = id;
@@ -247,8 +254,9 @@ export function createButtonForm(
     return button;
 }
 
-export function createFormElement( id: string,
-    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center"
+export function createFormElement(
+    id: string,
+    position: "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center" = "center",
 ): HTMLFormElement {
     const formEl = document.createElement("form");
     formEl.id = id;
@@ -298,4 +306,28 @@ export function createInputElement(
 	text-amber-200 placeholder-amber-600 focus:outline-none focus:ring-2 \
 	focus:ring-amber-700 focus:border-amber-700 transition font-lora";
     return input;
+}
+
+export function createCanvas(): HTMLCanvasElement {
+    const canvas = document.createElement("canvas");
+
+    canvas.height = 864;
+    canvas.width = 1536;
+
+    canvas.style.borderRadius = "16px";
+    canvas.style.border = "1px solid rgba(255, 255, 255, 0.08)";
+
+    canvas.style.boxShadow = `
+        0 0 30px rgba(255, 125, 0, 0.25),
+        0 0 8px rgba(255, 180, 60, 0.35) inset
+    `;
+
+    canvas.style.background = "rgba(0, 0, 0, 0.3)";
+    canvas.style.backdropFilter = "blur(8px)";
+
+    canvas.style.display = "block";
+    canvas.style.margin = "40px auto";
+    canvas.style.transition = "box-shadow 0.3s ease, transform 0.2s ease";
+
+    return canvas;
 }

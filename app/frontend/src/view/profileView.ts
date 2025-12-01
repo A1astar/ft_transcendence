@@ -24,42 +24,70 @@ export async function renderProfile() {
             }
             const userData = await res.json();
 
-            const accountFormDiv = createFormElement("profileForm");
-            accountFormDiv.appendChild(createParagraphText("Username: " + userData.username));
-            accountFormDiv.appendChild(createParagraphText("Email: " + userData.email));
+            appDiv.appendChild(createVideoBackgroundDiv("../public/backgrounds/Sauron.mp4"));
 
-            const sessionFormDiv = createFormElement("sessionForm");
-            sessionFormDiv.appendChild(createButtonForm("Logout", "logout"));
+            const mainContainer = document.createElement("div");
+            mainContainer.className =
+                "flex flex-col items-center justify-center min-h-screen p-8 relative z-10";
 
-            const statFormDiv = createFormElement("statForm");
-            statFormDiv.appendChild(createParagraphText("played: " + userData.gamePlayed));
-            statFormDiv.appendChild(createParagraphText("Won: " + userData.gameWon));
-            statFormDiv.appendChild(createParagraphText("Lost: " + userData.gameLost));
-            statFormDiv.appendChild(createParagraphText("Win Rate: " + userData.winRate + "%"));
+            const logo = createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo");
+            logo.className += " mb-6";
+            mainContainer.appendChild(logo);
+
+            const heading = createHeadingText("Lord of Transcendence");
+            heading.className += " mb-8 mt-0 text-3xl text-center";
+            heading.style.marginTop = "0px";
+            mainContainer.appendChild(heading);
+
+            const boxesRow = document.createElement("div");
+            boxesRow.className =
+                "flex flex-col md:flex-row gap-4 w-full max-w-lg justify-center items-stretch mb-2";
 
             const accountBoxDiv = createBoxDiv("accountBox");
+            accountBoxDiv.className += " flex-1 px-3 py-1 min-w-[320px] max-w-[480px]";
             accountBoxDiv.appendChild(createSubheadingText("Account"));
+            const accountFormDiv = createFormElement("profileForm");
+            const usernameBox = document.createElement("div");
+            usernameBox.className = "bg-gray-800/30 rounded-lg p-2 mb-2 flex flex-col items-center";
+            const usernameLabel = createParagraphText("Username:");
+            usernameLabel.className += " font-semibold mb-1";
+            usernameBox.appendChild(usernameLabel);
+            const usernameValue = createParagraphText(userData.username);
+            usernameValue.className += " text-lg";
+            usernameBox.appendChild(usernameValue);
+            accountFormDiv.appendChild(usernameBox);
+
+            const emailBox = document.createElement("div");
+            emailBox.className =
+                "bg-gray-800/30 rounded-lg px-2 py-1 mb-1 flex flex-col items-center";
+            const emailLabel = createParagraphText("Email:");
+            emailLabel.className += " font-semibold mb-1";
+            emailBox.appendChild(emailLabel);
+            const emailValue = createParagraphText(userData.email);
+            emailValue.className += " text-lg";
+            emailBox.appendChild(emailValue);
+            accountFormDiv.appendChild(emailBox);
             accountBoxDiv.appendChild(accountFormDiv);
 
+            boxesRow.appendChild(accountBoxDiv);
+            mainContainer.appendChild(boxesRow);
+
             const sessionBoxDiv = createBoxDiv("sessionBox");
+            sessionBoxDiv.className += " w-full max-w-xs mx-auto p-3 mt-2";
             sessionBoxDiv.appendChild(createSubheadingText("Session"));
+            const sessionFormDiv = createFormElement("sessionForm");
+            const logoutBtn = createButtonForm("Logout", "logout");
+            logoutBtn.type = "button";
+            sessionFormDiv.appendChild(logoutBtn);
             sessionBoxDiv.appendChild(sessionFormDiv);
+            mainContainer.appendChild(sessionBoxDiv);
 
-            const statBoxDiv = createBoxDiv("statsBox");
-            statBoxDiv.appendChild(createSubheadingText("Game Stats"));
-            statBoxDiv.appendChild(statFormDiv);
-
-            appDiv.appendChild(createVideoBackgroundDiv("../public/backgrounds/Sauron.mp4"));
-            appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
-            appDiv.appendChild(createHeadingText("Lord of Transcendence"));
-            appDiv.appendChild(accountBoxDiv);
-            appDiv.appendChild(statBoxDiv);
-            appDiv.appendChild(sessionBoxDiv);
-
+            appDiv.appendChild(mainContainer);
         } catch (err) {
             const box = createBoxDiv("errorBox");
+            box.className += " max-w-md mx-auto mt-16 p-8";
             box.appendChild(createSubheadingText("Error"));
-            box.appendChild(createParagraphText("Failed to load profile"));
+            box.appendChild(createParagraphText("User not logged in"));
             appDiv.appendChild(box);
         }
     }
