@@ -5,12 +5,10 @@ export class LoginViewBinder implements ViewEventBinder {
 	bind() {
 		document.getElementById("login")?.addEventListener("click", this.onLoginClick);
 		document.getElementById("google")?.addEventListener("click", this.onGoogleClick);
-		document.getElementById("intra42")?.addEventListener("click", this.onIntra42Click);
 	}
 	unbind() {
 		document.getElementById("login")?.removeEventListener("click", this.onLoginClick);
 		document.getElementById("google")?.removeEventListener("click", this.onGoogleClick);
-		document.getElementById("intra42")?.removeEventListener("click", this.onIntra42Click);
 	}
 	private onLoginClick = async (event: MouseEvent) => {
 		event.preventDefault();
@@ -35,11 +33,5 @@ export class LoginViewBinder implements ViewEventBinder {
 	private onGoogleClick(this: HTMLElement, event: MouseEvent) {
 		event.preventDefault();
 		window.location.href = "/api/auth/oauth/google";
-	}
-	private onIntra42Click(this: HTMLElement, event: MouseEvent) {
-		event.preventDefault();
-		// Assuming similar path for intra42 or placeholder
-		// window.location.href = "/api/auth/oauth/intra42"; 
-		console.log("Intra42 login not implemented yet");
 	}
 }

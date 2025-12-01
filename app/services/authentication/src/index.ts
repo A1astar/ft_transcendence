@@ -39,21 +39,21 @@ async function registerOAuth(path: string, request: FastifyRequest,
             if (path.includes('/callback')) {
                 try {
                     const token = await (fastify as any).googleOAuth2.getAccessTokenFromAuthorizationCodeFlow(request);
-                    
+
                     const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
                         headers: {
                             Authorization: `Bearer ${token.token.access_token}`
                         }
                     });
                     const userInfo = await userInfoRes.json();
-                    
+
                     const user = await sqlite.loginOrRegisterOAuthUser(request, {
                         email: userInfo.email,
                         name: userInfo.name || userInfo.email.split('@')[0]
                     });
-                    
+
                     // Redirect to frontend
-                    reply.redirect('/');
+                    reply.redirect('/gameMenu');
                 } catch (err) {
                     console.error('OAuth callback error:', err);
                     reply.redirect('/login?error=oauth_failed');
@@ -73,21 +73,21 @@ async function registerOAuth(path: string, request: FastifyRequest,
                 // I will try to rely on the plugin route for start.
                 // If we are here for start, it's an issue.
                 // But for callback, we need to handle it.
-                
+
                 // If it is NOT callback, and it IS google, we should probably do nothing and let the plugin route handle?
                 // But we are already inside the handler for the request.
                 // We can't easily "pass" to the next handler in this structure.
-                
+
                 // Workaround: explicitly call the start redirect if needed.
                 // But simpler: check if it is exactly the start path.
                 if (path === '/api/auth/oauth/google') {
                      // It seems the plugin didn't catch it or we shadowed it.
                      // We can trigger the redirect manually?
-                     // (fastify as any).googleOAuth2.startRedirectPath(request, reply); 
+                     // (fastify as any).googleOAuth2.startRedirectPath(request, reply);
                      // Not exposed like that easily.
-                     // Let's assume the plugin route works and we only get here for callback 
+                     // Let's assume the plugin route works and we only get here for callback
                      // because callback route is NOT registered by the plugin (only the URI is config).
-                     
+
                      reply.code(404).send({ error: "Expected plugin to handle this" });
                 }
             }
@@ -114,9 +114,9 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, v
         // But if we are here, it means we matched /*.
         // We'll try to avoid interfering if it's the start path, but currently we are interfering.
         // However, fastify-oauth2 registers the route.
-        
+
         console.log(color.bold.blue('Authentication'), color.cyan(`${request.method} ${fullPath}`));
-        
+
         switch (pathname) {
             case "/api/auth/login":
                 await logAccount(request, reply, sqlite, vaultClient);
@@ -159,17 +159,17 @@ async function main() {
         const fastify = await initAuthenticationService();
         const sqlite = new SQLiteDatabase();
         const vaultClient = new VaultService();
-        
+
         // Try to initialize Vault, but don't fail if it's not available
         try {
             await vaultClient.initialize();
         } catch (vaultError) {
             console.log(color.yellow('Vault not available, continuing without it'));
         }
-        
+
         // Register routes BEFORE starting the server
         await manageRequest(fastify, sqlite, vaultClient);
-        
+
         // Now start the server
         await fastify.listen({ port: 3001, host: "0.0.0.0" });
         //console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
