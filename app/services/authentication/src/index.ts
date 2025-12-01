@@ -160,13 +160,6 @@ async function main() {
         const sqlite = new SQLiteDatabase();
         const vaultClient = new VaultService();
 
-        // Try to initialize Vault, but don't fail if it's not available
-        try {
-            await vaultClient.initialize();
-        } catch (vaultError) {
-            console.log(color.yellow('Vault not available, continuing without it'));
-        }
-
         // Register routes BEFORE starting the server
         await manageRequest(fastify, sqlite, vaultClient);
 
