@@ -104,6 +104,7 @@ export async function remoteMatch4(fastify: FastifyInstance) {
 	const matchRequest = request.body as MatchRequest;
 	if (queues.remote4.some(p => p.alias === matchRequest.player.alias)) {
       reply.code(400);
+      console.log(`player already in queue`);
       return { error: "Player already in queue" };
     }
 	queues.remote4.push(matchRequest.player);

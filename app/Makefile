@@ -26,7 +26,7 @@ build: setup-certs frontend-build
 
 up: setup-certs frontend-build
 	docker compose -f $(COMPOSE_FILE) build reverse-proxy
-	docker compose -f $(COMPOSE_FILE) up -d
+	docker compose -f $(COMPOSE_FILE) up
 
 down:
 	docker compose -f $(COMPOSE_FILE) down --rmi local
