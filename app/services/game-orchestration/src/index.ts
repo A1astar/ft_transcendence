@@ -5,7 +5,6 @@ import cors from "@fastify/cors";
 import { localMatch } from "./local.js";
 import { remoteMatch2, remoteMatch4 } from "./remote.js";
 import { tournamentMatch } from "./tournament.js";
-import { testMatch } from "./api-test.js";
 import chalk from 'chalk';
 
 
