@@ -1,3 +1,16 @@
 dist/
 node_modules/
 .bkpapp/frontend/styles/output.css
+
+# Environment files
+.env
+*.env
+**/.env
+
+# SSL/TLS certificates
+*.crt
+*.key
+*.pem
+**/*.crt
+**/*.key
+**/*.pem
