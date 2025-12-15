@@ -124,6 +124,12 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, v
             case "/api/auth/register":
                 await sqlite.registerUser(request, reply);
                 break;
+            case "/api/auth/2fa/enable":
+                await sqlite.enableTwoFactor(request, reply);
+                break;
+            case "/api/auth/2fa/disable":
+                await sqlite.disableTwoFactor(request, reply);
+                break;
             case "/api/auth/logout":
                 // destroy session if present
                 try {
@@ -133,6 +139,14 @@ async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, v
                     } else if (sess) {
                         // clear session object
                         for (const k of Object.keys(sess)) delete (sess as any)[k];
+                    }
+                    // Clear JWT cookie if present
+                    try {
+                        (reply as any).clearCookie?.('access_token', {
+                            path: '/',
+                        });
+                    } catch {
+                        // ignore cookie clear errors
                     }
                     reply.code(200).send({ message: 'Logged out' });
                 } catch (err) {

@@ -1,12 +1,6 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
-import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyRequest, FastifyReply } from 'fastify';
 
-import fastifySession from '@fastify/session';
-import fastifyCookie from '@fastify/cookie';
-import fastifyJWT from '@fastify/jwt';
-
-import { AuthenticationFormat, RegistrationFormat, LoginFormat } from "./format.js";
-import { User, generateId } from "./user.js";
 import { 
     validateRegistrationData, 
     validateLoginData, 
@@ -17,6 +11,7 @@ import {
 
 import crypto from 'crypto';
 import chalk from 'chalk';
+import { authenticator } from 'otplib';
 
 export interface Session {
     id: string,
@@ -58,6 +53,46 @@ export class SQLiteDatabase {
             CREATE INDEX IF NOT EXISTS idx_users_name ON users(name);
             CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
         `);
+
+        // 2FA columns (added in a best-effort way; ignore errors if already exist)
+        try {
+            this.sqlite.exec(`
+                ALTER TABLE users ADD COLUMN two_factor_enabled INTEGER DEFAULT 0;
+            `);
+        } catch (e) {
+            // likely column already exists
+        }
+        try {
+            this.sqlite.exec(`
+                ALTER TABLE users ADD COLUMN two_factor_secret TEXT;
+            `);
+        } catch (e) {
+            // likely column already exists
+        }
+    }
+
+    private async getAuthenticatedUserId(request: FastifyRequest): Promise<string | null> {
+        // First, try session-based authentication
+        try {
+            const sess = (request as any).session;
+            if (sess?.userId) {
+                return String(sess.userId);
+            }
+        } catch {
+            // ignore session errors and fall back to JWT
+        }
+
+        // Fallback to JWT-based authentication (Authorization: Bearer ...)
+        try {
+            const payload = await (request as any).jwtVerify?.();
+            if (payload && payload.sub) {
+                return String(payload.sub);
+            }
+        } catch {
+            // invalid/missing JWT
+        }
+
+        return null;
     }
 
     async registerUser(request: FastifyRequest, reply: FastifyReply) : Promise<void> {
@@ -79,8 +114,8 @@ export class SQLiteDatabase {
             const passwordStored = `${salt}:${derivedKey.toString('hex')}`;
 
             const stmt = this.sqlite.prepare(`
-                INSERT INTO users (id, name, email, password)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO users (id, name, email, password, two_factor_enabled, two_factor_secret)
+                VALUES (?, ?, ?, ?, 0, NULL)
             `);
 
             try {
@@ -146,7 +181,9 @@ export class SQLiteDatabase {
 
             // Get user from database
             const stmt = this.sqlite.prepare(`
-                SELECT id, name, email, password, created_at
+                SELECT id, name, email, password, created_at, 
+                       COALESCE(two_factor_enabled, 0) AS two_factor_enabled,
+                       two_factor_secret
                 FROM users 
                 WHERE name = ?
             `);
@@ -170,10 +207,30 @@ export class SQLiteDatabase {
                 return;
             }
 
+            // If 2FA is enabled for this user, require a valid TOTP code
+            if (user.two_factor_enabled) {
+                const body: any = request.body || {};
+                const twoFactorCode = body.twoFactorCode || body.otp || body.code;
+
+                if (!twoFactorCode || typeof twoFactorCode !== 'string') {
+                    reply.code(401).send({
+                        error: 'Two-factor authentication code required',
+                        twoFactorRequired: true,
+                    });
+                    return;
+                }
+
+                const isValid = authenticator.check(twoFactorCode, user.two_factor_secret);
+                if (!isValid) {
+                    reply.code(401).send({ error: 'Invalid two-factor authentication code' });
+                    return;
+                }
+            }
+
             // Successful login
             console.log(chalk.green(`[auth] Login successful for user: ${validatedData.name}`));
             
-            // Set session so the client receives a session cookie
+            // Set session so the client receives a session cookie (for backwards compatibility)
             try {
                 const sess = (request as any).session;
                 if (sess) {
@@ -185,10 +242,41 @@ export class SQLiteDatabase {
                 console.warn('[auth] session unavailable, continuing without session');
             }
 
+            // Issue JWT for stateless authentication
+            let token: string | null = null;
+            try {
+                const fastifyAny = (request as any).server as any;
+                if (fastifyAny?.jwt) {
+                    token = fastifyAny.jwt.sign({
+                        sub: user.id,
+                        name: user.name,
+                        email: user.email,
+                        twoFactorEnabled: !!user.two_factor_enabled,
+                    });
+                }
+            } catch (e) {
+                console.error('[auth] failed to sign JWT:', e);
+            }
+
+            if (token) {
+                // Optionally, also send as HTTP-only cookie for browser-based flows
+                try {
+                    (reply as any).setCookie?.('access_token', token, {
+                        httpOnly: true,
+                        sameSite: 'lax',
+                        path: '/',
+                        secure: 'auto',
+                    });
+                } catch {
+                    // ignore cookie errors
+                }
+            }
+
             reply.code(200).send({ 
                 id: user.id, 
                 name: user.name, 
                 email: user.email,
+                token: token || undefined,
                 message: 'Login successful'
             });
 
@@ -204,15 +292,38 @@ export class SQLiteDatabase {
     
     async getUserinfo(request: FastifyRequest, reply: FastifyReply): Promise<void> {
         try {
-            const sess = (request as any).session;
-            const userId = sess?.userId;
+            // Prefer session if present, otherwise fall back to JWT
+            let userId: string | null = null;
+
+            try {
+                const sess = (request as any).session;
+                if (sess?.userId) {
+                    userId = String(sess.userId);
+                }
+            } catch {
+                // ignore and fall back to JWT
+            }
+
+            if (!userId) {
+                try {
+                    const jwtVerify = (request as any).jwtVerify;
+                    const payload = jwtVerify ? await jwtVerify() : null;
+                    if (payload?.sub) {
+                        userId = String(payload.sub);
+                    }
+                } catch {
+                    // invalid or missing JWT
+                }
+            }
+
             if (!userId) {
                 reply.code(401).send({ error: 'Not authenticated' });
                 return;
             }
 
             const stmt = this.sqlite.prepare(`
-                SELECT id, name as username, email
+                SELECT id, name as username, email,
+                       COALESCE(two_factor_enabled, 0) AS two_factor_enabled
                 FROM users
                 WHERE id = ?
             `);
@@ -237,10 +348,96 @@ export class SQLiteDatabase {
                 gameWon,
                 gameLost,
                 winRate,
+                twoFactorEnabled: !!user.two_factor_enabled,
             });
         } catch (err) {
             console.error('[auth] getUserinfo error:', err);
             reply.code(500).send({ error: 'Server error' });
+        }
+    }
+
+    /**
+     * Enable TOTP-based 2FA for the authenticated user.
+     * Returns the shared secret so the user can configure an authenticator app.
+     */
+    async enableTwoFactor(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+        try {
+            const userId = await this.getAuthenticatedUserId(request);
+            if (!userId) {
+                reply.code(401).send({ error: 'Not authenticated' });
+                return;
+            }
+
+            const getStmt = this.sqlite.prepare(`
+                SELECT id, name, email, two_factor_enabled, two_factor_secret
+                FROM users
+                WHERE id = ?
+            `);
+            const user = getStmt.get(userId) as any;
+            if (!user) {
+                reply.code(404).send({ error: 'User not found' });
+                return;
+            }
+
+            if (user.two_factor_enabled && user.two_factor_secret) {
+                // Already enabled; do not regenerate secret silently
+                reply.code(200).send({
+                    message: 'Two-factor authentication already enabled',
+                    twoFactorEnabled: true,
+                });
+                return;
+            }
+
+            const secret = authenticator.generateSecret();
+            const updateStmt = this.sqlite.prepare(`
+                UPDATE users
+                SET two_factor_enabled = 1,
+                    two_factor_secret = ?
+                WHERE id = ?
+            `);
+            updateStmt.run(secret, userId);
+
+            const issuer = 'LordOfTranscendence';
+            const otpauthUrl = authenticator.keyuri(user.name, issuer, secret);
+
+            reply.code(200).send({
+                message: 'Two-factor authentication enabled',
+                twoFactorEnabled: true,
+                secret,
+                otpauthUrl,
+            });
+        } catch (err) {
+            console.error('[auth] enableTwoFactor error:', err);
+            reply.code(500).send({ error: 'Failed to enable two-factor authentication' });
+        }
+    }
+
+    /**
+     * Disable TOTP-based 2FA for the authenticated user.
+     */
+    async disableTwoFactor(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+        try {
+            const userId = await this.getAuthenticatedUserId(request);
+            if (!userId) {
+                reply.code(401).send({ error: 'Not authenticated' });
+                return;
+            }
+
+            const updateStmt = this.sqlite.prepare(`
+                UPDATE users
+                SET two_factor_enabled = 0,
+                    two_factor_secret = NULL
+                WHERE id = ?
+            `);
+            updateStmt.run(userId);
+
+            reply.code(200).send({
+                message: 'Two-factor authentication disabled',
+                twoFactorEnabled: false,
+            });
+        } catch (err) {
+            console.error('[auth] disableTwoFactor error:', err);
+            reply.code(500).send({ error: 'Failed to disable two-factor authentication' });
         }
     }
 

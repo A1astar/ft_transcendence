@@ -7,8 +7,18 @@ export class apiService {
     private baseURL: string;
 
     private generateHeaders(headers: {[key: string]: string} = {}): {[key: string]: string} {
-        // if (auth_store.getToken())
-        // 	headers = {...headers, {Authorization: authStore.getToken()}}
+        // Attach JWT token from localStorage if present
+        try {
+            const token = localStorage.getItem("token");
+            if (token) {
+                headers = {
+                    ...headers,
+                    Authorization: `Bearer ${token}`,
+                };
+            }
+        } catch {
+            // localStorage might be unavailable in some environments
+        }
         return headers;
     }
 
