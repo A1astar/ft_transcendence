@@ -1,3 +1,8 @@
-dist/
+# Global
 node_modules/
+dist/
+.bkp
+
+# Frontend
 .bkpapp/frontend/styles/output.css
+styles/output.css
