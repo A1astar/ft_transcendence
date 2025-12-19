@@ -10,4 +10,4 @@ RUN chmod +x /vault/init.sh
 EXPOSE 8200
 
 # Set entrypoint
-ENTRYPOINT ["/vault/init.sh"]
+ENTRYPOINT ["entrypoint.sh"]
