@@ -28,20 +28,11 @@ export class SQLiteDatabase {
 
     constructor() {
         this.sqlite = new BetterSQLite3("database/user-management.db", {
-            // Read-only mode
-            readonly: false,                    // default: false
-
-            // File must exist (throws error if not)
+            readonly: false,                   // default: false
             fileMustExist: false,              // default: false
-
-            // Connection timeout (milliseconds)
             timeout: 5000,                     // default: 5000ms
-
-            // Verbose mode - logs SQL statements
             verbose: undefined,                // default: undefined (or function to log)
             // verbose: console.log,           // Example: log all SQL
-
-            // Native binding options
             nativeBinding: undefined,          // default: undefined (path to native module)
         });
 
