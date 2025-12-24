@@ -7,12 +7,12 @@ import fastifyJWT from '@fastify/jwt';
 
 import { AuthenticationFormat, RegistrationFormat, LoginFormat } from "./format.js";
 import { User, generateId } from "./user.js";
-import { 
-    validateRegistrationData, 
-    validateLoginData, 
-    ValidationError, 
+import {
+    validateRegistrationData,
+    validateLoginData,
+    ValidationError,
     sendValidationError,
-    checkRateLimit 
+    checkRateLimit
 } from "./validators.js";
 
 import crypto from 'crypto';
@@ -27,7 +27,7 @@ export class SQLiteDatabase {
     private sqlite: BetterSQLite3Database;
 
     constructor() {
-        this.sqlite = new BetterSQLite3("user-management.db", {
+        this.sqlite = new BetterSQLite3("database/user-management.db", {
             // Read-only mode
             readonly: false,                    // default: false
 
@@ -85,7 +85,7 @@ export class SQLiteDatabase {
 
             try {
                 stmt.run(id, validatedData.name, validatedData.email, passwordStored);
-                
+
                 // Explicitly clear any session data to prevent auto-login after registration
                 try {
                     const sess = (request as any).session;
@@ -99,11 +99,11 @@ export class SQLiteDatabase {
                     // Session clearing failed, but registration succeeded
                     console.warn('[auth] Failed to clear session after registration:', e);
                 }
-                
-                reply.code(201).send({ 
-                    id, 
-                    name: validatedData.name, 
-                    email: validatedData.email 
+
+                reply.code(201).send({
+                    id,
+                    name: validatedData.name,
+                    email: validatedData.email
                 });
             } catch (error: any) {
                 console.error('[auth] registerUser database error:', error);
@@ -141,18 +141,18 @@ export class SQLiteDatabase {
         try {
             // Validate and sanitize input
             const validatedData = validateLoginData(request.body);
-            
+
             console.log('[auth] loginUser - attempting login for user:', validatedData.name);
 
             // Get user from database
             const stmt = this.sqlite.prepare(`
                 SELECT id, name, email, password, created_at
-                FROM users 
+                FROM users
                 WHERE name = ?
             `);
 
             const user = stmt.get(validatedData.name) as any;
-            
+
             if (!user) {
                 console.log(`[auth] User not found: ${validatedData.name}`);
                 reply.code(401).send({ error: 'Invalid credentials' });
@@ -172,7 +172,7 @@ export class SQLiteDatabase {
 
             // Successful login
             console.log(chalk.green(`[auth] Login successful for user: ${validatedData.name}`));
-            
+
             // Set session so the client receives a session cookie
             try {
                 const sess = (request as any).session;
@@ -185,9 +185,9 @@ export class SQLiteDatabase {
                 console.warn('[auth] session unavailable, continuing without session');
             }
 
-            reply.code(200).send({ 
-                id: user.id, 
-                name: user.name, 
+            reply.code(200).send({
+                id: user.id,
+                name: user.name,
                 email: user.email,
                 message: 'Login successful'
             });
@@ -201,7 +201,7 @@ export class SQLiteDatabase {
             }
         }
     }
-    
+
     async getUserinfo(request: FastifyRequest, reply: FastifyReply): Promise<void> {
         try {
             const sess = (request as any).session;

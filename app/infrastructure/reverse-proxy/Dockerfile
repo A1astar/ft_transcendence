@@ -28,7 +28,7 @@ RUN rm -rf ./*
 COPY --from=builder /app/frontend .
 
 # Copy nginx config
-COPY infrastructure/reverse-proxy/nginx.conf /etc/nginx/nginx.conf
+COPY infrastructure/reverse-proxy/config/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80 443
 

@@ -1,13 +1,11 @@
-FROM hashicorp/vault:latest
+FROM hashicorp/vault:1.21
 
-# Copy configuration
 COPY vault-config.hcl /vault/config/vault-config.hcl
-COPY init.sh /vault/init.sh
 
-RUN chmod +x /vault/init.sh
+COPY entrypoint.sh /vault/entrypoint.sh
 
-# Expose Vault port
+RUN chmod +x /vault/entrypoint.sh
+
 EXPOSE 8200
 
-# Set entrypoint
-ENTRYPOINT ["entrypoint.sh"]
+ENTRYPOINT ["/vault/entrypoint.sh"]
