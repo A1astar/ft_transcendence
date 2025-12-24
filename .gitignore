@@ -1,8 +1,8 @@
 # Global
-node_modules/
+*.bkp
 dist/
-.bkp
+node_modules/
+package-lock.json
 
 # Frontend
-.bkpapp/frontend/styles/output.css
-styles/output.css
+*output.css
