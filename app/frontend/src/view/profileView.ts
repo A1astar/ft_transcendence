@@ -67,6 +67,54 @@ export async function renderProfile() {
             emailValue.className += " text-lg";
             emailBox.appendChild(emailValue);
             accountFormDiv.appendChild(emailBox);
+
+            // 2FA status + actions
+            const twoFaBox = document.createElement("div");
+            twoFaBox.className =
+                "bg-gray-800/30 rounded-lg px-2 py-1 mt-2 flex flex-col items-center";
+            const twoFaLabel = createParagraphText("Two-Factor Authentication (2FA):");
+            twoFaLabel.className += " font-semibold mb-1";
+            twoFaBox.appendChild(twoFaLabel);
+            const twoFaStatus = createParagraphText(
+                userData.twoFactorEnabled ? "Enabled" : "Disabled"
+            );
+            twoFaStatus.id = "twoFaStatus";
+            twoFaStatus.className += " text-lg mb-2";
+            twoFaBox.appendChild(twoFaStatus);
+
+            // QR Code container (show QR code for setting up 2FA)
+            const qrContainer = document.createElement("div");
+            qrContainer.id = "qrcodeContainer";
+            qrContainer.className = "mt-2 flex flex-col items-center gap-2";
+            const qrHint = createParagraphText(
+                "After enabling 2FA, a QR code will be displayed here for your authenticator app."
+            );
+            qrHint.className += " text-xs opacity-80 text-center";
+            qrContainer.appendChild(qrHint);
+            twoFaBox.appendChild(qrContainer);
+
+            const twoFaButtonsRow = document.createElement("div");
+            twoFaButtonsRow.className = "flex gap-2 justify-center";
+
+            const enable2FaBtn = createButtonForm("Enable 2FA", "enable2fa");
+            enable2FaBtn.type = "button";
+            enable2FaBtn.id = "enable2fa";
+
+            const disable2FaBtn = createButtonForm("Disable 2FA", "disable2fa");
+            disable2FaBtn.type = "button";
+            disable2FaBtn.id = "disable2fa";
+
+            if (userData.twoFactorEnabled) {
+                enable2FaBtn.style.display = "none";
+            } else {
+                disable2FaBtn.style.display = "none";
+            }
+
+            twoFaButtonsRow.appendChild(enable2FaBtn);
+            twoFaButtonsRow.appendChild(disable2FaBtn);
+            twoFaBox.appendChild(twoFaButtonsRow);
+
+            accountFormDiv.appendChild(twoFaBox);
             accountBoxDiv.appendChild(accountFormDiv);
 
             boxesRow.appendChild(accountBoxDiv);

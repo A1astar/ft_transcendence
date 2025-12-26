@@ -14,11 +14,16 @@ export class LoginViewBinder implements ViewEventBinder {
 		event.preventDefault();
 		const name = (document.getElementById("username") as HTMLInputElement | null)?.value;
 		const password = (document.getElementById("password") as HTMLInputElement | null)?.value;
+		const twoFactorCode = (document.getElementById("twoFactorCode") as HTMLInputElement | null)?.value;
 		try {
-			const res = await ApiClient.post("/api/auth/login", {name, password});
+			const res = await ApiClient.post("/api/auth/login", {name, password, twoFactorCode});
 			if (!res.ok) {
 				const err = await res.json();
-				alert(err.error || "Login failed");
+				if (err.twoFactorRequired) {
+					alert(err.error || "Two-factor authentication code required. Please enter your 2FA code.");
+				} else {
+					alert(err.error || "Login failed");
+				}
 				return;
 			}
 			const data = await res.json().catch(() => null);

@@ -20,7 +20,6 @@ async function start() {
   remoteMatch2(fastify);
   remoteMatch4(fastify);
   tournamentMatch(fastify);
-  testMatch(fastify);
 
   try {
     await fastify.listen({ port: 3002, host: "0.0.0.0" });

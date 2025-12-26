@@ -126,6 +126,15 @@ export async function initAuthenticationService() {
         callbackUri: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8080/api/auth/oauth/google/callback'
     });
 
+    // JWT for stateless authentication (used alongside session cookies)
+    fastify.register(fastifyJWT as any, {
+        // In production, always set JWT_SECRET via environment / secret manager
+        secret: process.env.JWT_SECRET || crypto.randomBytes(32).toString("hex"),
+        sign: {
+            expiresIn: process.env.JWT_EXPIRES_IN || "15m",
+        },
+    } as any);
+
     // Cast to any to avoid strict type mismatches with plugin option names
     fastify.register(fastifySession as any, {
         // required

@@ -79,6 +79,8 @@ export async function renderLogin() {
         formDiv1.action = "/api/auth/login";
         formDiv1.appendChild(createInputElement("text", "username", "Username/email"));
         formDiv1.appendChild(createInputElement("password", "password", "Password"));
+        // Optional 2FA code input (used only if the account has 2FA enabled)
+        formDiv1.appendChild(createInputElement("text", "twoFactorCode", "2FA Code (if enabled)"));
         formDiv1.appendChild(createButtonForm("Login", "login"));
 
         const formDiv2 = createFormElement("oauth2Form");
