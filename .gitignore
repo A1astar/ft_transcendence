@@ -2,7 +2,7 @@
 *.bkp
 dist/
 node_modules/
-package-lock.json
+*package-lock.json
 
 # Frontend
 *output.css
