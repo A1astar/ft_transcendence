@@ -19,11 +19,11 @@ services:
   gateway:
     build: ../services/gateway
     ports:
-      - "3000:3000"
+      - "3000"
     networks:
       - microservices-network
     depends_on:
-      # - authentication
+      - authentication
       - game-orchestration
       - game-engine
     restart: "no"
@@ -31,21 +31,37 @@ services:
   authentication:
     build: ../services/authentication
     ports:
-      - "3001:3001"
+      - "3001"
     networks:
       - microservices-network
-    # Temporarily disabled vault dependency for testing
+      - vault-network
     environment:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=https://localhost:8443/api/auth/oauth/google/callback
+      - VAULT=ADDR=http://hashicorp-vault:8200
+      - VAULT_TOKEN=${VAULT_TOKEN:-your-dev-token}
+    depends_on:
+      - hashicorp-vault
     restart: unless-stopped
 
+  # Temporarily disabled for testing
+  hashicorp-vault:
+    build: ../infrastructure/hashicorp-vault
+    ports:
+      - "8200:8200"
+    networks:
+      - vault-network
+    volumes:
+      - vault-data:/vault/data
+    environment:
+      - VAULT_ADDR=http://0.0.0.0:8200
+    restart: unless-stopped
 
   game-orchestration:
     build: ../services/game-orchestration
     ports:
-      - "3002:3002"
+      - "3002"
     networks:
       - microservices-network
     environment:
@@ -56,7 +72,7 @@ services:
   game-engine:
     build: ../services/game-engine
     ports:
-      - "3003:3003"
+      - "3003"
     networks:
       - microservices-network
     restart: "no"
@@ -64,3 +80,30 @@ services:
 networks:
   microservices-network:
     driver: bridge
+
+  # Temporarily disabled for testing
+  vault-network:
+    driver: bridge
+    internal: true
+
+  # monitoring-network:
+  #   driver: bridge
+  #   internal: true
+
+  # logging-network:
+  #   driver: bridge
+  #   internal: true
+
+# Temporarily disabled for testing
+volumes:
+  vault-data:
+      driver: local
+      driver_opts:
+        type: none
+        o: bind
+        device: ../infrastructure/hcp-vault/data
+#   prometheus-data:
+#   grafana-data:
+#   elasticsearch-data:
+
+# secrets:

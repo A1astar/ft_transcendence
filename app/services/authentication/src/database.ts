@@ -1,12 +1,18 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import { FastifyRequest, FastifyReply } from 'fastify';
 
-import { 
-    validateRegistrationData, 
-    validateLoginData, 
-    ValidationError, 
+import fastifySession from '@fastify/session';
+import fastifyCookie from '@fastify/cookie';
+import fastifyJWT from '@fastify/jwt';
+
+import { AuthenticationFormat, RegistrationFormat, LoginFormat } from "./format.js";
+import { User, generateId } from "./user.js";
+import {
+    validateRegistrationData,
+    validateLoginData,
+    ValidationError,
     sendValidationError,
-    checkRateLimit 
+    checkRateLimit
 } from "./validators.js";
 
 import crypto from 'crypto';
@@ -22,21 +28,12 @@ export class SQLiteDatabase {
     private sqlite: BetterSQLite3Database;
 
     constructor() {
-        this.sqlite = new BetterSQLite3("user-management.db", {
-            // Read-only mode
-            readonly: false,                    // default: false
-
-            // File must exist (throws error if not)
+        this.sqlite = new BetterSQLite3("database/user-management.db", {
+            readonly: false,                   // default: false
             fileMustExist: false,              // default: false
-
-            // Connection timeout (milliseconds)
             timeout: 5000,                     // default: 5000ms
-
-            // Verbose mode - logs SQL statements
             verbose: undefined,                // default: undefined (or function to log)
             // verbose: console.log,           // Example: log all SQL
-
-            // Native binding options
             nativeBinding: undefined,          // default: undefined (path to native module)
         });
 
@@ -120,7 +117,7 @@ export class SQLiteDatabase {
 
             try {
                 stmt.run(id, validatedData.name, validatedData.email, passwordStored);
-                
+
                 // Explicitly clear any session data to prevent auto-login after registration
                 try {
                     const sess = (request as any).session;
@@ -134,11 +131,11 @@ export class SQLiteDatabase {
                     // Session clearing failed, but registration succeeded
                     console.warn('[auth] Failed to clear session after registration:', e);
                 }
-                
-                reply.code(201).send({ 
-                    id, 
-                    name: validatedData.name, 
-                    email: validatedData.email 
+
+                reply.code(201).send({
+                    id,
+                    name: validatedData.name,
+                    email: validatedData.email
                 });
             } catch (error: any) {
                 console.error('[auth] registerUser database error:', error);
@@ -176,20 +173,18 @@ export class SQLiteDatabase {
         try {
             // Validate and sanitize input
             const validatedData = validateLoginData(request.body);
-            
+
             console.log('[auth] loginUser - attempting login for user:', validatedData.name);
 
             // Get user from database
             const stmt = this.sqlite.prepare(`
-                SELECT id, name, email, password, created_at, 
-                       COALESCE(two_factor_enabled, 0) AS two_factor_enabled,
-                       two_factor_secret
-                FROM users 
+                SELECT id, name, email, password, created_at
+                FROM users
                 WHERE name = ?
             `);
 
             const user = stmt.get(validatedData.name) as any;
-            
+
             if (!user) {
                 console.log(`[auth] User not found: ${validatedData.name}`);
                 reply.code(401).send({ error: 'Invalid credentials' });
@@ -229,8 +224,13 @@ export class SQLiteDatabase {
 
             // Successful login
             console.log(chalk.green(`[auth] Login successful for user: ${validatedData.name}`));
-            
+<<<<<<< HEAD
+
             // Set session so the client receives a session cookie (for backwards compatibility)
+=======
+
+            // Set session so the client receives a session cookie
+>>>>>>> feature/hcp-vault
             try {
                 const sess = (request as any).session;
                 if (sess) {
@@ -242,6 +242,7 @@ export class SQLiteDatabase {
                 console.warn('[auth] session unavailable, continuing without session');
             }
 
+<<<<<<< HEAD
             // Issue JWT for stateless authentication
             let token: string | null = null;
             try {
@@ -272,9 +273,14 @@ export class SQLiteDatabase {
                 }
             }
 
-            reply.code(200).send({ 
-                id: user.id, 
-                name: user.name, 
+            reply.code(200).send({
+                id: user.id,
+                name: user.name,
+=======
+            reply.code(200).send({
+                id: user.id,
+                name: user.name,
+>>>>>>> feature/hcp-vault
                 email: user.email,
                 token: token || undefined,
                 message: 'Login successful'
@@ -289,7 +295,7 @@ export class SQLiteDatabase {
             }
         }
     }
-    
+
     async getUserinfo(request: FastifyRequest, reply: FastifyReply): Promise<void> {
         try {
             // Prefer session if present, otherwise fall back to JWT
