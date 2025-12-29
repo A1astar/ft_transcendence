@@ -1,5 +1,4 @@
 import Fastify, { FastifyInstance } from 'fastify';
-import fastifyStatic from '@fastify/static';
 import { fileURLToPath } from 'url';
 import color from 'chalk';
 import path from 'path';

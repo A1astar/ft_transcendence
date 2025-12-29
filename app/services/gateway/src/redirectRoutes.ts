@@ -1,8 +1,5 @@
 import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import fastifyStatic from '@fastify/static';
-
 import '@fastify/static'; //lets Typescript know about the types
-
 import { fileURLToPath } from 'url';
 import color from 'chalk';
 import path from 'path';
@@ -11,9 +8,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const frontendPath = path.join(__dirname, '../../../frontend');
 
-// Get server host from request (since we're connecting to remote servers)
-function getServerHostFromRequest(req: any): string {
-    return 'localhost';
+// Determine whether to use local origins (no containers) or Docker service names
+const USE_LOCAL = (process.env.LOCAL_DEV === 'true') || (process.env.NODE_ENV === 'development');
+
+function envOriginFor(serviceName: string): string | undefined {
+    const key = `SERVICE_${serviceName.replace(/-/g, '_').toUpperCase()}_ORIGIN`;
+    return process.env[key];
+}
+
+function serviceOrigin(serviceName: string, port: number): string {
+    const override = envOriginFor(serviceName);
+    if (override) return override.replace(/\/$/, '');
+    const host = USE_LOCAL ? 'localhost' : serviceName;
+    return `http://${host}:${port}`;
 }
 
 function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
@@ -27,32 +34,29 @@ function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
 
 function routeServices(fastify: FastifyInstance, basePath: string, serviceName: string, port: number) {
     fastify.route({
-        method: ['GET', 'POST', 'PUT', 'DELETE'],
+        method: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
         url: `/${basePath}/*`,
         handler: async (req, reply) => {
             try {
-                // In Docker network, we must use service name to reach other containers
-                // 'localhost' would refer to the gateway container itself
-                const serviceUrl = `http://${serviceName}:${port}`;
+                const serviceUrl = serviceOrigin(serviceName, port);
 
                 // Allowlist for public endpoints that don't require authentication (guests)
                 const publicPathAllowlist: RegExp[] = [
-                    /^\/api\/game-orchestration\/local/,         // local matches — guest can join local games
-                    /^\/api\/game-orchestration\/tournament/,  // tournament
-                    /^\/api\/auth\/oauth\//,                     // oauth callbacks should be public
-                    /^\/public\//,                               // static public assets
+                    /^\/api\/game-orchestration\/local/,
+                    /^\/api\/game-orchestration\/tournament/,
+                    /^\/api\/auth\/oauth\//,
+                    /^\/public\//,
                     /^\/assets\//
                 ];
 
                 const pathOnly = (req.url || '').split('?')[0];
-
-                // Only validate authentication for non-GET requests
-                // (GETs are treated as public/read-only and allowed for guests)
-                // Also allow explicit public paths from `publicPathAllowlist` to skip auth checks
                 const isPublicPath = publicPathAllowlist.some(rx => rx.test(pathOnly));
+
+                // Only validate authentication for non-GET requests and non-public paths
                 if (serviceName !== 'authentication' && !isPublicPath && req.method !== 'GET') {
                     try {
-                        const authRes = await fetch(`http://authentication:3001/api/auth/userinfo`, {
+                        const authUrl = serviceOrigin('authentication', 3001) + `/api/auth/userinfo`;
+                        const authRes = await fetch(authUrl, {
                             method: 'GET',
                             headers: fetchHeaders(req.headers),
                         });
@@ -67,10 +71,12 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceName: 
                     }
                 }
 
+                const body = ['POST','PUT','PATCH'].includes(req.method) ? (typeof req.body === 'string' ? req.body : JSON.stringify(req.body)) : undefined;
+
                 const res = await fetch(`${serviceUrl}${req.url}`, {
                     method: req.method,
                     headers: fetchHeaders(req.headers),
-                    body: ['POST','PUT'].includes(req.method) ? JSON.stringify(req.body) : undefined,
+                    body,
                     redirect: 'manual'
                 });
                 const data = await res.text();
@@ -87,21 +93,13 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceName: 
 
 export async function routeRequest(fastify: FastifyInstance) {
 
-//     await fastify.register(fastifyStatic, {
-//     root: frontendPath,
-//     prefix: '/',            // optional: default '/'
-//     index: ['index.html'],  // optional
-//     wildcard: false,        // avoid catching /api/*
-//   });
-
     routeServices(fastify, "api/auth", "authentication", 3001);
     routeServices(fastify, "api/game-orchestration", "game-orchestration", 3002);
     routeServices(fastify, "api/game-engine", "game-engine", 3003);
-    routeServices(fastify, "api/user-management", "authentication", 3004);
+    // routeServices(fastify, "api/user-management", "authentication", 3004);
 
     // SPA fallback
     fastify.get('/*', async (_req: FastifyRequest, reply: FastifyReply) => {
-    return reply.sendFile('index.html');
+      return reply.sendFile('index.html');
     });
-
 }

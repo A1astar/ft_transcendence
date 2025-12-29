@@ -61,6 +61,8 @@ if [ $# -gt 0 ]; then
         "local")
             checkNodeVersion
             checkPackageInstallation
+            export LOCAL_DEV=true
+            export API_ORIGIN=http://localhost:3000
             cd $project_dir && npm run start:all
         ;;
 
