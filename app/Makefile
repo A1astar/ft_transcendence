@@ -25,6 +25,7 @@ setup-certs:
 	fi
 
 build:
+	bash -c "cd build && ./build.sh update"
 	docker compose -f $(COMPOSE_FILE) build --no-cache
 
 up:
@@ -56,7 +57,7 @@ vault-clean: vault-down
 		rm -rf ./infrastructure/hcp-vault/data; \
 	fi \
 
-local:
+local: setup-certs
 	cd build && ./build.sh local
 
 local-watch:

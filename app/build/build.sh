@@ -47,11 +47,15 @@ checkPackageUpdate()
     done
 }
 
+mergePackageJson()
+{
+    return
+}
+
 if [ $# -gt 0 ]; then
     case "$1" in
-        "update")
+        "prod")
             checkNodeVersion
-            checkPackageUpdate
         ;;
 
         "local")
@@ -93,6 +97,11 @@ if [ $# -gt 0 ]; then
             checkPackageInstallation
             # This runs the HTTPS + WSS dev server defined in frontend/package.json
             npm run serve
+        ;;
+
+        "update")
+            checkNodeVersion
+            checkPackageUpdate
         ;;
     esac
 fi

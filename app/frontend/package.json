@@ -14,7 +14,7 @@
     "build:initial": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css",
     "tw": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
     "ts": "tsc -w --preserveWatchOutput",
-    "serve" : "node server.js"
+    "serve" : "npx http-server dist -S -C certs/self.crt -K certs/self.key -p 8443 --spa"
   },
   "dependencies": {
     "@babylonjs/core": "^8.38.0",
