@@ -1,5 +1,5 @@
 IMAGE = reverse-proxy \
-		authentication \
+        authentication \
         gateway \
         game-orchestration
 
@@ -9,7 +9,10 @@ COMPOSE_FILE=./build/docker-compose.yml
 PROJECT_DIR := $(abspath .)
 FRONTEND_DIR := $(PROJECT_DIR)/frontend
 
-all: clean local-build setup-certs frontend-build build up
+all: clean setup-certs frontend-build build up
+
+update:
+	cd build && ./build.sh update
 
 setup-certs:
 	@mkdir -p $(FRONTEND_DIR)/certs
@@ -25,7 +28,6 @@ build:
 	docker compose -f $(COMPOSE_FILE) build --no-cache
 
 up:
-	docker compose -f $(COMPOSE_FILE) build reverse-proxy
 	docker compose -f $(COMPOSE_FILE) up
 
 down:
@@ -54,8 +56,8 @@ vault-clean: vault-down
 		rm -rf ./infrastructure/hcp-vault/data; \
 	fi \
 
-local-run:
-	cd build && ./build.sh local-run
+local:
+	cd build && ./build.sh local
 
 local-watch:
 	cd build && ./build.sh local-watch
@@ -70,9 +72,6 @@ local-clean:
 frontend-install:
 	cd build && ./build.sh frontend-install
 
-frontend-build:
-	cd build && ./build.sh frontend-build
-
 frontend-serve:
 	cd build && ./build.sh frontend-serve
 
@@ -80,10 +79,9 @@ frontend-serve:
 local-watch-all:
 	$(MAKE) -j2 local-watch frontend-serve
 
-local-re: local-clean local-run
+local-re: local-clean local
 
-clean: down
-	docker rmi || true
+clean: down local-clean
 
 re: clean all
 
@@ -92,6 +90,6 @@ test:
 
 .PHONY: \
 all setup-certs build up down \
-local-run local-watch local-build local-clean local-watch-all local-re \
+local local-watch local-build local-clean local-watch-all local-re \
 frontend-install frontend-build frontend-serve \
 clean re test

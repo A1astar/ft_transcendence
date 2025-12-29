@@ -7,12 +7,12 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css --minify",
-    "dev": "npm run build:initial && npx concurrently \"npm run ts\" \"npm run tw\"",
-    "start": "npm run build && npm run serve",
     "clean": "rm -rf dist",
+    "start": "npm run build && npm run serve",
+    "watch": "tsx watch --clear-screen=false src",
+    "dev": "npm run build:initial && npx concurrently \"npm run ts\" \"npm run tw\"",
     "build:initial": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css",
     "tw": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
-    "tsx": "npx run tsx watch src",
     "ts": "tsc -w --preserveWatchOutput",
     "serve" : "node server.js"
   },
@@ -25,7 +25,6 @@
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.16",
     "http-server": "^14.1.1",
-    "tailwindcss": "^4.1.16",
-    "typescript": "^5.9.3"
+    "tailwindcss": "^4.1.16"
   }
 }

@@ -33,15 +33,6 @@ checkNodeVersion()
     fi
 }
 
-# npm_install_smart() {
-#     # Use npm ci when we have a lockfile for reproducible installs, otherwise npm install
-#     if [ -f package-lock.json ]; then
-#         npm ci
-#     else
-#         npm install
-#     fi
-# }
-
 checkPackageInstallation()
 {
     if [ ! -d node_modules ]; then
@@ -49,10 +40,21 @@ checkPackageInstallation()
     fi
 }
 
-if [ $# -gt 0 ]; then
+checkPackageUpdate()
+{
+    for directory in "${directories[@]}"; do
+        cd $directory && npx npm-check-updates
+    done
+}
 
+if [ $# -gt 0 ]; then
     case "$1" in
-        "local-run")
+        "update")
+            checkNodeVersion
+            checkPackageUpdate
+        ;;
+
+        "local")
             checkNodeVersion
             checkPackageInstallation
             cd $project_dir && npm run start:all
@@ -71,17 +73,11 @@ if [ $# -gt 0 ]; then
         ;;
 
         "local-clean")
+            rm -rf ../frontend/certs
             cd $project_dir && npm run clean
             for directory in "${directories[@]}"; do
                 cd $directory && rm -rf node_modules package-lock.json
             done
-        ;;
-
-        # === NEW: front-end helpers ===
-        "frontend-install")
-            checkNodeVersion
-            cd "$frontend_dir"
-            npm_install_smart
         ;;
 
         "frontend-build")
@@ -98,11 +94,5 @@ if [ $# -gt 0 ]; then
             # This runs the HTTPS + WSS dev server defined in frontend/package.json
             npm run serve
         ;;
-
-        # optional: ensure-node available from make
-        "ensure-node")
-            checkNodeVersion
-        ;;
     esac
-
 fi

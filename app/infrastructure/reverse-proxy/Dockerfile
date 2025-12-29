@@ -8,7 +8,7 @@ COPY package*.json tsconfig.json ./
 # Copy frontend
 COPY frontend ./frontend
 
-# Build frontend
+# # Build frontend
 WORKDIR /app/frontend
 RUN npm install
 RUN npm run build
@@ -27,9 +27,15 @@ RUN rm -rf ./*
 # Copy built frontend assets from builder stage
 COPY --from=builder /app/frontend .
 
+COPY infrastructure/reverse-proxy/entrypoint.sh /usr/bin
+
+# RUN chmod u+x /usr/bin/entrypoint.sh
+
 # Copy nginx config
 COPY infrastructure/reverse-proxy/config/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80 443
 
-CMD ["nginx", "-g", "daemon off;"]
+# ENTRYPOINT [ "/usr/bin/entrypoint.sh" ]
+
+CMD [ "nginx", "-g", "daemon off;" ]

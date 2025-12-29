@@ -61,7 +61,7 @@ export async function router(path: string): Promise<void> {
     if (renderFunction) {
         const result = renderFunction();
         if (result !== undefined && result !== null && typeof (result as any).then === "function") {
-            await (result as Promise<any>);
+            // await (result as Promise<any>);
         }
     } else {
         renderNotFound();

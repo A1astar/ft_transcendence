@@ -224,13 +224,8 @@ export class SQLiteDatabase {
 
             // Successful login
             console.log(chalk.green(`[auth] Login successful for user: ${validatedData.name}`));
-<<<<<<< HEAD
-
-            // Set session so the client receives a session cookie (for backwards compatibility)
-=======
 
             // Set session so the client receives a session cookie
->>>>>>> feature/hcp-vault
             try {
                 const sess = (request as any).session;
                 if (sess) {
@@ -242,7 +237,6 @@ export class SQLiteDatabase {
                 console.warn('[auth] session unavailable, continuing without session');
             }
 
-<<<<<<< HEAD
             // Issue JWT for stateless authentication
             let token: string | null = null;
             try {
@@ -276,11 +270,6 @@ export class SQLiteDatabase {
             reply.code(200).send({
                 id: user.id,
                 name: user.name,
-=======
-            reply.code(200).send({
-                id: user.id,
-                name: user.name,
->>>>>>> feature/hcp-vault
                 email: user.email,
                 token: token || undefined,
                 message: 'Login successful'
