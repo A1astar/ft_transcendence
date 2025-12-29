@@ -1,8 +1,12 @@
 # Global
-*.bkp
 dist/
+*.bkp
+database/
 node_modules/
-*package-lock.json
+package-lock.json
+
+# Infrastructure
+certs/
 
 # Frontend
 *output.css
