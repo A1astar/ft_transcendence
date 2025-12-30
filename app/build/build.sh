@@ -2,17 +2,16 @@
 
 set -e
 
-project_dir=$(cd .. && pwd)
-service_dir=$project_dir/services
-frontend_dir=$project_dir/frontend
+app_dir=$(pwd)
+service_dir=$app_dir/services
+frontend_dir=$app_dir/frontend
 
 directories=(
-    "$project_dir/"
-    "$project_dir/frontend"
-    "$project_dir/services/authentication"
-    "$project_dir/services/game-engine"
-    "$project_dir/services/game-orchestration"
-    "$project_dir/services/gateway"
+    "$app_dir/frontend"
+    "$app_dir/services/authentication"
+    "$app_dir/services/game-engine"
+    "$app_dir/services/game-orchestration"
+    "$app_dir/services/gateway"
 )
 
 checkNodeVersion()
@@ -35,13 +34,12 @@ checkNodeVersion()
 
 checkPackageInstallation()
 {
-    if [ ! -d node_modules ]; then
-        npm install
-    fi
+    [ ! -d node_modules ] && npm install
 }
 
 checkPackageUpdate()
 {
+    cd $app_dir && npx npm-check-updates
     for directory in "${directories[@]}"; do
         cd $directory && npx npm-check-updates
     done
@@ -49,40 +47,60 @@ checkPackageUpdate()
 
 mergePackageJson()
 {
-    return
+    [ ! -d node_modules ] && npm install --save-dev jsonc deepmerge
+
+    for directory in "${directories[@]}"; do
+        node -e "
+        const fs = require('fs');
+        const { parse } = require('jsonc');
+        const deepmerge = require('deepmerge');
+
+        const packageRoot = parse(fs.readFileSync('$app_dir/package.json', 'utf8'));
+        const packageService = parse(fs.readFileSync('$directory/package.json', 'utf8'));
+        const mergedPackage = deepmerge(packageRoot, packageService);
+        fs.writeFileSync('$directory/prod.package.json', JSON.stringify(mergedPackage, null, 2));
+
+        const tsconfigRoot = parse(fs.readFileSync('$app_dir/tsconfig.json', 'utf8'));
+        const tsconfigService = parse(fs.readFileSync('$directory/tsconfig.json', 'utf8'));
+        const mergedTsconfig = deepmerge(tsconfigRoot, tsconfigService);
+        delete mergedTsconfig.extends;
+        fs.writeFileSync('$directory/prod.tsconfig.json', JSON.stringify(mergedTsconfig, null, 2));
+        "
+    done
 }
 
 if [ $# -gt 0 ]; then
     case "$1" in
         "prod")
             checkNodeVersion
+            mergePackageJson
         ;;
 
         "local")
             checkNodeVersion
             checkPackageInstallation
-            export LOCAL_DEV=true
+            export LOCAL=true
             export API_ORIGIN=http://localhost:3000
-            cd $project_dir && npm run start:all
+            cd $app_dir && npm run start:all
         ;;
 
         "local-watch")
             checkNodeVersion
             checkPackageInstallation
-            cd $project_dir && npm run watch:all
+            cd $app_dir && npm run watch:all
         ;;
 
         "local-build")
             checkNodeVersion
             checkPackageInstallation
-            cd $project_dir && npm install && npm run build:all
+            cd $app_dir && npm install && npm run build:all
         ;;
 
         "local-clean")
             rm -rf ../frontend/certs
-            cd $project_dir && npm run clean
+            cd $app_dir && npm run clean && rm -rf node_modules package-lock.json
             for directory in "${directories[@]}"; do
-                cd $directory && rm -rf node_modules package-lock.json
+                cd $directory && rm -rf node_modules package-lock.json prod.package.json prod.tsconfig.json
             done
         ;;
 

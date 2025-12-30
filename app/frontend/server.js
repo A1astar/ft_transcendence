@@ -52,6 +52,7 @@ const API_ORIGIN = process.env.API_ORIGIN || 'http://localhost:3000';
 const API_URL = new URL(API_ORIGIN);
 
 function proxyHttpRequest(req, res) {
+    console.log(req.head);
     const upstreamPath = req.url.replace(/^\/api/, '');
     const options = {
         protocol: API_URL.protocol,
@@ -121,6 +122,7 @@ function proxyWebSocket(req, socket, head) {
 const options = readCertPair();
 
 const server = https.createServer(options, (req, res) => {
+
     // Proxy API calls first
     if (req.url.startsWith('/api')) {
         return proxyHttpRequest(req, res);

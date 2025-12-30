@@ -12,7 +12,7 @@ FRONTEND_DIR := $(PROJECT_DIR)/frontend
 all: clean setup-certs frontend-build build up
 
 update:
-	cd build && ./build.sh update
+	./build/build.sh update
 
 setup-certs:
 	@mkdir -p $(FRONTEND_DIR)/certs
@@ -25,8 +25,9 @@ setup-certs:
 	fi
 
 build:
-	bash -c "cd build && ./build.sh update"
+	./build/build.sh prod
 	docker compose -f $(COMPOSE_FILE) build --no-cache
+	./build/build.sh local-clean
 
 up:
 	docker compose -f $(COMPOSE_FILE) up
@@ -58,23 +59,23 @@ vault-clean: vault-down
 	fi \
 
 local: setup-certs
-	cd build && ./build.sh local
+	./build/build.sh local
 
 local-watch:
-	cd build && ./build.sh local-watch
+	./build/build.sh local-watch
 
 local-build:
-	cd build && ./build.sh local-build
+	./build/build.sh local-build
 
 local-clean:
-	cd build && ./build.sh local-clean
+	./build/build.sh local-clean
 
 # ---- Frontend shortcuts (no more manual npm commands) ----
 frontend-install:
-	cd build && ./build.sh frontend-install
+	./build/build.sh frontend-install
 
 frontend-serve:
-	cd build && ./build.sh frontend-serve
+	./build/build.sh frontend-serve
 
 # Run backend watchers + HTTPS/WSS dev server together
 local-watch-all:
@@ -87,7 +88,7 @@ clean: down local-clean
 re: clean all
 
 test:
-	cd test && ./script.sh
+	./test/script.sh
 
 .PHONY: \
 all setup-certs build up down \
