@@ -45,6 +45,14 @@ checkPackageUpdate()
     done
 }
 
+upgradePackage()
+{
+    cd $app_dir && npx npm-check-updates -u
+    for directory in "${directories[@]}"; do
+        cd $directory && npx npm-check-updates -u
+    done
+}
+
 mergePackageJson()
 {
     [ ! -d node_modules ] && npm install --save-dev jsonc deepmerge
@@ -104,22 +112,12 @@ if [ $# -gt 0 ]; then
             done
         ;;
 
-        "frontend-build")
-            checkNodeVersion
-            cd "$frontend_dir"
-            checkPackageInstallation
-            npm run build
-        ;;
-
-        "frontend-serve")
-            checkNodeVersion
-            cd "$frontend_dir"
-            checkPackageInstallation
-            # This runs the HTTPS + WSS dev server defined in frontend/package.json
-            npm run serve
-        ;;
-
         "update")
+            checkNodeVersion
+            checkPackageUpdate
+        ;;
+
+        "upgrade")
             checkNodeVersion
             checkPackageUpdate
         ;;

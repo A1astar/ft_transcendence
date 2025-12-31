@@ -6,6 +6,8 @@ COPY frontend ./frontend
 
 WORKDIR /app/frontend
 
+RUN rm src/server.ts
+
 RUN rm package.json && mv prod.package.json package.json \
     && rm tsconfig.json && mv prod.tsconfig.json tsconfig.json
 
@@ -25,6 +27,10 @@ RUN rm -rf ./*
 COPY --from=builder /app/frontend .
 
 COPY infrastructure/reverse-proxy/entrypoint.sh /usr/bin
+
+RUN apk add --no-cache curl ca-certificates && \
+    curl -L -o /usr/local/bin/mkcert https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-amd64 && \
+    chmod +x /usr/local/bin/mkcert
 
 # RUN chmod u+x /usr/bin/entrypoint.sh
 

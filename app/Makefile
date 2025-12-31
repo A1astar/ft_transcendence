@@ -9,10 +9,7 @@ COMPOSE_FILE=./build/docker-compose.yml
 PROJECT_DIR := $(abspath .)
 FRONTEND_DIR := $(PROJECT_DIR)/frontend
 
-all: clean setup-certs frontend-build build up
-
-update:
-	./build/build.sh update
+all: clean build up
 
 setup-certs:
 	@mkdir -p $(FRONTEND_DIR)/certs
@@ -70,22 +67,17 @@ local-build:
 local-clean:
 	./build/build.sh local-clean
 
-# ---- Frontend shortcuts (no more manual npm commands) ----
-frontend-install:
-	./build/build.sh frontend-install
-
-frontend-serve:
-	./build/build.sh frontend-serve
-
-# Run backend watchers + HTTPS/WSS dev server together
-local-watch-all:
-	$(MAKE) -j2 local-watch frontend-serve
-
 local-re: local-clean local
 
 clean: down local-clean
 
 re: clean all
+
+update:
+	./build/build.sh update
+
+upgrade:
+	./build/build.sh ugrade
 
 test:
 	./test/script.sh
@@ -93,5 +85,4 @@ test:
 .PHONY: \
 all setup-certs build up down \
 local local-watch local-build local-clean local-watch-all local-re \
-frontend-install frontend-build frontend-serve \
 clean re test
