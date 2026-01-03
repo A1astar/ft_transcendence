@@ -40,7 +40,6 @@
     "resolvePackageJsonImports": true,
     // "rootDir": undefined,
     "rootDirs": [],
-    "typeRoots": ["./node_modules/@types"],
     // "types": undefined,
 
     // Emit

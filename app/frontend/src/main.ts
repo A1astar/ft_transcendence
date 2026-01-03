@@ -2,7 +2,6 @@ import { router } from "./router.js";
 
 async function main(): Promise<void> {
     try {
-        console.log("Initializing application...");
 
         document.addEventListener("click", (event: MouseEvent) => {
             const target = event.target as HTMLElement;

@@ -12,6 +12,6 @@
     "watch": "tsx watch --clear-screen=false src"
   },
   "dependencies": {
-    "@fastify/cors": "^11.1.0"
+    "@fastify/cors": "^11.2.0"
   }
 }

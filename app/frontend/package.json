@@ -17,13 +17,13 @@
     "serve": "node dist/server.js"
   },
   "dependencies": {
-    "@babylonjs/core": "^8.38.0",
-    "@babylonjs/gui": "^8.33.2",
-    "@babylonjs/loaders": "^8.38.0",
-    "@babylonjs/materials": "^8.38.0"
+    "@babylonjs/core": "^8.43.0",
+    "@babylonjs/gui": "^8.43.0",
+    "@babylonjs/loaders": "^8.43.0",
+    "@babylonjs/materials": "^8.43.0"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.1.16",
-    "tailwindcss": "^4.1.16"
+    "@tailwindcss/cli": "^4.1.18",
+    "tailwindcss": "^4.1.18"
   }
 }

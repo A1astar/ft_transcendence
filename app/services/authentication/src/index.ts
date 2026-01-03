@@ -103,6 +103,7 @@ async function registerOAuth(path: string, request: FastifyRequest,
 async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, vaultClient: VaultService) {
 
     fastify.all('/*', async(request, reply) => {
+        console.log(request.url);
         // request.raw.url contains the full path and query string (e.g. /foo?bar=baz)
         const fullPath = request.raw.url;
         // We parse it to get just the pathname for switching
@@ -179,7 +180,6 @@ async function main() {
 
         // Now start the server
         await fastify.listen({ port: 3001, host: "0.0.0.0" });
-        //console.log(color.white.bold("Authentication state: ") + color.green.bold.italic("running"));
         console.log(color.green.bold("Authentication Service running on port 3001"));
 
     } catch (err) {

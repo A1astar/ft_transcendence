@@ -77,7 +77,7 @@ update:
 	./build/build.sh update
 
 upgrade:
-	./build/build.sh ugrade
+	./build/build.sh upgrade
 
 test:
 	./test/script.sh

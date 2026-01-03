@@ -104,7 +104,5 @@ export async function initAuthenticationService() {
         },
     } as any);
 
-    console.log(color.gray('Fastify instance configured, ready for routes'));
-
     return fastify;
 }

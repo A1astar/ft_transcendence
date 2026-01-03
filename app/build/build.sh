@@ -34,7 +34,9 @@ checkNodeVersion()
 
 checkPackageInstallation()
 {
-    [ ! -d node_modules ] && npm install
+    if [ ! -d node_modules ]; then
+        npm install
+    fi
 }
 
 checkPackageUpdate()
@@ -119,7 +121,7 @@ if [ $# -gt 0 ]; then
 
         "upgrade")
             checkNodeVersion
-            checkPackageUpdate
+            upgradePackage
         ;;
     esac
 fi
