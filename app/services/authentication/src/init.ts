@@ -1,13 +1,10 @@
 import Fastify, { FastifyInstance } from 'fastify';
-
 import fastifySession from '@fastify/session';
+import fastifyOAuth2 from '@fastify/oauth2';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJWT from '@fastify/jwt';
-
 import crypto from 'crypto';
-import color from 'chalk';
 
-import fastifyOAuth2 from '@fastify/oauth2';
 
 export async function initAuthenticationService() {
     const fastify = Fastify({

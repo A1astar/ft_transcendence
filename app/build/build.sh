@@ -3,8 +3,6 @@
 set -e
 
 app_dir=$(pwd)
-service_dir=$app_dir/services
-frontend_dir=$app_dir/frontend
 
 directories=(
     "$app_dir/frontend"
@@ -79,16 +77,30 @@ mergePackageJson()
     done
 }
 
+createDirectories()
+{
+    mkdir -p $app_dir/services/authentication/database \
+             $app_dir/infrastructure/hcp-vault/data
+}
+
+removeDirectories()
+{
+    rm -rf $app_dir/services/authentication/database \
+           $app_dir/infrastructure/hcp-vault/data
+}
+
 if [ $# -gt 0 ]; then
     case "$1" in
         "prod")
             checkNodeVersion
             mergePackageJson
+            createDirectories
         ;;
 
         "local")
             checkNodeVersion
             checkPackageInstallation
+            createDirectories
             export LOCAL=true
             export API_ORIGIN=http://localhost:3000
             cd $app_dir && npm run start:all
@@ -97,17 +109,20 @@ if [ $# -gt 0 ]; then
         "local-watch")
             checkNodeVersion
             checkPackageInstallation
+            createDirectories
             cd $app_dir && npm run watch:all
         ;;
 
         "local-build")
             checkNodeVersion
             checkPackageInstallation
+            createDirectories
             cd $app_dir && npm install && npm run build:all
         ;;
 
         "local-clean")
-            rm -rf ../frontend/certs
+            # rm -rf frontend/certs
+            # removeDirectories
             cd $app_dir && npm run clean && rm -rf node_modules package-lock.json
             for directory in "${directories[@]}"; do
                 cd $directory && rm -rf node_modules package-lock.json prod.package.json prod.tsconfig.json

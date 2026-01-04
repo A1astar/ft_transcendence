@@ -41,25 +41,24 @@ function readCertPair(): { key: Buffer; cert: Buffer } {
         const keyPath = path.join(BASE_DIR, 'certs', c.key);
         const crtPath = path.join(BASE_DIR, 'certs', c.crt);
         if (fs.existsSync(keyPath) && fs.existsSync(crtPath)) {
-        return {
-            key: fs.readFileSync(keyPath),
-            cert: fs.readFileSync(crtPath)
-        };
+            return {
+                key: fs.readFileSync(keyPath),
+                cert: fs.readFileSync(crtPath)
+            };
         }
     }
     throw new Error('No TLS certs found in certs/. Expected server.key/server.crt or self.key/self.crt');
 }
 
-    const API_ORIGIN = process.env.API_ORIGIN || 'http://localhost:3000';
-    const API_URL = new URL(API_ORIGIN);
+const API_ORIGIN = process.env.API_ORIGIN || 'http://localhost:3000';
+const API_URL = new URL(API_ORIGIN);
 
-    function proxyHttpRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
-    const upstreamPath = (req.url || '/').replace(/^\/api/, '');
+function proxyHttpRequest(req: http.IncomingMessage, res: http.ServerResponse): void {
     const options: https.RequestOptions & http.RequestOptions = {
         protocol: API_URL.protocol,
         hostname: API_URL.hostname,
         port: API_URL.port || (API_URL.protocol === 'https:' ? 443 : 80),
-        path: upstreamPath,
+        path: req.url,
         method: req.method || 'GET',
         headers: req.headers
     };
@@ -90,7 +89,7 @@ function proxyWebSocket(req: http.IncomingMessage, socket: Duplex, head: Buffer)
         const backendReq = http.request({
             hostname: 'localhost',
             port: 3003,
-            path: reqUrl.replace(/^\/api/, ''),
+            path: req.url,
             method: req.method || 'GET',
             headers: req.headers
         });
@@ -123,46 +122,46 @@ function proxyWebSocket(req: http.IncomingMessage, socket: Duplex, head: Buffer)
 }
 
 function requestHandler(req: http.IncomingMessage, res: http.ServerResponse): void {
-  const urlPath = req.url || '/';
+    const urlPath = req.url || '/';
 
-  console.log('Local-server request: ', req.url);
-  if (urlPath.startsWith('/api')) {
-    proxyHttpRequest(req, res);
-    return;
-  }
-
-  // Serve files from BASE_DIR (frontend root)
-  let filePath = path.join(BASE_DIR, urlPath === '/' ? 'index.html' : urlPath);
-
-  fs.stat(filePath, (err: NodeJS.ErrnoException | null, stats?: fs.Stats) => {
-    let serveFile = filePath;
-
-    if (err || (stats && stats.isDirectory())) {
-      const ext = path.extname(urlPath);
-
-      if (ext && ext !== '.html') {
-        res.writeHead(404, { 'Content-Type': 'text/plain' });
-        res.end('404 - File Not Found');
+    console.log('Local-server request: ', req.url);
+    if (urlPath.startsWith('/api')) {
+        proxyHttpRequest(req, res);
         return;
-      }
-
-      serveFile = path.join(BASE_DIR, 'index.html');
     }
 
-    fs.readFile(serveFile, (readErr, content) => {
-      if (readErr) {
-        res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end('500 - Internal Server Error');
-        return;
-      }
+    // Serve files from BASE_DIR (frontend root)
+    let filePath = path.join(BASE_DIR, urlPath === '/' ? 'index.html' : urlPath);
 
-      const ext = path.extname(serveFile);
-      const contentType = mimeTypes[ext] || 'application/octet-stream';
+    fs.stat(filePath, (err: NodeJS.ErrnoException | null, stats?: fs.Stats) => {
+        let serveFile = filePath;
 
-      res.writeHead(200, { 'Content-Type': contentType });
-      res.end(content);
+        if (err || (stats && stats.isDirectory())) {
+            const ext = path.extname(urlPath);
+
+            if (ext && ext !== '.html') {
+                res.writeHead(404, { 'Content-Type': 'text/plain' });
+                res.end('404 - File Not Found');
+                return;
+            }
+
+            serveFile = path.join(BASE_DIR, 'index.html');
+        }
+
+        fs.readFile(serveFile, (readErr, content) => {
+            if (readErr) {
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('500 - Internal Server Error');
+                return;
+            }
+
+            const ext = path.extname(serveFile);
+            const contentType = mimeTypes[ext] || 'application/octet-stream';
+
+            res.writeHead(200, { 'Content-Type': contentType });
+            res.end(content);
+        });
     });
-  });
 }
 
 let server: https.Server

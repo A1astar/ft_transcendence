@@ -1,21 +1,8 @@
-import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
-import Fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-
-import crypto from 'crypto';
-import color from 'chalk';
-
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { initAuthenticationService } from './init.js';
-import { RegistrationFormat, UserFormat, LoginFormat } from './format.js';
 import { SQLiteDatabase } from "./database.js";
-import { printRequest } from './print.js';
-import { User } from "./user.js";
 import { VaultService } from './vault.js';
-
-
-function printSession(request: FastifyRequest) {
-    console.log(color.bold.white('Session ID:'));
-    console.log(color.bold.white('Cookie ID:'));
-}
+import color from 'chalk';
 
 async function logAccount(request: FastifyRequest, reply: FastifyReply,
             sqlite: SQLiteDatabase, vaultClient: VaultService) : Promise<void> {
@@ -26,7 +13,7 @@ async function logAccount(request: FastifyRequest, reply: FastifyReply,
 
 async function registerOAuth(path: string, request: FastifyRequest,
     reply: FastifyReply, sqlite: SQLiteDatabase, vaultClient: VaultService, fastify: FastifyInstance) {
-    let provider;
+    let provider: string;
     const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
     if (oauthMatch) {
@@ -103,7 +90,8 @@ async function registerOAuth(path: string, request: FastifyRequest,
 async function manageRequest(fastify: FastifyInstance, sqlite: SQLiteDatabase, vaultClient: VaultService) {
 
     fastify.all('/*', async(request, reply) => {
-        console.log(request.url);
+        // console.log('Auth: ', request.url);
+
         // request.raw.url contains the full path and query string (e.g. /foo?bar=baz)
         const fullPath = request.raw.url;
         // We parse it to get just the pathname for switching

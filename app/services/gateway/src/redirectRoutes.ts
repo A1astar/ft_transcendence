@@ -15,6 +15,7 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceName: 
         method: ['GET', 'POST', 'PUT', 'DELETE'],
         url: `/${basePath}/*`,
         handler: async (req, reply) => {
+            // console.log('Gateway: ', req.url);
             try {
                 // In Docker network, we must use service name to reach other containers
                 // 'localhost' would refer to the gateway container itself

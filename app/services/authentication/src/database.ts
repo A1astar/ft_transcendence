@@ -1,12 +1,8 @@
 import BetterSQLite3, { Database as BetterSQLite3Database } from "better-sqlite3";
 import { FastifyRequest, FastifyReply } from 'fastify';
-
-import fastifySession from '@fastify/session';
-import fastifyCookie from '@fastify/cookie';
-import fastifyJWT from '@fastify/jwt';
-
-import { AuthenticationFormat, RegistrationFormat, LoginFormat } from "./format.js";
-import { User, generateId } from "./user.js";
+import { authenticator } from 'otplib';
+import crypto from 'crypto';
+import chalk from 'chalk';
 import {
     validateRegistrationData,
     validateLoginData,
@@ -15,14 +11,6 @@ import {
     checkRateLimit
 } from "./validators.js";
 
-import crypto from 'crypto';
-import chalk from 'chalk';
-import { authenticator } from 'otplib';
-
-export interface Session {
-    id: string,
-    userId: string
-}
 
 export class SQLiteDatabase {
     private sqlite: BetterSQLite3Database;

@@ -13,7 +13,7 @@ services:
       - ../frontend/certs:/etc/nginx/certs:ro
     depends_on:
       - gateway
-    restart: "no"
+    restart: unless-stopped
 
   gateway:
     build: ../services/gateway
@@ -25,7 +25,7 @@ services:
       - authentication
       - game-orchestration
       - game-engine
-    restart: "no"
+    restart: unless-stopped
 
   authentication:
     build: ../services/authentication
@@ -73,7 +73,7 @@ services:
       - "3003"
     networks:
       - microservices-network
-    restart: "no"
+    restart: unless-stopped
 
 networks:
   microservices-network:
@@ -93,11 +93,11 @@ networks:
 
 volumes:
   vault-data:
-      driver: local
-      driver_opts:
-        type: none
-        o: bind
-        device: ../infrastructure/hcp-vault/data
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ../infrastructure/hcp-vault/data
 #   prometheus-data:
 #   grafana-data:
 #   elasticsearch-data:

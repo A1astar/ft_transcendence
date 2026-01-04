@@ -35,18 +35,14 @@ export class VaultService {
     async initialize(): Promise<void> {
         try {
             const health = await this.client.health();
-            console.log('✅ Vault connected successfully');
+            console.log('Vault connected successfully');
             this.isInitialized = true;
         } catch (error) {
-            console.error('❌ Failed to connect to Vault:', error);
+            console.error('Failed to connect to Vault:', error);
             throw new Error('Vault connection failed');
         }
     }
 
-    /**
-     * Read a secret from Vault KV v2
-     * @param path - Path to the secret (e.g., 'authentication/jwt')
-     */
     async getSecret(path: string): Promise<SecretData | null> {
         try {
             const response = await this.client.read(`secret/data/${path}`);
@@ -57,11 +53,6 @@ export class VaultService {
         }
     }
 
-    /**
-     * Write a secret to Vault KV v2
-     * @param path - Path to store the secret
-     * @param data - Secret data to store
-     */
     async setSecret(path: string, data: SecretData): Promise<boolean> {
         try {
             await this.client.write(`secret/data/${path}`, {
@@ -74,10 +65,6 @@ export class VaultService {
         }
     }
 
-    /**
-     * Delete a secret from Vault
-     * @param path - Path to the secret
-     */
     async deleteSecret(path: string): Promise<boolean> {
         try {
             await this.client.delete(`secret/data/${path}`);
@@ -88,23 +75,14 @@ export class VaultService {
         }
     }
 
-    /**
-     * Get JWT configuration
-     */
     // async getJWTConfig(): Promise<{ secret_key: string; expiry: string } | null> {
     //      return await this.getSecret('authentication/jwt');
     // }
 
-    /**
-     * Get OAuth configuration for a provider
-     */
     async getOAuthConfig(provider: string): Promise<any> {
         return await this.getSecret(`authentication/oauth/${provider}`);
     }
 
-    /**
-     * Check if Vault is healthy
-     */
     async healthCheck(): Promise<boolean> {
         try {
             await this.client.health();
