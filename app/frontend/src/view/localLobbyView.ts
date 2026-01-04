@@ -4,12 +4,9 @@ import {
 	createHeadingText,
 	createSubheadingText,
 	createParagraphText,
-	createFormElement,
 	createInputElement,
 	createLogoElement,
-	createButtonForm,
 	createBoxDiv,
-	createButtonLink
 } from "./utils.js";
 import { getUsername } from "../authService.js";
 

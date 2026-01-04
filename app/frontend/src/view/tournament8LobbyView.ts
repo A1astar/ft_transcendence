@@ -3,8 +3,6 @@ import {
     createVideoBackgroundDiv,
     createHeadingText,
     createSubheadingText,
-    createParagraphText,
-    createFormElement,
     createInputElement,
     createLogoElement,
     createButtonForm,

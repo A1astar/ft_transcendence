@@ -1,4 +1,4 @@
-import Fastify, { FastifyInstance } from "fastify";
+import Fastify from "fastify";
 import cors from "@fastify/cors";
 import webSocket from "@fastify/websocket";
 import { games, gameConnections } from "./objects.js";

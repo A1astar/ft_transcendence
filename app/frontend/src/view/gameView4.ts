@@ -5,13 +5,7 @@ import {
     clearDiv,
     createVideoBackgroundDiv,
     createHeadingText,
-    createSubheadingText,
-    createParagraphText,
-    createFormElement,
-    createInputElement,
     createLogoElement,
-    createButtonForm,
-    createBoxDiv,
 } from "./utils.js";
 
 import {

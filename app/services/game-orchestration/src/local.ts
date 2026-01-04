@@ -1,7 +1,7 @@
-import { FastifyInstance } from "fastify";
-import { Player, MatchRequest, Match, queues } from "./objects.js";
-import { createMatch } from "./utils.js";
+import { MatchRequest, Match, queues } from "./objects.js";
 import { GAME_ENGINE_START_ENDPOINT } from "./config.js";
+import { FastifyInstance } from "fastify";
+import { createMatch } from "./utils.js";
 
 
 export async function localMatch(fastify: FastifyInstance) {

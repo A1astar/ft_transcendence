@@ -1,6 +1,5 @@
 import {
     clearDiv,
-    createGifBackgroundDiv,
     createVideoBackgroundDiv,
     createHeadingText,
     createSubheadingText,

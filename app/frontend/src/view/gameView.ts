@@ -3,13 +3,7 @@ import {
     clearDiv,
     createVideoBackgroundDiv,
     createHeadingText,
-    createSubheadingText,
-    createParagraphText,
-    createFormElement,
-    createInputElement,
     createLogoElement,
-    createButtonForm,
-    createBoxDiv,
     createCanvas,
     SERVER_BASE,
 } from "./utils.js";

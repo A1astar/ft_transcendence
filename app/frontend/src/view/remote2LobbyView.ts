@@ -7,8 +7,6 @@ import {
 	createLogoElement,
 	createBoxDiv,
 } from "./utils.js";
-import { renderGame } from "./gameView.js";
-import { renderTournamentIntermediate } from "./tournamentIntermediateView.js";
 
 const appDiv = document.getElementById("app");
 
@@ -43,4 +41,3 @@ export function renderRemote2Lobby() {
 		appDiv.appendChild(mainContainer);
 	}
 }
-

@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { Player, Match, queues } from "./objects.js";
+import { Player, Match } from "./objects.js";
 
 export function createMatch(
 	matchPlayers: Player[],

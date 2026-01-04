@@ -3,8 +3,6 @@ import {
     createVideoBackgroundDiv,
     createHeadingText,
     createSubheadingText,
-    createParagraphText,
-    createFormElement,
     createInputElement,
     createLogoElement,
     createButtonForm,
@@ -85,4 +83,3 @@ export function renderTournament4Lobby() {
 		appDiv.appendChild(mainContainer);
 	}
 }
-

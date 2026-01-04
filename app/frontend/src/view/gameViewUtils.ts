@@ -1,10 +1,8 @@
 declare const BABYLON: any;
-import {SERVER_BASE} from "./utils.js";
 
 const flareTexture = "../../public/textures/flare.png";
 const backgroundHeightMap = "../../public/heightmap/height.png";
 const backgroundTexture = "../../public/heightmap/texture.png";
-const appDiv = document.getElementById("app");
 
 export function gotMatchInfos(matchInfos: any): boolean {
     return matchInfos?.id ? true : false;

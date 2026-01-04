@@ -1,10 +1,8 @@
-import Fastify, { FastifyInstance } from "fastify";
-import cors from "@fastify/cors";
-// import { randomUUID } from "crypto";
-// import { Player, Match, queues } from "./objects.js";
-import { localMatch } from "./local.js";
 import { remoteMatch2, remoteMatch4 } from "./remote.js";
 import { tournamentMatch } from "./tournament.js";
+import { localMatch } from "./local.js";
+import cors from "@fastify/cors";
+import Fastify from "fastify";
 import chalk from 'chalk';
 
 

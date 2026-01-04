@@ -1,8 +1,8 @@
-import Fastify, { FastifyInstance } from 'fastify';
 import fastifySession from '@fastify/session';
 import fastifyOAuth2 from '@fastify/oauth2';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJWT from '@fastify/jwt';
+import Fastify from 'fastify';
 import crypto from 'crypto';
 
 

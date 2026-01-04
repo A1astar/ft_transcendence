@@ -1,5 +1,5 @@
-import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import '@fastify/static';
+import { FastifyInstance } from "fastify";
+// import '@fastify/static';
 
 function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
     return Object.fromEntries(
@@ -81,13 +81,7 @@ function routeServices(fastify: FastifyInstance, basePath: string, serviceName: 
 }
 
 export async function routeRequest(fastify: FastifyInstance) {
-
     routeServices(fastify, "api/auth", "authentication", 3001);
     routeServices(fastify, "api/game-orchestration", "game-orchestration", 3002);
     routeServices(fastify, "api/game-engine", "game-engine", 3003);
-
-    // fastify.get('/*', async (_req: FastifyRequest, reply: FastifyReply) => {
-    //     return reply.sendFile('index.html');
-    // });
-
 }

@@ -1,5 +1,5 @@
 import { FastifyInstance } from "fastify";
-import { Player, MatchRequest, Match, queues, tournamentQueues } from "./objects.js";
+import { MatchRequest, Match, queues, tournamentQueues } from "./objects.js";
 import { createMatch } from "./utils.js";
 import { GAME_ENGINE_START_ENDPOINT } from "./config.js";
 import { randomUUID } from "crypto";

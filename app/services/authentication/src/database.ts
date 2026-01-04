@@ -135,7 +135,6 @@ export class SQLiteDatabase {
                 return;
             }
 
-            this.printDatabase();
         } catch (error) {
             if (error instanceof ValidationError) {
                 sendValidationError(reply, error);
@@ -144,10 +143,6 @@ export class SQLiteDatabase {
                 reply.code(500).send({ error: 'Internal server error' });
             }
         }
-    }
-
-    printDatabase() {
-        // this.sqlite.
     }
 
     async loginUser(request: FastifyRequest, reply: FastifyReply): Promise<void> {

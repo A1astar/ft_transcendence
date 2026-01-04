@@ -1,7 +1,5 @@
 import Fastify, { FastifyInstance } from 'fastify';
-import { fileURLToPath } from 'url';
 import color from 'chalk';
-import path from 'path';
 
 import { routeRequest } from "./redirectRoutes.js";
 
