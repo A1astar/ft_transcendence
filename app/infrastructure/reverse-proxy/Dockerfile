@@ -23,14 +23,9 @@ WORKDIR /usr/share/nginx/html
 # Remove default nginx static assets
 RUN rm -rf ./*
 
-# Copy built frontend assets from builder stage
 COPY --from=builder /app/frontend .
 
 COPY infrastructure/reverse-proxy/entrypoint.sh /usr/bin
-
-RUN apk add --no-cache curl ca-certificates && \
-    curl -L -o /usr/local/bin/mkcert https://github.com/FiloSottile/mkcert/releases/download/v1.4.4/mkcert-v1.4.4-linux-amd64 && \
-    chmod +x /usr/local/bin/mkcert
 
 # RUN chmod u+x /usr/bin/entrypoint.sh
 

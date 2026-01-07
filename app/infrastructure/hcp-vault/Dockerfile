@@ -1,6 +1,6 @@
 FROM hashicorp/vault:1.21
 
-COPY vault-config.hcl /vault/config/vault-config.hcl
+COPY config/vault-config.hcl /vault/config/vault-config.hcl
 
 COPY entrypoint.sh /vault/entrypoint.sh
 

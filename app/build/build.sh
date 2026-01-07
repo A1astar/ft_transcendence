@@ -77,52 +77,124 @@ mergePackageJson()
     done
 }
 
-createDirectories()
+createFilesAndDirectories()
 {
     mkdir -p $app_dir/services/authentication/database \
-             $app_dir/infrastructure/hcp-vault/data
+             $app_dir/infrastructure/hcp-vault/data \
+             $app_dir/infrastructure/hcp-vault/keys \
+             $app_dir/infrastructure/hcp-vault/certs \
+             $app_dir/infrastructure/hcp-vault/secrets \
+             $app_dir/infrastructure/reverse-proxy/certs \
+             $app_dir/frontend/certs
+
+    touch $app_dir/infrastructure/hcp-vault/secrets/approle_role_id \
+          $app_dir/infrastructure/hcp-vault/secrets/approle_secret_id
 }
 
 removeDirectories()
 {
     rm -rf $app_dir/services/authentication/database \
-           $app_dir/infrastructure/hcp-vault/data
+           $app_dir/infrastructure/hcp-vault/data \
+           $app_dir/infrastructure/hcp-vault/keys \
+           $app_dir/infrastructure/hcp-vault/certs \
+           $app_dir/infrastructure/hcp-vault/secrets \
+           $app_dir/infrastructure/reverse-proxy/certs \
+           $app_dir/frontend/certs
+}
+
+setupCertificates()
+{
+    local frontend_dir="$app_dir/frontend"
+
+    if [ ! -f $frontend_dir/certs/self.key ]; then \
+        echo "Generating SSL certificates..."; \
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout $frontend_dir/certs/self.key \
+        -out $frontend_dir/certs/self.crt \
+        -subj "/C=TW/ST=Taipei/L=Taipei/O=42/OU=Transcendence/CN=localhost"; \
+    fi
+
+    # Reverse-proxy part
+    local reverse_proxy_dir="$app_dir/infrastructure/reverse-proxy"
+
+    if [ ! -f $reverse_proxy_dir/certs/self.key ]; then \
+        echo "Generating SSL certificates..."; \
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout $reverse_proxy_dir/certs/self.key \
+        -out $reverse_proxy_dir/certs/self.crt \
+        -subj "/C=TW/ST=Taipei/L=Taipei/O=42/OU=Transcendence/CN=localhost"; \
+    fi
+
+    # HCP-Vault part
+    local vault_dir="$app_dir/infrastructure/hcp-vault"
+    local cert_dir="$vault_dir/certs"
+    local config_dir="$vault_dir/config"
+
+    local ca_key="$cert_dir/ca.key"
+    local ca_crt="$cert_dir/ca.crt"
+    local srv_key="$cert_dir/vault.key"
+    local srv_csr="$cert_dir/vault.csr"
+    local srv_crt="$cert_dir/vault.crt"
+
+    local csr_cnf="$config_dir/vault.csr.cnf"
+    local ext_file="$config_dir/vault.ext"
+
+    if [ ! -f "$ca_key" ]; then
+      openssl genrsa -out "$ca_key" 4096
+
+      openssl req -x509 -new -nodes -key "$ca_key" -sha256 -days 825 \
+        -subj "/C=FR/ST=Local/L=Local/O=Transcendence/CN=Transcendence-Internal-CA" \
+        -out "$ca_crt"
+    fi
+
+    if [ ! -f "$srv_key" ]; then
+      openssl genrsa -out "$srv_key" 4096
+
+      openssl req -new -key "$srv_key" -out "$srv_csr" -config "$csr_cnf"
+
+      openssl x509 -req -in "$srv_csr" -CA "$ca_crt" -CAkey "$ca_key" -CAcreateserial \
+        -out "$srv_crt" -days 825 -sha256 -extfile "$ext_file"
+    fi
+}
+
+removeCertificates()
+{
+    rm -rf frontend/certs infrastructure/hcp-vault/certs
 }
 
 if [ $# -gt 0 ]; then
+    checkNodeVersion
     case "$1" in
         "prod")
-            checkNodeVersion
             mergePackageJson
-            createDirectories
+            createFilesAndDirectories
+            setupCertificates
         ;;
 
         "local")
-            checkNodeVersion
             checkPackageInstallation
-            createDirectories
+            createFilesAndDirectories
+            setupCertificates
             export LOCAL=true
             export API_ORIGIN=http://localhost:3000
             cd $app_dir && npm run start:all
         ;;
 
         "local-watch")
-            checkNodeVersion
             checkPackageInstallation
-            createDirectories
+            createFilesAndDirectories
             cd $app_dir && npm run watch:all
         ;;
 
         "local-build")
-            checkNodeVersion
             checkPackageInstallation
-            createDirectories
+            createFilesAndDirectories
             cd $app_dir && npm install && npm run build:all
         ;;
 
         "local-clean")
-            # rm -rf frontend/certs
             # removeDirectories
+            # removeCertificates
             cd $app_dir && npm run clean && rm -rf node_modules package-lock.json
             for directory in "${directories[@]}"; do
                 cd $directory && rm -rf node_modules package-lock.json prod.package.json prod.tsconfig.json
@@ -130,12 +202,10 @@ if [ $# -gt 0 ]; then
         ;;
 
         "update")
-            checkNodeVersion
             checkPackageUpdate
         ;;
 
         "upgrade")
-            checkNodeVersion
             upgradePackage
         ;;
     esac

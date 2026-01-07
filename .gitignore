@@ -1,13 +1,20 @@
 # Global
-*.bak
 dist/
+*.bak
 *.bkp
-database/
 node_modules/
 package-lock.json
-
-# Infrastructure
-certs/
+prod.package.json
+prod.tsconfig.json
 
 # Frontend
 *output.css
+
+# Infrastructure
+keys/
+data/
+certs/
+secrets/
+
+# Services
+database/

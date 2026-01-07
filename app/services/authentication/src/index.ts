@@ -163,6 +163,13 @@ async function main() {
         const sqlite = new SQLiteDatabase();
         const vaultClient = new VaultService();
 
+        // Initialize Vault connection early; continue if it fails
+        try {
+            await vaultClient.initialize();
+        } catch (e) {
+            console.error('[auth] Vault initialization failed; proceeding without secrets');
+        }
+
         // Register routes BEFORE starting the server
         await manageRequest(fastify, sqlite, vaultClient);
 

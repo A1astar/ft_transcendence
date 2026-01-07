@@ -4,13 +4,14 @@ services:
     build:
         context: ../
         dockerfile: infrastructure/reverse-proxy/Dockerfile
+    # build: ../infrastructure/reverse-proxy/
     ports:
       - "8080:80"
       - "8443:443"
     networks:
       - microservices-network
     volumes:
-      - ../frontend/certs:/etc/nginx/certs:ro
+      - ../infrastructure/reverse-proxy/certs:/etc/nginx/certs:ro
     depends_on:
       - gateway
     restart: unless-stopped
@@ -34,14 +35,19 @@ services:
     networks:
       - microservices-network
       - vault-network
+    secrets:
+      - source: vault_approle_role_id
+        target: vault_approle_role_id
+      - source: vault_approle_secret_id
+        target: vault_approle_secret_id
+    volumes:
+      - ../infrastructure/hcp-vault/certs/ca.crt:/etc/ssl/vault/ca.crt:ro
     environment:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=https://localhost:8443/api/auth/oauth/google/callback
-      - VAULT_ROLE_ID=${VAULT_ROLE_ID}
-      - VAULT_SECRET_ID=${VAULT_SECRET_ID}
-      - VAULT_ADDR=http://hashicorp-vault:8200
-      - VAULT_TOKEN=${VAULT_TOKEN:-your-dev-token}
+      - VAULT_ADDR=https://hashicorp-vault:8200
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/vault/ca.crt
     depends_on:
       - hashicorp-vault
     restart: unless-stopped
@@ -54,8 +60,13 @@ services:
       - vault-network
     volumes:
       - vault-data:/vault/data
+      - vault-keys:/vault/keys
+      - ../infrastructure/hcp-vault/certs:/vault/certs:ro
+      - ../infrastructure/hcp-vault/secrets:/vault/secrets
     environment:
-      - VAULT_ADDR=http://0.0.0.0:8200
+      - VAULT_ADDR=https://127.0.0.1:8200
+      - VAULT_CACERT=/vault/certs/ca.crt
+      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN:-your-dev-token}
     restart: unless-stopped
 
   game-orchestration:
@@ -99,8 +110,20 @@ volumes:
       type: none
       o: bind
       device: ../infrastructure/hcp-vault/data
+
+  vault-keys:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ../infrastructure/hcp-vault/keys
+
 #   prometheus-data:
 #   grafana-data:
 #   elasticsearch-data:
 
-# secrets:
+secrets:
+  vault_approle_role_id:
+    file: ../infrastructure/hcp-vault/secrets/approle_role_id
+  vault_approle_secret_id:
+    file: ../infrastructure/hcp-vault/secrets/approle_secret_id
