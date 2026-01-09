@@ -60,6 +60,7 @@ export class SQLiteDatabase {
         // First, try session-based authentication
         try {
             const sess = (request as any).session;
+            console.log(sess);
             if (sess?.userId) {
                 return String(sess.userId);
             }

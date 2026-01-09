@@ -107,7 +107,7 @@ setupCertificates()
     local frontend_dir="$app_dir/frontend"
 
     if [ ! -f $frontend_dir/certs/self.key ]; then \
-        echo "Generating SSL certificates..."; \
+        echo "Generating frontend SSL certificates..."; \
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
         -keyout $frontend_dir/certs/self.key \
         -out $frontend_dir/certs/self.crt \
@@ -118,7 +118,7 @@ setupCertificates()
     local reverse_proxy_dir="$app_dir/infrastructure/reverse-proxy"
 
     if [ ! -f $reverse_proxy_dir/certs/self.key ]; then \
-        echo "Generating SSL certificates..."; \
+        echo "Generating reverse proxy SSL certificates..."; \
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
         -keyout $reverse_proxy_dir/certs/self.key \
         -out $reverse_proxy_dir/certs/self.crt \

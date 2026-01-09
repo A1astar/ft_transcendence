@@ -1,6 +1,3 @@
 #!/bin/sh
 
-whoami
-ll /etc/nginx
-
-sleep 3
+nginx -g "daemon off;"

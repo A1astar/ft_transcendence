@@ -14,7 +14,7 @@ RUN rm package.json && mv prod.package.json package.json \
 RUN npm install && npm run build
 
 # Remove node_modules to keep the image clean (optional for builder stage but good practice if we were keeping it)
-# RUN rm -rf node_modules
+RUN rm -rf node_modules
 
 FROM nginx:1.29.1-alpine-slim
 
@@ -27,13 +27,10 @@ COPY --from=builder /app/frontend .
 
 COPY infrastructure/reverse-proxy/entrypoint.sh /usr/bin
 
-# RUN chmod u+x /usr/bin/entrypoint.sh
+RUN chmod u+x /usr/bin/entrypoint.sh
 
-# Copy nginx config
 COPY infrastructure/reverse-proxy/config/nginx.conf /etc/nginx/nginx.conf
 
 EXPOSE 80 443
 
-# ENTRYPOINT [ "/usr/bin/entrypoint.sh" ]
-
-CMD [ "nginx", "-g", "daemon off;" ]
+ENTRYPOINT [ "/usr/bin/entrypoint.sh" ]

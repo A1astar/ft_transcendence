@@ -13,24 +13,24 @@ export async function initAuthenticationService() {
             plugins: []
         },
         bodyLimit: 1048576,                 // default: 1MB
-        // caseSensitive: true,                // default: true
+        // caseSensitive: true,             // default: true
         connectionTimeout: 0,               // default: 0 (disabled)
         disableRequestLogging: false,       // default: false
         exposeHeadRoutes: true,             // default: true
         forceCloseConnections: false,       // default: false
-        // genReqId: (req) => {                // default: incremental counter
+        // genReqId: (req) => {             // default: incremental counter
         //     return `req-${Date.now()}-${Math.random()}`;
         // },
-        // http2: false,                       // default: false
-        // http2SessionTimeout: 72000,         // default: 72000ms (72s)
-        // https: undefined,                   // default: undefined (provide { key, cert } for HTTPS)
-        // ignoreTrailingSlash: false,         // default: false
-        // ignoreDuplicateSlashes: false,      // default: false
+        // http2: false,                    // default: false
+        // http2SessionTimeout: 72000,      // default: 72000ms (72s)
+        // https: undefined,                // default: undefined (provide { key, cert } for HTTPS)
+        // ignoreTrailingSlash: false,      // default: false
+        // ignoreDuplicateSlashes: false,   // default: false
         keepAliveTimeout: 72000,            // default: 72000ms (Node.js default)
-        logger: false,                       // default: false (or pino options)
-        // maxParamLength: 100,                // default: 100
+        logger: false,                      // default: false (or pino options)
+        // maxParamLength: 100,             // default: 100
         maxRequestsPerSocket: 0,            // default: 0 (unlimited)
-        // onProtocolError: 'error',           // default: 'error' | 'ignore'
+        // onProtocolError: 'error',        // default: 'error' | 'ignore'
         pluginTimeout: 10000,               // default: 10000ms (10s)
         // querystringParser: undefined,    // default: undefined (uses Node's)
         requestIdHeader: false,             // default: false (or string header name)
@@ -43,7 +43,7 @@ export async function initAuthenticationService() {
         serializerOpts: {},                 // default: {}
         serverFactory: undefined,           // default: undefined
         trustProxy: false,                  // default: false (or true, string, number, function)
-        // versioning: undefined,              // default: undefined
+        // versioning: undefined,           // default: undefined
     });
 
     fastify.register(fastifyCookie);

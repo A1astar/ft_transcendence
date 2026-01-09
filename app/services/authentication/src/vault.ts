@@ -16,7 +16,8 @@ interface SecretData {
 function readDockerSecret(name: string): string | undefined {
   try {
     const p = `/run/secrets/${name}`;
-    if (fs.existsSync(p)) return fs.readFileSync(p, "utf-8").trim();
+    if (fs.existsSync(p))
+      return fs.readFileSync(p, "utf-8").trim();
   } catch {}
   return undefined;
 }
@@ -36,7 +37,8 @@ export class VaultService {
                     try {
                         const p = process.env.VAULT_CA_PATH || '/etc/ssl/vault/ca.crt';
                         const fs = require('fs');
-                        if (fs.existsSync(p)) return fs.readFileSync(p);
+                        if (fs.existsSync(p))
+                          return fs.readFileSync(p);
                     } catch (e) {}
                     return undefined;
                 })(),

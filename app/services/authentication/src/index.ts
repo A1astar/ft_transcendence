@@ -79,9 +79,7 @@ async function registerOAuth(path: string, request: FastifyRequest,
                 }
             }
             break;
-        case 'intra42':
-            console.log(color.bold.cyan('intra42'));
-            break;
+            
         default:
             reply.code(409).send({ error: "Wrong oauth provider." });
     }
