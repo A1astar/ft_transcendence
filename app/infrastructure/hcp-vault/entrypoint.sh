@@ -1,62 +1,85 @@
 #!/bin/sh
+
 set -e
 
-# Directories
+# Files and directories
 KEYS_DIR="/vault/keys"
 BOOTSTRAP_DIR="/vault/data/bootstrap"
 INIT_JSON="$KEYS_DIR/init-keys.json"
 ROOT_TOKEN_FILE="$KEYS_DIR/root-token.txt"
 UNSEAL_KEY_FILE="$KEYS_DIR/unseal-key.txt"
 APPROLE_JSON="$BOOTSTRAP_DIR/approle.json"
-LOG_FILE="/vault/vault.log"
 
 mkdir -p "$KEYS_DIR" "$BOOTSTRAP_DIR"
 
-# Start Vault with TLS config in background
-vault server -config=/vault/config/vault-config.hcl > "$LOG_FILE" 2>&1 &
+# Start Vault in background and capture PID
+vault server -config=/vault/config/vault-config.hcl &
+VAULT_PID=$!
 
 export VAULT_ADDR="https://127.0.0.1:8200"
 export VAULT_CACERT="/vault/certs/ca.crt"
 
-# Wait for Vault to respond (any status). Avoid set -e by masking failures.
+# Wait for Vault API to respond
 STATUS_JSON=""
 for i in $(seq 1 90); do
-    STATUS_JSON=$(vault status -format=json 2>/dev/null || true)
-    echo "$STATUS_JSON" | grep -q '"initialized"' && break
+    STATUS_JSON="$(vault status -format=json 2>/dev/null || true)"
+    [ -n "$STATUS_JSON" ] && break
     sleep 1
 done
 
 # Parse status
-INITD=$(echo "$STATUS_JSON" | sed -n 's/.*"initialized":\([^,}]*\).*/\1/p' | tr -d ' ')
-SEALED=$(echo "$STATUS_JSON" | sed -n 's/.*"sealed":\([^,}]*\).*/\1/p' | tr -d ' ')
+INITD=$(echo "$STATUS_JSON" | sed -n 's/.*"initialized":[[:space:]]*\(true\|false\).*/\1/p')
+SEALED=$(echo "$STATUS_JSON" | sed -n 's/.*"sealed":[[:space:]]*\(true\|false\).*/\1/p')
 
-# Initialize only if not initialized
+# Initialize if not initialized (1 key, 1 share)
 if [ "$INITD" != "true" ]; then
-    echo "[vault] Initializing Vault (server mode)"
-    vault operator init -key-shares=1 -key-threshold=1 -format=json > "$INIT_JSON"
-    ROOT_TOKEN=$(sed -n 's/.*"root_token":"\([^"]*\)".*/\1/p' "$INIT_JSON")
-    UNSEAL_KEY=$(sed -n 's/.*"unseal_keys_b64":\["\([^"]*\)"\].*/\1/p' "$INIT_JSON")
-    echo "$ROOT_TOKEN" > "$ROOT_TOKEN_FILE"
-    echo "$UNSEAL_KEY" > "$UNSEAL_KEY_FILE"
+    # Use text output; easy to parse
+    INIT_OUT_TEXT="$(vault operator init -key-shares=1 -key-threshold=1 2>&1 || true)"
+    # Keep a snapshot (even if text; path name unchanged)
+    echo "$INIT_OUT_TEXT" > "$INIT_JSON"
+
+    # Extract keys from text
+    UNSEAL_KEY="$(echo "$INIT_OUT_TEXT" | awk -F': ' '/Unseal Key 1/ {print $2; exit}')"
+    ROOT_TOKEN="$(echo "$INIT_OUT_TEXT" | awk -F': ' '/Initial Root Token/ {print $2; exit}')"
+
+    [ -n "$UNSEAL_KEY" ] && echo "$UNSEAL_KEY" > "$UNSEAL_KEY_FILE"
+    [ -n "$ROOT_TOKEN" ] && echo "$ROOT_TOKEN" > "$ROOT_TOKEN_FILE"
+
     SEALED=true
 fi
 
-# Unseal if sealed and we have the key
+# Unseal if sealed
 if [ "$SEALED" = "true" ]; then
-    if [ -r "$UNSEAL_KEY_FILE" ]; then
-      UNSEAL_KEY=$(tr -d '\r\n' < "$UNSEAL_KEY_FILE")
-    else
-      UNSEAL_KEY=""
-    fi
-    if [ -n "$UNSEAL_KEY" ]; then
-      echo "[vault] Unsealing"
-      vault operator unseal "$UNSEAL_KEY"
-    else
-      echo "[vault] Warning: sealed but unseal key missing; skipping unseal"
-    fi
+  KEY=""
+  # prefer freshly generated key
+  if [ -n "$UNSEAL_KEY" ]; then KEY="$UNSEAL_KEY"; fi
+  # or persisted key file
+  if [ -z "$KEY" ] && [ -r "$UNSEAL_KEY_FILE" ]; then KEY="$(cat "$UNSEAL_KEY_FILE")"; fi
+  # or from init snapshot
+  if [ -z "$KEY" ] && [ -r "$INIT_JSON" ]; then
+    KEY="$(awk -F': ' '/Unseal Key 1/ {print $2; exit}' "$INIT_JSON")"
+  fi
+
+  if [ -n "$KEY" ]; then
+    vault operator unseal "$KEY" >/dev/null 2>&1 || true
+    # wait until unsealed
+    for i in $(seq 1 30); do
+      STATUS_JSON="$(vault status -format=json 2>/dev/null || true)"
+      SEALED=$(echo "$STATUS_JSON" | sed -n 's/.*"sealed":[[:space:]]*\(true\|false\).*/\1/p')
+      [ "$SEALED" = "false" ] && break
+      sleep 1
+    done
+  else
+    echo "[vault] Warning: sealed and unseal key missing; skipping unseal"
+  fi
 fi
 
-# If we have a root token, use it for bootstrap; otherwise skip privileged ops
+# If we have a root token, use it for bootstrap; otherwise try init snapshot
+if [ ! -s "$ROOT_TOKEN_FILE" ] && [ -r "$INIT_JSON" ]; then
+  SNAP_TOKEN="$(awk -F': ' '/Initial Root Token/ {print $2; exit}' "$INIT_JSON")"
+  [ -n "$SNAP_TOKEN" ] && echo "$SNAP_TOKEN" > "$ROOT_TOKEN_FILE"
+fi
+
 if [ -s "$ROOT_TOKEN_FILE" ]; then
     export VAULT_TOKEN="$(cat "$ROOT_TOKEN_FILE")"
 
@@ -101,12 +124,12 @@ POL
 }
 JSON
     fi
-
     # Seed health secret
     vault kv put secret/health check=true >/dev/null 2>&1 || true
 else
     echo "[vault] Warning: ROOT_TOKEN_FILE missing; skipping bootstrap ops"
 fi
 
-# Keep process alive
-exec tail -f "$LOG_FILE"
+# Keep container alive and forward signals to Vault
+trap 'kill -TERM "$VAULT_PID"; wait "$VAULT_PID"' INT TERM
+wait "$VAULT_PID"

@@ -9,7 +9,8 @@
     "build": "mkdir -p database && tsc",
     "clean": "rm -rf dist",
     "start": "npm run build && node dist/index.js",
-    "watch": "tsx watch --clear-screen=false src"
+    "watch": "tsx watch --clear-screen=false src",
+    "format": "prettier --write \"**/*.ts\""
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.2",

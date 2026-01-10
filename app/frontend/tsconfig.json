@@ -4,6 +4,10 @@
     "outDir": "dist",
     "rootDir": "src"
   },
-  "include": ["src/**/*.ts", "src/router.ts-bak"],
+  "include": [
+    "src/**/*.ts",
+    "src/router.ts-bak",
+    "src/router.ts-pre-split.bak"
+  ],
   "exclude": ["node_modules", "dist"]
 }

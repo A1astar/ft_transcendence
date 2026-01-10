@@ -6,4 +6,3 @@ export const GAME_ENGINE_BASE_URL =
   process.env.GAME_ENGINE_BASE_URL ?? DEFAULT_GAME_ENGINE_BASE;
 
 export const GAME_ENGINE_START_ENDPOINT = `${GAME_ENGINE_BASE_URL}/game-engine/start`;
-

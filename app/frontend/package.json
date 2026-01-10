@@ -14,7 +14,8 @@
     "build:initial": "tsc && tailwindcss -i ./styles/input.css -o ./styles/output.css",
     "tw": "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
     "ts": "tsc -w --preserveWatchOutput",
-    "serve": "node dist/server.js"
+    "serve": "node dist/server.js",
+    "format": "prettier --write \"**/*.{css,ts}\""
   },
   "dependencies": {
     "@babylonjs/core": "^8.43.0",

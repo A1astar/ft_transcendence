@@ -2,6 +2,7 @@
   "name": "ft_transcendence",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "workspaces": [
     "frontend",
     "services/authentication",
@@ -25,6 +26,8 @@
     "watch:game-orchestration": "npm run watch -w @ft_transcendence/game-orchestration",
     "watch:gateway": "npm run watch -w @ft_transcendence/gateway",
     "watch:user-management": "npm run watch -w @ft_transcendence/user-management",
+    "format": "npm run format --workspaces",
+    "lint": "npx eslint .",
     "clean": "npm run clean --workspaces"
   },
   "dependencies": {

@@ -4,7 +4,6 @@ services:
     build:
         context: ../
         dockerfile: infrastructure/reverse-proxy/Dockerfile
-    # build: ../infrastructure/reverse-proxy/
     ports:
       - "8080:80"
       - "8443:443"
@@ -35,13 +34,9 @@ services:
     networks:
       - microservices-network
       - vault-network
-    secrets:
-      - source: vault_approle_role_id
-        target: vault_approle_role_id
-      - source: vault_approle_secret_id
-        target: vault_approle_secret_id
     volumes:
       - ../infrastructure/hcp-vault/certs/ca.crt:/etc/ssl/vault/ca.crt:ro
+      - ../infrastructure/hcp-vault/secrets:/run/secrets:ro
     environment:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
@@ -54,6 +49,7 @@ services:
 
   hashicorp-vault:
     build: ../infrastructure/hcp-vault
+    user: "${UID}:${GID}"
     ports:
       - "8200:8200"
     networks:
@@ -66,7 +62,6 @@ services:
     environment:
       - VAULT_ADDR=https://127.0.0.1:8200
       - VAULT_CACERT=/vault/certs/ca.crt
-      - VAULT_DEV_ROOT_TOKEN_ID=${VAULT_TOKEN:-your-dev-token}
     restart: unless-stopped
 
   game-orchestration:
@@ -121,9 +116,3 @@ volumes:
 #   prometheus-data:
 #   grafana-data:
 #   elasticsearch-data:
-
-secrets:
-  vault_approle_role_id:
-    file: ../infrastructure/hcp-vault/secrets/approle_role_id
-  vault_approle_secret_id:
-    file: ../infrastructure/hcp-vault/secrets/approle_secret_id

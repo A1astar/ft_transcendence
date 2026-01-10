@@ -6,12 +6,18 @@ IMAGE = reverse-proxy \
 IMAGE := $(addprefix transcendence-, $(IMAGE))
 COMPOSE_FILE=./build/docker-compose.yml
 
+# Set these variables for the vault
+UID = $(shell id -u)
+GID = $(shell id -g)
+export UID
+export GID
+
 all: clean build up
 
 build:
 	./build/build.sh prod
 	docker compose -f $(COMPOSE_FILE) build --no-cache
-	./build/build.sh local-clean
+	./build/build.sh prod-clean
 
 up:
 	docker compose -f $(COMPOSE_FILE) up
@@ -37,6 +43,12 @@ clean: down local-clean
 
 re: clean all
 
+lint:
+	npm run lint
+
+format:
+	npm run format
+
 update:
 	./build/build.sh update
 
@@ -49,4 +61,4 @@ test:
 .PHONY: \
 all setup-certs build up down \
 local local-watch local-build local-clean local-watch-all local-re \
-clean re test
+clean re lint format update upgrade test

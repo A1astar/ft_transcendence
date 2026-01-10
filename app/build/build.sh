@@ -171,6 +171,12 @@ if [ $# -gt 0 ]; then
             setupCertificates
         ;;
 
+        "prod-clean")
+            for directory in "${directories[@]}"; do
+                cd $directory && rm -rf prod.package.json prod.tsconfig.json
+            done
+        ;;
+
         "local")
             checkPackageInstallation
             createFilesAndDirectories
@@ -193,8 +199,8 @@ if [ $# -gt 0 ]; then
         ;;
 
         "local-clean")
-            # removeDirectories
-            # removeCertificates
+            removeDirectories
+            removeCertificates
             cd $app_dir && npm run clean && rm -rf node_modules package-lock.json
             for directory in "${directories[@]}"; do
                 cd $directory && rm -rf node_modules package-lock.json prod.package.json prod.tsconfig.json

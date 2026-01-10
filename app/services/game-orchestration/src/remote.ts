@@ -7,22 +7,29 @@ import { GAME_ENGINE_START_ENDPOINT } from "./config.js";
 let activeMatches = new Map<string, Match>();
 
 async function createAndStartMatch(players: Player[]): Promise<Match> {
-  const playerKey = players.map(p => p.alias).sort().join('-');
+  const playerKey = players
+    .map((p) => p.alias)
+    .sort()
+    .join("-");
   if (activeMatches.has(playerKey)) {
     return activeMatches.get(playerKey)!;
   }
   let match: Match;
-  if (players.length === 2)
-    match = createMatch(players, "remote2", 0);
-  else
-    match = createMatch(players, "remote4", 0);
+  if (players.length === 2) match = createMatch(players, "remote2", 0);
+  else match = createMatch(players, "remote4", 0);
   try {
     // attach a side assignment map to the match according to join order
     // NOTE: Les noms left/right/up/down côté serveur sont inversés visuellement dans le frontend
     // Pour que joueur 1 apparaisse à gauche visuellement, on l'assigne à 'right' côté serveur
-    const sideOrder2: Array<'left'|'right'> = ['left','right'];
-    const sideOrder4: Array<'left'|'right'|'up'|'down'> = ['right','left','down','up'];
-    const sideOrder: Array<'left'|'right'|'up'|'down'> = match.players.length === 2 ? sideOrder2 : sideOrder4;
+    const sideOrder2: Array<"left" | "right"> = ["left", "right"];
+    const sideOrder4: Array<"left" | "right" | "up" | "down"> = [
+      "right",
+      "left",
+      "down",
+      "up",
+    ];
+    const sideOrder: Array<"left" | "right" | "up" | "down"> =
+      match.players.length === 2 ? sideOrder2 : sideOrder4;
     const assignments: Record<string, string> = {};
     for (let i = 0; i < match.players.length && i < sideOrder.length; i++) {
       const side = sideOrder[i] as string;
@@ -35,8 +42,8 @@ async function createAndStartMatch(players: Player[]): Promise<Match> {
 
     const res = await fetch(GAME_ENGINE_START_ENDPOINT, {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify(match)
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(match),
     });
     console.log("Game engine response:", await res.json());
 
@@ -50,102 +57,126 @@ async function createAndStartMatch(players: Player[]): Promise<Match> {
 }
 
 export async function remoteMatch2(fastify: FastifyInstance) {
-  fastify.post("/api/game-orchestration/remote2", async(request, reply) => {
+  fastify.post("/api/game-orchestration/remote2", async (request, reply) => {
     const matchRequest = request.body as MatchRequest;
-    if (queues.remote2.some(p => p.alias === matchRequest.player.alias)) {
+    if (queues.remote2.some((p) => p.alias === matchRequest.player.alias)) {
       reply.code(400);
       return { error: "Player already in queue" };
     }
     queues.remote2.push(matchRequest.player);
-    console.log(`Player ${matchRequest.player.alias} joined queue. Queue size: ${queues.remote2.length}`);
+    console.log(
+      `Player ${matchRequest.player.alias} joined queue. Queue size: ${queues.remote2.length}`
+    );
 
     if (queues.remote2.length >= 2) {
       const matchPlayers = queues.remote2.splice(0, 2);
       return await createAndStartMatch(matchPlayers);
     }
-    return {status: "waiting"};
+    return { status: "waiting" };
   });
 
   // Check queue status endpoint
-  fastify.get("/api/game-orchestration/remote2/status", async(request, reply) => {
-    const playerAlias = request.query as { alias: string };
-    if (!playerAlias.alias) {
-      reply.code(400);
-      return { error: "Player alias is required" };
-    }
-
-    // Check if this player is in any active match
-    for (const [key, match] of activeMatches.entries()) {
-      const matchPlayers = key.split('-');
-      if (matchPlayers.includes(playerAlias.alias)) {
-        return match;
+  fastify.get(
+    "/api/game-orchestration/remote2/status",
+    async (request, reply) => {
+      const playerAlias = request.query as { alias: string };
+      if (!playerAlias.alias) {
+        reply.code(400);
+        return { error: "Player alias is required" };
       }
-    }
 
-    console.log(`Status check for ${playerAlias.alias} - no match found yet`);
-    return {status: "waiting"};
-  });
+      // Check if this player is in any active match
+      for (const [key, match] of activeMatches.entries()) {
+        const matchPlayers = key.split("-");
+        if (matchPlayers.includes(playerAlias.alias)) {
+          return match;
+        }
+      }
+
+      console.log(`Status check for ${playerAlias.alias} - no match found yet`);
+      return { status: "waiting" };
+    }
+  );
 
   // Leave queue endpoint
-  fastify.post("/api/game-orchestration/remote2/leave", async(request, reply) => {
-    const matchRequest = request.body as MatchRequest;
-    const index = queues.remote2.findIndex(p => p.alias === matchRequest.player.alias);
-    if (index !== -1) {
-      queues.remote2.splice(index, 1);
-      console.log(`Player ${matchRequest.player.alias} left queue. Queue size: ${queues.remote2.length}`);
+  fastify.post(
+    "/api/game-orchestration/remote2/leave",
+    async (request, reply) => {
+      const matchRequest = request.body as MatchRequest;
+      const index = queues.remote2.findIndex(
+        (p) => p.alias === matchRequest.player.alias
+      );
+      if (index !== -1) {
+        queues.remote2.splice(index, 1);
+        console.log(
+          `Player ${matchRequest.player.alias} left queue. Queue size: ${queues.remote2.length}`
+        );
+      }
+      return { status: "success" };
     }
-    return { status: "success" };
-  });
+  );
 }
 
 // remote 4 players
 export async function remoteMatch4(fastify: FastifyInstance) {
-  fastify.post("/api/game-orchestration/remote4", async(request, reply) => {
-	const matchRequest = request.body as MatchRequest;
-	if (queues.remote4.some(p => p.alias === matchRequest.player.alias)) {
+  fastify.post("/api/game-orchestration/remote4", async (request, reply) => {
+    const matchRequest = request.body as MatchRequest;
+    if (queues.remote4.some((p) => p.alias === matchRequest.player.alias)) {
       reply.code(400);
       console.log(`player already in queue`);
       return { error: "Player already in queue" };
     }
-	queues.remote4.push(matchRequest.player);
-	console.log(`Player ${matchRequest.player.alias} joined queue. Queue size: ${queues.remote4.length}`);
+    queues.remote4.push(matchRequest.player);
+    console.log(
+      `Player ${matchRequest.player.alias} joined queue. Queue size: ${queues.remote4.length}`
+    );
 
-	if (queues.remote4.length >= 4) {
-	  const matchPlayers = queues.remote4.splice(0, 4);
-	  return await createAndStartMatch(matchPlayers);
-	}
-	console.log(queues.remote4.length);
-	return {status: "waiting"};
-  })
+    if (queues.remote4.length >= 4) {
+      const matchPlayers = queues.remote4.splice(0, 4);
+      return await createAndStartMatch(matchPlayers);
+    }
+    console.log(queues.remote4.length);
+    return { status: "waiting" };
+  });
 
   // Check queue status endpoint
-  fastify.get("/api/game-orchestration/remote4/status", async(request, reply) => {
-    const playerAlias = request.query as { alias: string };
-    if (!playerAlias.alias) {
-      reply.code(400);
-      return { error: "Player alias is required" };
-    }
-
-    // Check if this player is in any active match
-    for (const [key, match] of activeMatches.entries()) {
-      const matchPlayers = key.split('-');
-      if (matchPlayers.includes(playerAlias.alias)) {
-        return match;
+  fastify.get(
+    "/api/game-orchestration/remote4/status",
+    async (request, reply) => {
+      const playerAlias = request.query as { alias: string };
+      if (!playerAlias.alias) {
+        reply.code(400);
+        return { error: "Player alias is required" };
       }
-    }
 
-    console.log(`Status check for ${playerAlias.alias} - no match found yet`);
-    return {status: "waiting"};
-  });
+      // Check if this player is in any active match
+      for (const [key, match] of activeMatches.entries()) {
+        const matchPlayers = key.split("-");
+        if (matchPlayers.includes(playerAlias.alias)) {
+          return match;
+        }
+      }
+
+      console.log(`Status check for ${playerAlias.alias} - no match found yet`);
+      return { status: "waiting" };
+    }
+  );
 
   // Leave queue endpoint
-  fastify.post("/api/game-orchestration/remote4/leave", async(request, reply) => {
-    const matchRequest = request.body as MatchRequest;
-    const index = queues.remote4.findIndex(p => p.alias === matchRequest.player.alias);
-    if (index !== -1) {
-      queues.remote4.splice(index, 1);
-      console.log(`Player ${matchRequest.player.alias} left queue. Queue size: ${queues.remote4.length}`);
+  fastify.post(
+    "/api/game-orchestration/remote4/leave",
+    async (request, reply) => {
+      const matchRequest = request.body as MatchRequest;
+      const index = queues.remote4.findIndex(
+        (p) => p.alias === matchRequest.player.alias
+      );
+      if (index !== -1) {
+        queues.remote4.splice(index, 1);
+        console.log(
+          `Player ${matchRequest.player.alias} left queue. Queue size: ${queues.remote4.length}`
+        );
+      }
+      return { status: "success" };
     }
-    return { status: "success" };
-  });
+  );
 }
