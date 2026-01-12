@@ -18,7 +18,8 @@ function readDockerSecret(name: string): string | undefined {
     const runPath = `/run/secrets/${name}`;
     if (fs.existsSync(runPath)) return fs.readFileSync(runPath, "utf-8").trim();
     const vaultPath = `/vault/secrets/${name}`;
-    if (fs.existsSync(vaultPath)) return fs.readFileSync(vaultPath, "utf-8").trim();
+    if (fs.existsSync(vaultPath))
+      return fs.readFileSync(vaultPath, "utf-8").trim();
   } catch {}
   return undefined;
 }
@@ -76,7 +77,7 @@ export class VaultService {
     try {
       // Wait for Vault to be unsealed before login
       for (let i = 0; i < 60; i++) {
-      const health = await this.client.health();
+        const health = await this.client.health();
         if (!health.sealed) break;
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
@@ -84,11 +85,13 @@ export class VaultService {
       // Prefer AppRole via live secrets mounted at /run/secrets
       const roleId =
         process.env.VAULT_APPROLE_ROLE_ID ||
-        readDockerSecret("vault_approle_role_id") || readDockerSecret("approle_role_id") ||
+        readDockerSecret("vault_approle_role_id") ||
+        readDockerSecret("approle_role_id") ||
         this.readBootstrapField("role_id");
       const secretId =
         process.env.VAULT_APPROLE_SECRET_ID ||
-        readDockerSecret("vault_approle_secret_id") || readDockerSecret("approle_secret_id") ||
+        readDockerSecret("vault_approle_secret_id") ||
+        readDockerSecret("approle_secret_id") ||
         this.readBootstrapField("secret_id");
 
       if (roleId && secretId) {
@@ -102,20 +105,29 @@ export class VaultService {
 
       // Preload OAuth config and optionally seed from env (dev-safe)
       try {
-        const googleCfg = await this.getSecret('authentication/oauth/google');
-        const shouldSeed = (process.env.AUTH_OAUTH_AUTO_SEED === 'true' || (process.env.NODE_ENV && process.env.NODE_ENV !== 'production'));
-        if (!googleCfg && (process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_SECRET) && shouldSeed) {
+        const googleCfg = await this.getSecret("authentication/oauth/google");
+        const shouldSeed =
+          process.env.AUTH_OAUTH_AUTO_SEED === "true" ||
+          (process.env.NODE_ENV && process.env.NODE_ENV !== "production");
+        if (
+          !googleCfg &&
+          (process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_SECRET) &&
+          shouldSeed
+        ) {
           const seed = {
-            client_id: process.env.GOOGLE_CLIENT_ID || 'GOOGLE_CLIENT_ID',
-            client_secret: process.env.GOOGLE_CLIENT_SECRET || 'GOOGLE_CLIENT_SECRET',
-            callback_url: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8080/api/auth/oauth/google/callback',
-            scope: ['profile', 'email'],
+            client_id: process.env.GOOGLE_CLIENT_ID || "GOOGLE_CLIENT_ID",
+            client_secret:
+              process.env.GOOGLE_CLIENT_SECRET || "GOOGLE_CLIENT_SECRET",
+            callback_url:
+              process.env.GOOGLE_CALLBACK_URL ||
+              "http://localhost:8080/api/auth/oauth/google/callback",
+            scope: ["profile", "email"],
           };
-          await this.setSecret('authentication/oauth/google', seed);
-          console.log('[auth] Seeded OAuth config to Vault');
+          await this.setSecret("authentication/oauth/google", seed);
+          console.log("[auth] Seeded OAuth config to Vault");
         }
       } catch (error) {
-        console.error('[auth] OAuth preload failed:', error);
+        console.error("[auth] OAuth preload failed:", error);
       }
       const health = await this.client.health();
       this.isInitialized = true;
@@ -139,7 +151,6 @@ export class VaultService {
       return null;
     }
   }
-
 
   async setSecret(path: string, data: SecretData): Promise<boolean> {
     try {
@@ -177,7 +188,9 @@ export class VaultService {
   }
 
   async getUserSecrets(userId: string): Promise<UserSecrets | null> {
-    return (await this.getSecret(`${this.usersPathPrefix()}/${userId}`)) as UserSecrets | null;
+    return (await this.getSecret(
+      `${this.usersPathPrefix()}/${userId}`
+    )) as UserSecrets | null;
   }
 
   async setUserSecrets(userId: string, data: UserSecrets): Promise<boolean> {

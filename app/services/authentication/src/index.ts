@@ -11,7 +11,6 @@ async function registerOAuth(
   auth: Auth,
   fastify: FastifyInstance
 ) {
-
   let provider: string;
   const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
@@ -50,7 +49,7 @@ async function registerOAuth(
           reply.redirect("/login?error=oauth_failed");
         }
       } else {
-        console.log(color.bold.white('Here'));
+        console.log(color.bold.white("Here"));
         // Start flow handled by plugin usually, but if we are here, it might be the start request
         // intercepted by our wildcard.
         // We should let the plugin handle it if possible, but since we are in a wildcard handler,
@@ -90,18 +89,18 @@ async function registerOAuth(
   }
 }
 
-async function manageRequest(
-  fastify: FastifyInstance,
-  auth: Auth
-) {
+async function manageRequest(fastify: FastifyInstance, auth: Auth) {
   fastify.all("/*", async (request, reply) => {
     const fullPath = request.raw.url;
     const urlObj = new URL(fullPath || "", "http://localhost");
     const pathname = urlObj.pathname;
 
-    console.log(color.bold.blue("Authentication"), color.cyan(`${request.method} ${fullPath}`));
+    console.log(
+      color.bold.blue("Authentication"),
+      color.cyan(`${request.method} ${fullPath}`)
+    );
 
-    console.log('request: ', request.body)
+    console.log("request: ", request.body);
     switch (pathname) {
       case "/api/auth/login":
         await auth.loginUser(request, reply);
@@ -129,13 +128,7 @@ async function manageRequest(
         break;
       default:
         if (pathname.startsWith("/api/auth/oauth/")) {
-          await registerOAuth(
-            fullPath || "",
-            request,
-            reply,
-            auth,
-            fastify
-          );
+          await registerOAuth(fullPath || "", request, reply, auth, fastify);
         } else {
           reply.code(404).send({ error: "Route not found" });
         }
@@ -152,7 +145,9 @@ async function main() {
     await manageRequest(fastify, auth);
 
     await fastify.listen({ port: 3001, host: "0.0.0.0" });
-    console.log(color.green.bold("Authentication Service running on port 3001"));
+    console.log(
+      color.green.bold("Authentication Service running on port 3001")
+    );
   } catch (error) {
     console.error(error);
     process.exit(1);

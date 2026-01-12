@@ -76,7 +76,11 @@ export class SQLiteDatabase {
   }
 
   // Insert a user with a placeholder password to satisfy NOT NULL
-  insertUser(opts: { email: string; name: string; passwordPlaceholder: string }): string {
+  insertUser(opts: {
+    email: string;
+    name: string;
+    passwordPlaceholder: string;
+  }): string {
     const id = crypto.randomUUID();
     const stmt = this.sqlite.prepare(`
       INSERT INTO users (id, name, email, password, two_factor_enabled, two_factor_secret)

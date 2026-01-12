@@ -49,20 +49,29 @@ export async function initFastify(auth: Auth) {
 
   fastify.register(fastifyCookie);
 
-    // Load OAuth credentials from Vault (fallback to env)
+  // Load OAuth credentials from Vault (fallback to env)
   let oauthCfg: any = null;
   try {
-    oauthCfg = await auth.vault.getOAuthConfig('google');
+    oauthCfg = await auth.vault.getOAuthConfig("google");
   } catch (error) {
-    console.error('[auth] OAuth Vault load failed; falling back to env');
+    console.error("[auth] OAuth Vault load failed; falling back to env");
   }
-  const googleClientId = oauthCfg?.client_id || process.env.GOOGLE_CLIENT_ID || 'GOOGLE_CLIENT_ID';
-  const googleClientSecret = oauthCfg?.client_secret || process.env.GOOGLE_CLIENT_SECRET || 'GOOGLE_CLIENT_SECRET';
-  const googleCallbackUrl = oauthCfg?.callback_url || process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8080/api/auth/oauth/google/callback';
-  const googleScope = Array.isArray(oauthCfg?.scope) ? oauthCfg.scope : ['profile', 'email'];
+  const googleClientId =
+    oauthCfg?.client_id || process.env.GOOGLE_CLIENT_ID || "GOOGLE_CLIENT_ID";
+  const googleClientSecret =
+    oauthCfg?.client_secret ||
+    process.env.GOOGLE_CLIENT_SECRET ||
+    "GOOGLE_CLIENT_SECRET";
+  const googleCallbackUrl =
+    oauthCfg?.callback_url ||
+    process.env.GOOGLE_CALLBACK_URL ||
+    "http://localhost:8080/api/auth/oauth/google/callback";
+  const googleScope = Array.isArray(oauthCfg?.scope)
+    ? oauthCfg.scope
+    : ["profile", "email"];
 
   fastify.register(fastifyOAuth2, {
-    name: 'googleOAuth2',
+    name: "googleOAuth2",
     scope: googleScope,
     credentials: {
       client: {
@@ -71,7 +80,7 @@ export async function initFastify(auth: Auth) {
       },
       auth: (fastifyOAuth2 as any).GOOGLE_CONFIGURATION,
     },
-    startRedirectPath: '/api/auth/oauth/google',
+    startRedirectPath: "/api/auth/oauth/google",
     callbackUri: googleCallbackUrl,
   });
 
@@ -89,7 +98,7 @@ export async function initFastify(auth: Auth) {
   return fastify;
 }
 
-export async function initAuthenticationService() : Promise<Auth | null >{
+export async function initAuthenticationService(): Promise<Auth | null> {
   const vaultClient = new VaultService();
   const sqlite = new SQLiteDatabase();
   const auth = new Auth(sqlite, vaultClient);
@@ -98,7 +107,9 @@ export async function initAuthenticationService() : Promise<Auth | null >{
     await vaultClient.initialize();
   } catch (err) {
     console.error(err);
-    console.error("[auth] Vault initialization failed; proceeding without secrets");
+    console.error(
+      "[auth] Vault initialization failed; proceeding without secrets"
+    );
   }
 
   return auth;

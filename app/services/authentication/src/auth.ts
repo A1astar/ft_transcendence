@@ -18,7 +18,10 @@ type VaultUserSecrets = {
 };
 
 export class Auth {
-  constructor(private db: SQLiteDatabase, public vault: VaultService) {}
+  constructor(
+    private db: SQLiteDatabase,
+    public vault: VaultService
+  ) {}
 
   private normalizeEmail(email?: string) {
     return (email || "").trim().toLowerCase();
@@ -28,14 +31,21 @@ export class Auth {
     try {
       const headers: any = (request as any).headers || {};
       const authHeader: string | undefined = headers.authorization;
-      const bearer = authHeader && typeof authHeader === "string" && authHeader.startsWith("Bearer ")
-        ? authHeader.slice(7)
-        : undefined;
-      const cookieToken = (request as any).cookies?.access_token as string | undefined;
+      const bearer =
+        authHeader &&
+        typeof authHeader === "string" &&
+        authHeader.startsWith("Bearer ")
+          ? authHeader.slice(7)
+          : undefined;
+      const cookieToken = (request as any).cookies?.access_token as
+        | string
+        | undefined;
       const token = cookieToken || bearer;
       if (!token) return null;
       const fastifyAny = (request as any).server as any;
-      const payload = fastifyAny?.jwt?.verify ? fastifyAny.jwt.verify(token) : null;
+      const payload = fastifyAny?.jwt?.verify
+        ? fastifyAny.jwt.verify(token)
+        : null;
       const userId = payload?.sub || payload?.id;
       return userId ? String(userId) : null;
     } catch {
@@ -45,9 +55,12 @@ export class Auth {
 
   async registerUser(request: FastifyRequest, reply: FastifyReply) {
     // Basic rate limit per IP
-    const clientIp = request.ip || (request.headers["x-forwarded-for"] as string) || "unknown";
+    const clientIp =
+      request.ip || (request.headers["x-forwarded-for"] as string) || "unknown";
     if (!checkRateLimit(`register:${clientIp}`, 10, 60_000)) {
-      return reply.code(429).send({ error: "Too many registration attempts. Try again later." });
+      return reply
+        .code(429)
+        .send({ error: "Too many registration attempts. Try again later." });
     }
 
     try {
@@ -57,7 +70,8 @@ export class Auth {
       const name = data.name ?? email.split("@")[0];
 
       const existing = await this.db.findUserByEmail(email);
-      if (existing) return reply.code(409).send({ error: "Email already used." });
+      if (existing)
+        return reply.code(409).send({ error: "Email already used." });
 
       // Create SQLite user (store placeholder in password to satisfy NOT NULL)
       const userId = await this.db.insertUser({
@@ -65,7 +79,8 @@ export class Auth {
         name,
         passwordPlaceholder: "*vault*", // store actual secrets in Vault
       });
-      if (!userId) return reply.code(500).send({ error: "User creation failed" });
+      if (!userId)
+        return reply.code(500).send({ error: "User creation failed" });
 
       // Derive hash with scrypt and store in Vault
       const salt = crypto.randomBytes(16).toString("hex");
@@ -86,9 +101,12 @@ export class Auth {
 
   async loginUser(request: FastifyRequest, reply: FastifyReply) {
     // Basic rate limit per IP
-    const clientIp = request.ip || (request.headers["x-forwarded-for"] as string) || "unknown";
+    const clientIp =
+      request.ip || (request.headers["x-forwarded-for"] as string) || "unknown";
     if (!checkRateLimit(`login:${clientIp}`, 20, 60_000)) {
-      return reply.code(429).send({ error: "Too many login attempts. Try again later." });
+      return reply
+        .code(429)
+        .send({ error: "Too many login attempts. Try again later." });
     }
 
     try {
@@ -106,12 +124,18 @@ export class Auth {
       if (!user) return reply.code(401).send({ error: "Invalid credentials" });
 
       // Read hash + salt from Vault
-      const secrets = (await this.vault.getUserSecrets(String(user.id))) as VaultUserSecrets | null;
+      const secrets = (await this.vault.getUserSecrets(
+        String(user.id)
+      )) as VaultUserSecrets | null;
       if (!secrets?.salt || !secrets?.passwordHash) {
         return reply.code(401).send({ error: "Invalid credentials" });
       }
 
-      const derivedKey = crypto.scryptSync(password, secrets.salt, 64) as Buffer;
+      const derivedKey = crypto.scryptSync(
+        password,
+        secrets.salt,
+        64
+      ) as Buffer;
       const providedHash = derivedKey.toString("hex");
       if (providedHash !== secrets.passwordHash) {
         return reply.code(401).send({ error: "Invalid credentials" });
@@ -120,10 +144,15 @@ export class Auth {
       // 2FA
       if (user.two_factor_enabled) {
         if (!token || !secrets.totpSecret) {
-          return reply.code(401).send({ error: "Two-factor authentication code required" });
+          return reply
+            .code(401)
+            .send({ error: "Two-factor authentication code required" });
         }
         const isTotpValid = authenticator.check(token, secrets.totpSecret);
-        if (!isTotpValid) return reply.code(401).send({ error: "Invalid two-factor authentication code" });
+        if (!isTotpValid)
+          return reply
+            .code(401)
+            .send({ error: "Invalid two-factor authentication code" });
       }
 
       this.issueJwt(request, reply, user);
@@ -145,7 +174,8 @@ export class Auth {
       const user = await this.db.findUserById(userId);
       if (!user) return reply.code(404).send({ error: "User not found" });
 
-      const current = ((await this.vault.getUserSecrets(userId)) || {}) as VaultUserSecrets;
+      const current = ((await this.vault.getUserSecrets(userId)) ||
+        {}) as VaultUserSecrets;
       if (user.two_factor_enabled && current.totpSecret) {
         return reply.code(200).send({
           message: "Two-factor authentication already enabled",
@@ -154,7 +184,10 @@ export class Auth {
       }
 
       const secret = authenticator.generateSecret(); // base32
-      await this.vault.setUserSecrets(userId, { ...current, totpSecret: secret });
+      await this.vault.setUserSecrets(userId, {
+        ...current,
+        totpSecret: secret,
+      });
       await this.db.updateUser(userId, { twoFactorEnabled: 1 });
 
       const issuer = "LordOfTranscendence";
@@ -177,12 +210,15 @@ export class Auth {
       const userId = this.getUserIdFromRequest(request);
       if (!userId) return reply.code(401).send({ error: "Unauthorized" });
 
-      const current = ((await this.vault.getUserSecrets(userId)) || {}) as VaultUserSecrets;
+      const current = ((await this.vault.getUserSecrets(userId)) ||
+        {}) as VaultUserSecrets;
       delete current.totpSecret;
       await this.vault.setUserSecrets(userId, current);
 
       await this.db.updateUser(userId, { twoFactorEnabled: 0 });
-      return reply.code(200).send({ message: "Two-factor authentication disabled" });
+      return reply
+        .code(200)
+        .send({ message: "Two-factor authentication disabled" });
     } catch (err) {
       console.error("[auth] disableTwoFactor", err);
       return reply.code(500).send({ error: "Disable 2FA failed" });
@@ -239,7 +275,11 @@ export class Auth {
     return user;
   }
 
-  private issueJwt(request: FastifyRequest, reply: FastifyReply, user: any): string {
+  private issueJwt(
+    request: FastifyRequest,
+    reply: FastifyReply,
+    user: any
+  ): string {
     const fastifyAny = (request as any).server as any;
     if (!fastifyAny?.jwt) {
       throw new Error("JWT not configured");
@@ -260,5 +300,4 @@ export class Auth {
     } catch {}
     return token;
   }
-
 }
