@@ -50,34 +50,39 @@ fi
 
 # Unseal if sealed
 if [ "$SEALED" = "true" ]; then
-  KEY=""
-  # prefer freshly generated key
-  if [ -n "$UNSEAL_KEY" ]; then KEY="$UNSEAL_KEY"; fi
-  # or persisted key file
-  if [ -z "$KEY" ] && [ -r "$UNSEAL_KEY_FILE" ]; then KEY="$(cat "$UNSEAL_KEY_FILE")"; fi
-  # or from init snapshot
-  if [ -z "$KEY" ] && [ -r "$INIT_JSON" ]; then
-    KEY="$(awk -F': ' '/Unseal Key 1/ {print $2; exit}' "$INIT_JSON")"
-  fi
+    KEY=""
+    # prefer freshly generated key
+    if [ -n "$UNSEAL_KEY" ]; then
+        KEY="$UNSEAL_KEY";
+    fi
+    # or persisted key file
+    if [ -z "$KEY" ] && [ -r "$UNSEAL_KEY_FILE" ]; then
+        KEY="$(cat "$UNSEAL_KEY_FILE")";
+    fi
 
-  if [ -n "$KEY" ]; then
-    vault operator unseal "$KEY" >/dev/null 2>&1 || true
-    # wait until unsealed
-    for i in $(seq 1 30); do
-      STATUS_JSON="$(vault status -format=json 2>/dev/null || true)"
-      SEALED=$(echo "$STATUS_JSON" | sed -n 's/.*"sealed":[[:space:]]*\(true\|false\).*/\1/p')
-      [ "$SEALED" = "false" ] && break
-      sleep 1
-    done
-  else
-    echo "[vault] Warning: sealed and unseal key missing; skipping unseal"
-  fi
+    # or from init snapshot
+    if [ -z "$KEY" ] && [ -r "$INIT_JSON" ]; then
+        KEY="$(awk -F': ' '/Unseal Key 1/ {print $2; exit}' "$INIT_JSON")"
+    fi
+
+    if [ -n "$KEY" ]; then
+        vault operator unseal "$KEY" >/dev/null 2>&1 || true
+        # wait until unsealed
+        for i in $(seq 1 30); do
+        STATUS_JSON="$(vault status -format=json 2>/dev/null || true)"
+        SEALED=$(echo "$STATUS_JSON" | sed -n 's/.*"sealed":[[:space:]]*\(true\|false\).*/\1/p')
+        [ "$SEALED" = "false" ] && break
+        sleep 1
+        done
+    else
+        echo "[vault] Warning: sealed and unseal key missing; skipping unseal"
+    fi
 fi
 
 # If we have a root token, use it for bootstrap; otherwise try init snapshot
 if [ ! -s "$ROOT_TOKEN_FILE" ] && [ -r "$INIT_JSON" ]; then
-  SNAP_TOKEN="$(awk -F': ' '/Initial Root Token/ {print $2; exit}' "$INIT_JSON")"
-  [ -n "$SNAP_TOKEN" ] && echo "$SNAP_TOKEN" > "$ROOT_TOKEN_FILE"
+    SNAP_TOKEN="$(awk -F': ' '/Initial Root Token/ {print $2; exit}' "$INIT_JSON")"
+    [ -n "$SNAP_TOKEN" ] && echo "$SNAP_TOKEN" > "$ROOT_TOKEN_FILE"
 fi
 
 if [ -s "$ROOT_TOKEN_FILE" ]; then

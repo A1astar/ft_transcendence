@@ -126,8 +126,9 @@ export function validateRegistrationData(body: any): ValidatedRegistration {
  * Validates login data
  */
 export interface ValidatedLogin {
-  name: string;
+  email: string;
   password: string;
+  token?: string;
 }
 
 export function validateLoginData(body: any): ValidatedLogin {
@@ -135,31 +136,37 @@ export function validateLoginData(body: any): ValidatedLogin {
     throw new ValidationError("Invalid request body");
   }
 
-  if (!body.name || typeof body.name !== "string") {
-    throw new ValidationError("Username is required", "name");
+  let email = validateEmail(body.email);
+  if (!email) {
+    // Fallback: accept username-style login for legacy accounts
+    if (!body.name || typeof body.name !== "string") {
+      throw new ValidationError("Email is required", "email");
+    }
+    const name = sanitizeString(body.name);
+    if (!name) {
+      throw new ValidationError("Email is required", "email");
+    }
+    email = name.toLowerCase();
   }
 
   if (!body.password || typeof body.password !== "string") {
     throw new ValidationError("Password is required", "password");
   }
+  const password = validatePassword(body.password);
 
-  const name = sanitizeString(body.name);
-  if (!name) {
-    throw new ValidationError("Username cannot be empty", "name");
+  let token: string | undefined = undefined;
+  const rawToken = body.token ?? body.twoFactorCode;
+  if (rawToken !== undefined) {
+    if (typeof rawToken !== "string") {
+      throw new ValidationError("2FA token must be a string", "token");
+    }
+    token = sanitizeString(rawToken);
+    if (token.length > 12) {
+      throw new ValidationError("2FA token is too long", "token");
+    }
   }
 
-  // For login, we don't enforce strict username validation
-  // (user might have registered with old rules)
-  // but we still sanitize and check length
-  if (name.length > 255) {
-    throw new ValidationError("Username is too long", "name");
-  }
-
-  if (body.password.length > 128) {
-    throw new ValidationError("Password is too long", "password");
-  }
-
-  return { name, password: body.password };
+  return { email, password, token };
 }
 
 /**

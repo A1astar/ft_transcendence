@@ -1,27 +1,17 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
-import { initAuthenticationService } from "./init.js";
-import { SQLiteDatabase } from "./database.js";
+import { initAuthenticationService, initFastify } from "./init.js";
 import { VaultService } from "./vault.js";
+import { Auth } from "./auth.js";
 import color from "chalk";
-
-async function logAccount(
-  request: FastifyRequest,
-  reply: FastifyReply,
-  sqlite: SQLiteDatabase,
-  vaultClient: VaultService
-): Promise<void> {
-  console.log(color.bold.italic.yellow("----- LOGIN -----"));
-  await sqlite.loginUser(request, reply);
-}
 
 async function registerOAuth(
   path: string,
   request: FastifyRequest,
   reply: FastifyReply,
-  sqlite: SQLiteDatabase,
-  vaultClient: VaultService,
+  auth: Auth,
   fastify: FastifyInstance
 ) {
+
   let provider: string;
   const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
@@ -48,18 +38,19 @@ async function registerOAuth(
           );
           const userInfo = await userInfoRes.json();
 
-          const user = await sqlite.loginOrRegisterOAuthUser(request, {
+          await auth.loginOrRegisterOAuthUser(request, reply, {
             email: userInfo.email,
             name: userInfo.name || userInfo.email.split("@")[0],
           });
 
           // Redirect to frontend
           reply.redirect("/gameMenu");
-        } catch (err) {
-          console.error("OAuth callback error:", err);
+        } catch (error) {
+          console.error("OAuth callback error:", error);
           reply.redirect("/login?error=oauth_failed");
         }
       } else {
+        console.log(color.bold.white('Here'));
         // Start flow handled by plugin usually, but if we are here, it might be the start request
         // intercepted by our wildcard.
         // We should let the plugin handle it if possible, but since we are in a wildcard handler,
@@ -101,68 +92,40 @@ async function registerOAuth(
 
 async function manageRequest(
   fastify: FastifyInstance,
-  sqlite: SQLiteDatabase,
-  vaultClient: VaultService
+  auth: Auth
 ) {
   fastify.all("/*", async (request, reply) => {
-    // console.log('Auth: ', request.url);
-
-    // request.raw.url contains the full path and query string (e.g. /foo?bar=baz)
     const fullPath = request.raw.url;
-    // We parse it to get just the pathname for switching
     const urlObj = new URL(fullPath || "", "http://localhost");
     const pathname = urlObj.pathname;
 
-    // If the path matches the Google OAuth start path, and fastify-oauth2 registered a route,
-    // Fastify should have handled it if it was a specific route.
-    // But if we are here, it means we matched /*.
-    // We'll try to avoid interfering if it's the start path, but currently we are interfering.
-    // However, fastify-oauth2 registers the route.
+    console.log(color.bold.blue("Authentication"), color.cyan(`${request.method} ${fullPath}`));
 
-    console.log(
-      color.bold.blue("Authentication"),
-      color.cyan(`${request.method} ${fullPath}`)
-    );
-
+    console.log('request: ', request.body)
     switch (pathname) {
       case "/api/auth/login":
-        await logAccount(request, reply, sqlite, vaultClient);
+        await auth.loginUser(request, reply);
         break;
       case "/api/auth/register":
-        await sqlite.registerUser(request, reply);
+        await auth.registerUser(request, reply);
         break;
       case "/api/auth/2fa/enable":
-        await sqlite.enableTwoFactor(request, reply);
+        await auth.enableTwoFactor(request, reply);
         break;
       case "/api/auth/2fa/disable":
-        await sqlite.disableTwoFactor(request, reply);
+        await auth.disableTwoFactor(request, reply);
         break;
       case "/api/auth/logout":
-        // destroy session if present
         try {
-          const session = (request as any).session;
-          if (session && typeof session.destroy === "function") {
-            session.destroy(() => {});
-          } else if (session) {
-            // clear session object
-            for (const k of Object.keys(session)) delete (session as any)[k];
-          }
-          // Clear JWT cookie if present
-          try {
-            (reply as any).clearCookie?.("access_token", {
-              path: "/",
-            });
-          } catch {
-            // ignore cookie clear errors
-          }
-          reply.code(200).send({ message: "Logged out" });
-        } catch (err) {
-          console.error("[auth] logout error", err);
-          reply.code(500).send({ error: "Logout failed" });
+          (reply as any).clearCookie?.("access_token", { path: "/" });
+          await reply.code(200).send({ message: "Logged out" });
+        } catch (error) {
+          console.error("[auth] logout error", error);
+          return reply.code(500).send({ error: "Logout failed" });
         }
         break;
       case "/api/auth/userinfo":
-        await sqlite.getUserinfo(request, reply);
+        await auth.getUserinfo(request, reply);
         break;
       default:
         if (pathname.startsWith("/api/auth/oauth/")) {
@@ -170,8 +133,7 @@ async function manageRequest(
             fullPath || "",
             request,
             reply,
-            sqlite,
-            vaultClient,
+            auth,
             fastify
           );
         } else {
@@ -184,30 +146,15 @@ async function manageRequest(
 
 async function main() {
   try {
-    const fastify = await initAuthenticationService();
-    const sqlite = new SQLiteDatabase();
-    const vaultClient = new VaultService();
+    const auth = await initAuthenticationService();
+    const fastify = await initFastify(auth);
 
-    // Initialize Vault connection early; continue if it fails
-    try {
-      await vaultClient.initialize();
-    } catch (err) {
-      console.error(err);
-      console.error(
-        "[auth] Vault initialization failed; proceeding without secrets"
-      );
-    }
+    await manageRequest(fastify, auth);
 
-    // Register routes BEFORE starting the server
-    await manageRequest(fastify, sqlite, vaultClient);
-
-    // Now start the server
     await fastify.listen({ port: 3001, host: "0.0.0.0" });
-    console.log(
-      color.green.bold("Authentication Service running on port 3001")
-    );
-  } catch (err) {
-    console.error(err);
+    console.log(color.green.bold("Authentication Service running on port 3001"));
+  } catch (error) {
+    console.error(error);
     process.exit(1);
   }
 }

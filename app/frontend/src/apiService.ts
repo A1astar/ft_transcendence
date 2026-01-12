@@ -11,7 +11,6 @@ export class apiService {
   } {
     // Attach JWT token from localStorage if present
     try {
-      // const jwtToken = localStorage.getItem('jwt');
       const token = localStorage.getItem("token");
       console.log("headers:\n", headers);
       if (token) {
@@ -29,6 +28,7 @@ export class apiService {
   public async post(endpoint: string, body: any): Promise<Response> {
     return await fetch(this.baseURL + endpoint, {
       method: "POST",
+      credentials: "include",
       headers: this.generateHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
@@ -37,6 +37,7 @@ export class apiService {
   public async get(endpoint: string): Promise<Response> {
     return await fetch(this.baseURL + endpoint, {
       method: "GET",
+      credentials: "include",
       headers: this.generateHeaders(),
     });
   }
@@ -44,6 +45,7 @@ export class apiService {
   public async update(endpoint: string, body: any): Promise<Response> {
     return await fetch(this.baseURL + endpoint, {
       method: "PUT",
+      credentials: "include",
       headers: this.generateHeaders({ "Content-Type": "application/json" }),
       body: JSON.stringify(body),
     });
@@ -52,6 +54,7 @@ export class apiService {
   public async delete(endpoint: string): Promise<Response> {
     return await fetch(this.baseURL + endpoint, {
       method: "DELETE",
+      credentials: "include",
       headers: this.generateHeaders(),
     });
   }

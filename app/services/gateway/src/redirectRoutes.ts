@@ -1,4 +1,5 @@
 import { FastifyInstance } from "fastify";
+import color from 'chalk';
 
 function fetchHeaders(reqheaders: Record<string, any>): Record<string, string> {
   return Object.fromEntries(
@@ -21,7 +22,7 @@ function routeServices(
     method: ["GET", "POST", "PUT", "DELETE"],
     url: `/${basePath}/*`,
     handler: async (req, reply) => {
-      // console.log('Gateway: ', req.url);
+      console.log(color.bold.white('Gateway: '), color.bold.white(req.url));
       try {
         // In Docker network, we must use service name to reach other containers
         // 'localhost' would refer to the gateway container itself

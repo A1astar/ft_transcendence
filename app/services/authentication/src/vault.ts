@@ -1,6 +1,6 @@
 import VaultClient from "node-vault";
-import fs from "fs";
 import path from "path";
+import fs from "fs";
 
 interface VaultConfig {
   apiVersion?: string;
@@ -15,11 +15,19 @@ interface SecretData {
 
 function readDockerSecret(name: string): string | undefined {
   try {
-    const p = `/run/secrets/${name}`;
-    if (fs.existsSync(p)) return fs.readFileSync(p, "utf-8").trim();
+    const runPath = `/run/secrets/${name}`;
+    if (fs.existsSync(runPath)) return fs.readFileSync(runPath, "utf-8").trim();
+    const vaultPath = `/vault/secrets/${name}`;
+    if (fs.existsSync(vaultPath)) return fs.readFileSync(vaultPath, "utf-8").trim();
   } catch {}
   return undefined;
 }
+
+export type UserSecrets = {
+  salt?: string;
+  passwordHash?: string;
+  totpSecret?: string;
+};
 
 export class VaultService {
   private client: any;
@@ -34,10 +42,10 @@ export class VaultService {
         timeout: 5000,
         ca: (() => {
           try {
-            const p = process.env.VAULT_CA_PATH || "/etc/ssl/vault/ca.crt";
+            const path = process.env.VAULT_CA_PATH || "/etc/ssl/vault/ca.crt";
             const fs = require("fs");
-            if (fs.existsSync(p)) return fs.readFileSync(p);
-          } catch (e) {}
+            if (fs.existsSync(path)) return fs.readFileSync(path);
+          } catch (error) {}
           return undefined;
         })(),
       },
@@ -68,17 +76,19 @@ export class VaultService {
     try {
       // Wait for Vault to be unsealed before login
       for (let i = 0; i < 60; i++) {
-        const h = await this.client.health();
-        if (!h.sealed) break;
-        await new Promise((r) => setTimeout(r, 1000));
+      const health = await this.client.health();
+        if (!health.sealed) break;
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
       // Prefer AppRole via live secrets mounted at /run/secrets
       const roleId =
-        readDockerSecret("vault_approle_role_id") ||
+        process.env.VAULT_APPROLE_ROLE_ID ||
+        readDockerSecret("vault_approle_role_id") || readDockerSecret("approle_role_id") ||
         this.readBootstrapField("role_id");
       const secretId =
-        readDockerSecret("vault_approle_secret_id") ||
+        process.env.VAULT_APPROLE_SECRET_ID ||
+        readDockerSecret("vault_approle_secret_id") || readDockerSecret("approle_secret_id") ||
         this.readBootstrapField("secret_id");
 
       if (roleId && secretId) {
@@ -90,6 +100,23 @@ export class VaultService {
         if (token) this.client.token = token;
       }
 
+      // Preload OAuth config and optionally seed from env (dev-safe)
+      try {
+        const googleCfg = await this.getSecret('authentication/oauth/google');
+        const shouldSeed = (process.env.AUTH_OAUTH_AUTO_SEED === 'true' || (process.env.NODE_ENV && process.env.NODE_ENV !== 'production'));
+        if (!googleCfg && (process.env.GOOGLE_CLIENT_ID || process.env.GOOGLE_CLIENT_SECRET) && shouldSeed) {
+          const seed = {
+            client_id: process.env.GOOGLE_CLIENT_ID || 'GOOGLE_CLIENT_ID',
+            client_secret: process.env.GOOGLE_CLIENT_SECRET || 'GOOGLE_CLIENT_SECRET',
+            callback_url: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8080/api/auth/oauth/google/callback',
+            scope: ['profile', 'email'],
+          };
+          await this.setSecret('authentication/oauth/google', seed);
+          console.log('[auth] Seeded OAuth config to Vault');
+        }
+      } catch (error) {
+        console.error('[auth] OAuth preload failed:', error);
+      }
       const health = await this.client.health();
       this.isInitialized = true;
       console.log("Vault connected successfully:", health);
@@ -98,16 +125,21 @@ export class VaultService {
       throw new Error("Vault connection failed");
     }
   }
-
   async getSecret(path: string): Promise<SecretData | null> {
     try {
       const response = await this.client.read(`secret/data/${path}`);
       return response.data.data;
-    } catch (error) {
+    } catch (error: any) {
+      const status = error?.response?.statusCode;
+      if (status === 404 || status === 403) {
+        // Secret not found: return null without error noise
+        return null;
+      }
       console.error(`Failed to read secret at ${path}:`, error);
       return null;
     }
   }
+
 
   async setSecret(path: string, data: SecretData): Promise<boolean> {
     try {
@@ -135,12 +167,24 @@ export class VaultService {
     return await this.getSecret(`authentication/oauth/${provider}`);
   }
 
-  async healthCheck(): Promise<boolean> {
-    try {
-      await this.client.health();
-      return true;
-    } catch (error) {
-      return false;
-    }
+  async setOAuthConfig(provider: string, data: any): Promise<boolean> {
+    return await this.setSecret(`authentication/oauth/${provider}`, data);
+  }
+
+  // Helpers for per-user credentials stored in KV v2
+  private usersPathPrefix(): string {
+    return process.env.VAULT_USERS_PATH_PREFIX || "authentication/users";
+  }
+
+  async getUserSecrets(userId: string): Promise<UserSecrets | null> {
+    return (await this.getSecret(`${this.usersPathPrefix()}/${userId}`)) as UserSecrets | null;
+  }
+
+  async setUserSecrets(userId: string, data: UserSecrets): Promise<boolean> {
+    return await this.setSecret(`${this.usersPathPrefix()}/${userId}`, data);
+  }
+
+  async deleteUserSecrets(userId: string): Promise<boolean> {
+    return await this.deleteSecret(`${this.usersPathPrefix()}/${userId}`);
   }
 }
