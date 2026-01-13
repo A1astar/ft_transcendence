@@ -9,19 +9,9 @@ export class apiService {
   private generateHeaders(headers: { [key: string]: string } = {}): {
     [key: string]: string;
   } {
-    // Attach JWT token from localStorage if present
-    try {
-      const token = localStorage.getItem("token");
-      console.log("headers:\n", headers);
-      if (token) {
-        headers = {
-          ...headers,
-          Authorization: `Bearer ${token}`,
-        };
-      }
-    } catch {
-      // localStorage might be unavailable in some environments
-    }
+    // We primarily use HttpOnly cookie-based auth (access_token) with
+    // `credentials: "include"`. Avoid sending a stale Authorization header
+    // from localStorage which can cause 401 even when cookie is valid.
     return headers;
   }
 

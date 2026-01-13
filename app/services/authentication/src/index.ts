@@ -11,7 +11,7 @@ async function registerOAuth(
   auth: Auth,
   fastify: FastifyInstance
 ) {
-  let provider: string;
+  let provider: string = "";
   const oauthMatch = path?.match(/^\/api\/auth\/oauth\/(\w+)/);
 
   if (oauthMatch) {

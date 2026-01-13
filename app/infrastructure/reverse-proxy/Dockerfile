@@ -8,8 +8,10 @@ WORKDIR /app/frontend
 
 RUN rm src/server.ts
 
-RUN rm package.json && mv prod.package.json package.json \
-    && rm tsconfig.json && mv prod.tsconfig.json tsconfig.json
+# Some setups provide prod.package.json/prod.tsconfig.json; others don't.
+# Use prod.* if present; otherwise keep existing package.json/tsconfig.json.
+RUN if [ -f prod.package.json ]; then rm -f package.json && mv prod.package.json package.json; fi \
+    && if [ -f prod.tsconfig.json ]; then rm -f tsconfig.json && mv prod.tsconfig.json tsconfig.json; fi
 
 RUN npm install && npm run build
 

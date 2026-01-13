@@ -87,7 +87,23 @@ function routeServices(
           redirect: "manual",
         });
         const data = await res.text();
-        res.headers.forEach((value, key) => reply.header(key, value));
+
+        // IMPORTANT: Forward Set-Cookie explicitly.
+        // In Node/Undici fetch, Set-Cookie may not be enumerable via headers.forEach().
+        const anyHeaders: any = res.headers as any;
+        const setCookies: string[] =
+          typeof anyHeaders.getSetCookie === "function"
+            ? anyHeaders.getSetCookie()
+            : [];
+
+        res.headers.forEach((value, key) => {
+          if (key.toLowerCase() === "set-cookie") return;
+          reply.header(key, value);
+        });
+        if (setCookies.length > 0) {
+          reply.headers({ "set-cookie": setCookies });
+        }
+
         return reply.code(res.status).send(data);
       } catch (err) {
         console.error(`Error forwarding ${req.url}:`, err);

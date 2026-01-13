@@ -41,6 +41,8 @@ services:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=https://localhost:8443/api/auth/oauth/google/callback
+      # JWT secret is managed in Vault. Auto-seed once (dev/demo) if missing.
+      - AUTH_JWT_AUTO_SEED=true
       - VAULT_ADDR=https://hashicorp-vault:8200
       - NODE_EXTRA_CA_CERTS=/etc/ssl/vault/ca.crt
     depends_on:
