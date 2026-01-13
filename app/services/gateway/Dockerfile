@@ -10,10 +10,7 @@ COPY src ./src
 
 RUN mv prod.package.json package.json && mv prod.tsconfig.json tsconfig.json
 
-# RUN npm ci --production
 RUN npm install
-
-RUN npm run build
 
 EXPOSE 3004
 

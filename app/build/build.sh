@@ -83,9 +83,7 @@ createFilesAndDirectories()
              $app_dir/infrastructure/hcp-vault/data \
              $app_dir/infrastructure/hcp-vault/keys \
              $app_dir/infrastructure/hcp-vault/certs \
-             $app_dir/infrastructure/hcp-vault/secrets \
-             $app_dir/infrastructure/reverse-proxy/certs \
-             $app_dir/frontend/certs
+             $app_dir/infrastructure/hcp-vault/secrets
 
     touch $app_dir/infrastructure/hcp-vault/secrets/approle_role_id \
           $app_dir/infrastructure/hcp-vault/secrets/approle_secret_id
@@ -104,25 +102,29 @@ removeDirectories()
 
 setupCertificates()
 {
-    local frontend_dir="$app_dir/frontend"
+    if [ "$1" = "local" ]; then
+        local frontend_dir="$app_dir/frontend"
 
-    if [ ! -f $frontend_dir/certs/self.key ]; then \
-        echo "Generating frontend SSL certificates..."; \
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-        -keyout $frontend_dir/certs/self.key \
-        -out $frontend_dir/certs/self.crt \
-        -subj "/C=TW/ST=Taipei/L=Taipei/O=42/OU=Transcendence/CN=localhost"; \
-    fi
+        mkdir -p $app_dir/frontend/certs
+        if [ ! -f $frontend_dir/certs/self.key ]; then
+            echo "Generating frontend SSL certificates...";
+            openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout $frontend_dir/certs/self.key \
+            -out $frontend_dir/certs/self.crt \
+            -subj "/C=TW/ST=Taipei/L=Taipei/O=42/OU=Transcendence/CN=localhost";
+        fi
 
-    # Reverse-proxy part
-    local reverse_proxy_dir="$app_dir/infrastructure/reverse-proxy"
+    elif [ "$1" = "prod" ]; then
+        local reverse_proxy_dir="$app_dir/infrastructure/reverse-proxy"
 
-    if [ ! -f $reverse_proxy_dir/certs/self.key ]; then \
-        echo "Generating reverse proxy SSL certificates..."; \
-        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-        -keyout $reverse_proxy_dir/certs/self.key \
-        -out $reverse_proxy_dir/certs/self.crt \
-        -subj "/C=TW/ST=Taipei/L=Taipei/O=42/OU=Transcendence/CN=localhost"; \
+        mkdir -p $app_dir/infrastructure/reverse-proxy/certs
+        if [ ! -f $reverse_proxy_dir/certs/self.key ]; then
+            echo "Generating reverse proxy SSL certificates...";
+            openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+            -keyout $reverse_proxy_dir/certs/self.key \
+            -out $reverse_proxy_dir/certs/self.crt \
+            -subj "/C=TW/ST=Taipei/L=Taipei/O=42/OU=Transcendence/CN=localhost";
+        fi
     fi
 
     # HCP-Vault part
@@ -168,7 +170,7 @@ if [ $# -gt 0 ]; then
         "prod")
             mergePackageJson
             createFilesAndDirectories
-            setupCertificates
+            setupCertificates prod
         ;;
 
         "prod-clean")
@@ -180,7 +182,7 @@ if [ $# -gt 0 ]; then
         "local")
             checkPackageInstallation
             createFilesAndDirectories
-            setupCertificates
+            setupCertificates local
             export LOCAL=true
             export API_ORIGIN=http://localhost:3000
             cd $app_dir && npm run start:all

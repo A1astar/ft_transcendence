@@ -10,11 +10,9 @@ RUN mkdir database
 
 RUN mv prod.package.json package.json && mv prod.tsconfig.json tsconfig.json
 
-# RUN npm ci --production
-RUN apk add --no-cache git openssh-client \
-    && npm install
+RUN apk add --no-cache git openssh-client
 
-RUN npm run build
+RUN npm install
 
 EXPOSE 3001
 

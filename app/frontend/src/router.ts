@@ -112,7 +112,6 @@ async function renderNotFoundLazy(): Promise<void> {
 }
 
 export async function router(path: string): Promise<void> {
-  console.log(path);
   const handler = handlers[path];
   if (handler) {
     await handler();

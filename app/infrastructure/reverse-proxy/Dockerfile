@@ -13,24 +13,43 @@ RUN rm package.json && mv prod.package.json package.json \
 
 RUN npm install && npm run build
 
-# Remove node_modules to keep the image clean (optional for builder stage but good practice if we were keeping it)
 RUN rm -rf node_modules
 
-FROM nginx:1.29.1-alpine-slim
+# Runtime: OWASP ModSecurity + CRS (NGINX)
+FROM owasp/modsecurity-crs:nginx
 
+# Prepare writable paths and config directories as root
+USER root
+RUN mkdir -p /var/cache/modsecurity /var/log/modsecurity /etc/nginx/modsec /etc/modsecurity \
+    && chmod 0777 /var/cache/modsecurity /var/log/modsecurity \
+    && bash -lc 'if [ -d /usr/share/modsecurity-crs ]; then ln -sfn /usr/share/modsecurity-crs /etc/nginx/modsec/crs; \
+      elif [ -d /opt/owasp-crs ]; then ln -sfn /opt/owasp-crs /etc/nginx/modsec/crs; \
+      elif [ -d /etc/modsecurity/crs ]; then ln -sfn /etc/modsecurity/crs /etc/nginx/modsec/crs; \
+      else echo "CRS path not found" >&2; exit 1; fi'
+
+# Switch back to default image user for runtime
+USER 101
+
+# Web root for NGINX
 WORKDIR /usr/share/nginx/html
 
-# Remove default nginx static assets
-RUN rm -rf ./*
+# Cleanup default html as root, then copy artifacts with correct ownership
+USER root
+RUN rm -rf /usr/share/nginx/html/*
+COPY --from=builder --chown=101:101 /app/frontend/index.html ./
+COPY --from=builder --chown=101:101 /app/frontend/dist ./dist
+COPY --from=builder --chown=101:101 /app/frontend/styles/output.css ./styles/output.css
+COPY --from=builder --chown=101:101 /app/frontend/public ./public
 
-COPY --from=builder /app/frontend .
+# NGINX config and entrypoint
+COPY infrastructure/reverse-proxy/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-COPY infrastructure/reverse-proxy/entrypoint.sh /usr/bin
-
-RUN chmod u+x /usr/bin/entrypoint.sh
-
+# Align NGINX + ModSecurity config
 COPY infrastructure/reverse-proxy/config/nginx.conf /etc/nginx/nginx.conf
+COPY infrastructure/reverse-proxy/config/modsecurity.conf /etc/modsecurity/modsecurity.conf
+COPY infrastructure/reverse-proxy/config/main.conf /etc/nginx/modsec/main.conf
 
 EXPOSE 80 443
 
-ENTRYPOINT [ "/usr/bin/entrypoint.sh" ]
+ENTRYPOINT [ "/usr/local/bin/entrypoint.sh" ]
