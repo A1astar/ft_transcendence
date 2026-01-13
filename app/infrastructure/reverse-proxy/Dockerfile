@@ -49,6 +49,7 @@ RUN chmod +x /usr/local/bin/entrypoint.sh
 COPY infrastructure/reverse-proxy/config/nginx.conf /etc/nginx/nginx.conf
 COPY infrastructure/reverse-proxy/config/modsecurity.conf /etc/modsecurity/modsecurity.conf
 COPY infrastructure/reverse-proxy/config/main.conf /etc/nginx/modsec/main.conf
+COPY infrastructure/reverse-proxy/config/custom.conf /etc/nginx/modsec/custom.conf
 
 EXPOSE 80 443
 

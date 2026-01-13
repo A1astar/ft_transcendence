@@ -96,7 +96,7 @@ export async function renderProfile() {
       qrContainer.id = "qrcodeContainer";
       qrContainer.className = "mt-2 flex flex-col items-center gap-2";
       const qrHint = createParagraphText(
-        "After enabling 2FA, a QR code will be displayed here for your authenticator app."
+        "After enabling 2FA, a QR code will be displayed here for your authenticator app, but login with OAuhth is not required."
       );
       qrHint.className += " text-xs opacity-80 text-center";
       qrContainer.appendChild(qrHint);
