@@ -74,7 +74,7 @@ export async function initFastify(auth: Auth) {
   }
   if (!jwtSecret) {
     throw new Error(
-      "JWT secret is missing. Set JWT_SECRET or store secret at Vault path secret/data/authentication/jwt (field: jwt_secret)."
+      "JWT secret is missing. Set JWT_SECRET or store secret in Vault at secret/authentication/jwt (field: jwt_secret)."
     );
   }
 
