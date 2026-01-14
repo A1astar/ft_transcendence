@@ -10,7 +10,7 @@ ROOT_TOKEN_FILE="$KEYS_DIR/root-token.txt"
 UNSEAL_KEY_FILE="$KEYS_DIR/unseal-key.txt"
 APPROLE_JSON="$BOOTSTRAP_DIR/approle.json"
 
-mkdir -p "$KEYS_DIR" "$BOOTSTRAP_DIR"
+mkdir -p "$KEYS_DIR" "$BOOTSTRAP_DIR" /vault/secrets
 
 # Start Vault in background and capture PID
 vault server -config=/vault/config/vault-config.hcl &
@@ -33,12 +33,9 @@ SEALED=$(echo "$STATUS_JSON" | sed -n 's/.*"sealed":[[:space:]]*\(true\|false\).
 
 # Initialize if not initialized (1 key, 1 share)
 if [ "$INITD" != "true" ]; then
-    # Use text output; easy to parse
     INIT_OUT_TEXT="$(vault operator init -key-shares=1 -key-threshold=1 2>&1 || true)"
-    # Keep a snapshot (even if text; path name unchanged)
     echo "$INIT_OUT_TEXT" > "$INIT_JSON"
 
-    # Extract keys from text
     UNSEAL_KEY="$(echo "$INIT_OUT_TEXT" | awk -F': ' '/Unseal Key 1/ {print $2; exit}')"
     ROOT_TOKEN="$(echo "$INIT_OUT_TEXT" | awk -F': ' '/Initial Root Token/ {print $2; exit}')"
 
@@ -55,6 +52,7 @@ if [ "$SEALED" = "true" ]; then
     if [ -n "$UNSEAL_KEY" ]; then
         KEY="$UNSEAL_KEY";
     fi
+
     # or persisted key file
     if [ -z "$KEY" ] && [ -r "$UNSEAL_KEY_FILE" ]; then
         KEY="$(cat "$UNSEAL_KEY_FILE")";
@@ -67,19 +65,18 @@ if [ "$SEALED" = "true" ]; then
 
     if [ -n "$KEY" ]; then
         vault operator unseal "$KEY" >/dev/null 2>&1 || true
-        # wait until unsealed
         for i in $(seq 1 30); do
-        STATUS_JSON="$(vault status -format=json 2>/dev/null || true)"
-        SEALED=$(echo "$STATUS_JSON" | sed -n 's/.*"sealed":[[:space:]]*\(true\|false\).*/\1/p')
-        [ "$SEALED" = "false" ] && break
-        sleep 1
+          STATUS_JSON="$(vault status -format=json 2>/dev/null || true)"
+          SEALED=$(echo "$STATUS_JSON" | sed -n 's/.*"sealed":[[:space:]]*\(true\|false\).*/\1/p')
+          [ "$SEALED" = "false" ] && break
+          sleep 1
         done
     else
         echo "[vault] Warning: sealed and unseal key missing; skipping unseal"
     fi
 fi
 
-# If we have a root token, use it for bootstrap; otherwise try init snapshot
+# Root token handling
 if [ ! -s "$ROOT_TOKEN_FILE" ] && [ -r "$INIT_JSON" ]; then
     SNAP_TOKEN="$(awk -F': ' '/Initial Root Token/ {print $2; exit}' "$INIT_JSON")"
     [ -n "$SNAP_TOKEN" ] && echo "$SNAP_TOKEN" > "$ROOT_TOKEN_FILE"
@@ -92,47 +89,79 @@ if [ -s "$ROOT_TOKEN_FILE" ]; then
     vault secrets enable -path=secret -version=2 kv >/dev/null 2>&1 || true
     vault auth enable approle >/dev/null 2>&1 || true
 
-    # Policy for authentication service
-    cat > "$BOOTSTRAP_DIR/auth-policy.hcl" <<POL
-path "secret/data/*" {
-  capabilities = ["create", "read", "update", "delete", "list"]
+    # Least-privilege policy for authentication service
+    cat > "$BOOTSTRAP_DIR/auth-policy.hcl" <<EOF
+# JWT: read-only
+path "secret/data/authentication/jwt" {
+  capabilities = ["read"]
 }
-path "secret/metadata/*" {
+path "secret/metadata/authentication/jwt" {
   capabilities = ["read", "list"]
 }
-POL
+
+# Per-user secrets: read/write
+path "secret/data/authentication/users/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+path "secret/metadata/authentication/users/*" {
+  capabilities = ["read", "list"]
+}
+
+# OAuth config: read-only (seeded by root or dev)
+path "secret/data/authentication/oauth/*" {
+  capabilities = ["read", "list"]
+}
+path "secret/metadata/authentication/oauth/*" {
+  capabilities = ["read", "list"]
+}
+
+# Health
+path "secret/data/health" {
+  capabilities = ["read", "update"]
+}
+EOF
     vault policy write auth-policy "$BOOTSTRAP_DIR/auth-policy.hcl" >/dev/null 2>&1 || true
 
-    # Ensure AppRole exists
+    # Create AppRole bound to the policy
     vault write auth/approle/role/authentication \
       policies="auth-policy" \
       token_ttl="1h" token_max_ttl="4h" >/dev/null 2>&1 || true
 
-    # Read role_id and create a new secret_id
+    # Read role_id and issue secret_id
     ROLE_ID=$(vault read -field=role_id auth/approle/role/authentication/role-id 2>/dev/null || true)
     SECRET_ID=$(vault write -force -field=secret_id auth/approle/role/authentication/secret-id 2>/dev/null || true)
 
-    # Persist into secrets files for Docker secrets if values exist
+    # Persist credentials to Docker secrets path
     if [ -n "$ROLE_ID" ]; then
-      echo "$ROLE_ID" > /vault/secrets/approle_role_id
-    fi
-    if [ -n "$SECRET_ID" ]; then
-      echo "$SECRET_ID" > /vault/secrets/approle_secret_id
+        echo "$ROLE_ID" > /vault/secrets/approle_role_id;
     fi
 
-    # Also persist a JSON snapshot (optional)
+    if [ -n "$SECRET_ID" ]; then
+        echo "$SECRET_ID" > /vault/secrets/approle_secret_id;
+    fi
+
+    # Save JSON snapshot for debugging
     if [ -n "$ROLE_ID" ] && [ -n "$SECRET_ID" ]; then
-      cat > "$APPROLE_JSON" <<JSON
+      cat > "$APPROLE_JSON" <<EOF
 {
   "role_id": "${ROLE_ID}",
   "secret_id": "${SECRET_ID}"
 }
-JSON
+EOF
     fi
-    # Seed health secret
+
+    # Bootstrap JWT secret if missing
+    EXISTING_JWT=$(vault kv get -field=signing_key secret/authentication/jwt 2>/dev/null || true)
+    if [ -z "$EXISTING_JWT" ]; then
+        echo "Seeding random HS256 JWT signing key"
+        RANDOM_KEY=$(openssl rand -hex 64)
+        vault kv put secret/authentication/jwt signing_key="${RANDOM_KEY}" >/dev/null 2>&1 || true
+    fi
+
+    # Seed health flag
     vault kv put secret/health check=true >/dev/null 2>&1 || true
 else
-    echo "[vault] Warning: ROOT_TOKEN_FILE missing; skipping bootstrap ops"
+    echo "Warning: ROOT_TOKEN_FILE missing; skipping bootstrap ops"
 fi
 
 # Keep container alive and forward signals to Vault

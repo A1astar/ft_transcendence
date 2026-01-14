@@ -1,7 +1,7 @@
 import Fastify, { FastifyInstance } from "fastify";
+import { routeRequest } from "./redirectRoutes.js";
 import color from "chalk";
 
-import { routeRequest } from "./redirectRoutes.js";
 
 async function initGateway(fastify: FastifyInstance) {
   try {

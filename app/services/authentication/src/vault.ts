@@ -137,6 +137,7 @@ export class VaultService {
       throw new Error("Vault connection failed");
     }
   }
+
   async getSecret(path: string): Promise<SecretData | null> {
     try {
       const response = await this.client.read(`secret/data/${path}`);
@@ -199,5 +200,20 @@ export class VaultService {
 
   async deleteUserSecrets(userId: string): Promise<boolean> {
     return await this.deleteSecret(`${this.usersPathPrefix()}/${userId}`);
+  }
+
+  // JWT signing key management
+  async getJwtKey(): Promise<string | null> {
+    try {
+      const v = await this.getSecret("authentication/jwt");
+      const k = v?.signing_key;
+      return typeof k === "string" ? k : null;
+    } catch {
+      return null;
+    }
+  }
+
+  async setJwtKey(key: string): Promise<boolean> {
+    return await this.setSecret("authentication/jwt", { signing_key: key });
   }
 }

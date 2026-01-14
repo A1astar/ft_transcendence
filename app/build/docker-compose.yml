@@ -90,14 +90,6 @@ networks:
   vault-network:
     driver: bridge
 
-  # monitoring-network:
-  #   driver: bridge
-  #   internal: true
-
-  # logging-network:
-  #   driver: bridge
-  #   internal: true
-
 volumes:
   vault-data:
     driver: local
@@ -112,7 +104,3 @@ volumes:
       type: none
       o: bind
       device: ../infrastructure/hcp-vault/keys
-
-#   prometheus-data:
-#   grafana-data:
-#   elasticsearch-data:

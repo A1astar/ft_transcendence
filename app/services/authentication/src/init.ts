@@ -84,16 +84,56 @@ export async function initFastify(auth: Auth) {
     callbackUri: googleCallbackUrl,
   });
 
-  fastify.register(
-    fastifyJWT as any,
-    {
+  // Configure JWT from Vault
+  let jwtKey: string | null = null;
+  try {
+    jwtKey = await auth.vault.getJwtKey();
+  } catch (e) {
+    console.error("[auth] Vault JWT load failed:", e);
+  }
+
+  const isPem = jwtKey.includes("-----BEGIN");
+  if (isPem) {
+    let publicKey: string;
+    try {
+      publicKey = crypto
+        .createPublicKey(jwtKey)
+        .export({ type: "spki", format: "pem" })
+        .toString();
+    } catch (e) {
+      console.warn("[auth] RSA private key invalid; falling back to HS256");
+      publicKey = "";
+    }
+
+    if (publicKey) {
+      fastify.register(fastifyJWT as any, {
+        cookie: { cookieName: "access_token" },
+        secret: { private: jwtKey, public: publicKey } as any,
+        sign: {
+          algorithm: "RS256",
+          expiresIn: process.env.JWT_EXPIRES_IN || "15m",
+        },
+      } as any);
+    } else {
+      fastify.register(fastifyJWT as any, {
+        cookie: { cookieName: "access_token" },
+        secret: jwtKey,
+        sign: {
+          algorithm: "HS256",
+          expiresIn: process.env.JWT_EXPIRES_IN || "15m",
+        },
+      } as any);
+    }
+  } else {
+    fastify.register(fastifyJWT as any, {
       cookie: { cookieName: "access_token" },
-      secret: process.env.JWT_SECRET || crypto.randomBytes(32).toString("hex"),
+      secret: jwtKey,
       sign: {
+        algorithm: "HS256",
         expiresIn: process.env.JWT_EXPIRES_IN || "15m",
       },
-    } as any
-  );
+    } as any);
+  }
 
   return fastify;
 }
