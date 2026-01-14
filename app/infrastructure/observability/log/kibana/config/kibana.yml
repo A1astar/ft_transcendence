@@ -1,0 +1,9 @@
+server.name: kibana
+server.host: "0.0.0.0"
+server.port: 5601
+
+elasticsearch.hosts: [ "${ELASTICSEARCH_HOSTS}" ]
+elasticsearch.serviceAccountToken: "${ELASTICSEARCH_SERVICEACCOUNT_TOKEN}"
+
+telemetry.enabled: false
+xpack.fleet.enabled: false

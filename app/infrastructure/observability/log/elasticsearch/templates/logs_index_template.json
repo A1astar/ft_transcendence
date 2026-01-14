@@ -1,0 +1,27 @@
+{
+  "index_templates": [
+    {
+      "name": "logs-microservices-template",
+      "index_template": {
+        "index_patterns": ["logs-microservices-*"],
+        "template": {
+          "settings": {
+            "index.lifecycle.name": "logs_policy",
+            "index.lifecycle.rollover_alias": "logs-microservices",
+            "number_of_shards": 1,
+            "number_of_replicas": 0
+          },
+          "mappings": {
+            "dynamic": true
+          },
+          "aliases": {
+            "logs-microservices": {
+              "is_write_index": true
+            }
+          }
+        },
+        "priority": 500
+      }
+    }
+  ]
+}
