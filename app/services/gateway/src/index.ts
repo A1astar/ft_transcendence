@@ -1,5 +1,6 @@
 import Fastify, { FastifyInstance } from "fastify";
 import { routeRequest } from "./redirectRoutes.js";
+import client from "prom-client";
 import color from "chalk";
 
 async function initGateway(fastify: FastifyInstance) {
@@ -14,6 +15,15 @@ async function initGateway(fastify: FastifyInstance) {
 
 async function main() {
   const fastify = Fastify({ logger: false });
+
+  // Prometheus metrics setup
+  const registry = new client.Registry();
+  client.collectDefaultMetrics({ register: registry });
+
+  fastify.get("/metrics", async (_req, reply) => {
+    reply.header("Content-Type", registry.contentType);
+    return registry.metrics();
+  });
 
   await routeRequest(fastify);
 

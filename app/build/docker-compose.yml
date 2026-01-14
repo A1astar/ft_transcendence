@@ -83,6 +83,28 @@ services:
       - microservices-network
     restart: unless-stopped
 
+  prometheus:
+    build: ../infrastructure/observability/metric/prometheus
+    networks:
+      - microservices-network
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../infrastructure/observability/metric/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+
+  grafana:
+    build: ../infrastructure/observability/metric/graphana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:-admin}
+    networks:
+      - microservices-network
+    ports:
+      - "3005:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
 networks:
   microservices-network:
     driver: bridge

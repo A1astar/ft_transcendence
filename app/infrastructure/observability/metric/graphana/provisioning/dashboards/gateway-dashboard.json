@@ -1,0 +1,66 @@
+{
+  "id": null,
+  "uid": "gateway-metrics",
+  "title": "Gateway Metrics",
+  "tags": ["service"],
+  "schemaVersion": 37,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-6h", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Service Availability (up)",
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "up{job=\"gateway\"}", "legendFormat": "up" }],
+      "gridPos": { "x": 0, "y": 0, "w": 24, "h": 4 }
+    },
+    {
+      "type": "timeseries",
+      "title": "CPU (user/system) rate",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "rate(process_cpu_user_seconds_total{job=\"gateway\"}[1m])", "legendFormat": "user" },
+        { "expr": "rate(process_cpu_system_seconds_total{job=\"gateway\"}[1m])", "legendFormat": "system" }
+      ],
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Resident Memory",
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "process_resident_memory_bytes{job=\"gateway\"}", "legendFormat": "rss" }],
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Heap Used vs Total",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "nodejs_heap_size_used_bytes{job=\"gateway\"}", "legendFormat": "used" },
+        { "expr": "nodejs_heap_size_total_bytes{job=\"gateway\"}", "legendFormat": "total" }
+      ],
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Event Loop Lag",
+      "datasource": "Prometheus",
+      "targets": [{ "expr": "nodejs_eventloop_lag_seconds{job=\"gateway\"}", "legendFormat": "lag" }],
+      "fieldConfig": { "defaults": { "unit": "s" }, "overrides": [] },
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 8 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Active Requests / Handles",
+      "datasource": "Prometheus",
+      "targets": [
+        { "expr": "nodejs_active_requests_total{job=\"gateway\"}", "legendFormat": "requests" },
+        { "expr": "nodejs_active_handles_total{job=\"gateway\"}", "legendFormat": "handles" }
+      ],
+      "gridPos": { "x": 0, "y": 20, "w": 24, "h": 6 }
+    }
+  ]
+}
