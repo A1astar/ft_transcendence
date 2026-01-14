@@ -34,6 +34,7 @@ local-clean:
 local-re: local-clean local
 
 clean: down local-clean
+	docker volume rm transcendence_vault-data transcendence_vault-keys
 
 re: clean all
 
