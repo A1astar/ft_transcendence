@@ -1,36 +1,30 @@
 declare const BABYLON: any;
 import {
-    clearDiv,
-    createVideoBackgroundDiv,
-    createHeadingText,
-    createSubheadingText,
-    createParagraphText,
-    createFormElement,
-    createInputElement,
-    createLogoElement,
-    createButtonForm,
-    createBoxDiv,
-    createCanvas,
-    SERVER_BASE,
+  clearDiv,
+  createVideoBackgroundDiv,
+  createHeadingText,
+  createLogoElement,
+  createCanvas,
+  SERVER_BASE,
 } from "./utils.js";
 
 import {
-    gotMatchInfos,
-    createCamera,
-    createLight,
-    update3DMeshPos,
-    scaling3DMesh,
-    createTorch,
-    createBaradDur,
-    createPaddle,
-    createBackgroundScene,
-    createScoreBox2,
-    displayScore2,
-    createVisionCone,
-    updateVisionConePos,
+  gotMatchInfos,
+  createCamera,
+  createLight,
+  update3DMeshPos,
+  scaling3DMesh,
+  createTorch,
+  createBaradDur,
+  createPaddle,
+  createBackgroundScene,
+  createScoreBox2,
+  displayScore2,
+  createVisionCone,
+  updateVisionConePos,
 } from "./gameViewUtils.js";
 
-import {endGameView} from "./endGameView.js";
+import { endGameView } from "./endGameView.js";
 import { getUsername } from "../authService.js";
 
 const appDiv = document.getElementById("app");
@@ -38,257 +32,279 @@ const groundTexture = "../../public/textures/pongTable.png";
 const eyeTexture = "../../public/textures/eye.png";
 
 function setupWebSocket(
-    matchInfos: any,
-    ball: any,
-    leftPaddle: any,
-    rightPaddle: any,
-    scoreText: any,
-    onGameEnd?: (winner: string) => void,
+  matchInfos: any,
+  ball: any,
+  leftPaddle: any,
+  rightPaddle: any,
+  scoreText: any,
+  onGameEnd?: (winner: string) => void
 ) {
-    (async () => {
-        // determine alias for this match.
-        // If this is a remote2 match prefer the remote2 alias, then logged-in username, then guestUsername
-        let alias: string | null = null;
-        if (matchInfos?.mode === 'remote2') {
-            if (!alias) {
-                try {
-                    const fetched = await getUsername();
-                    alias = fetched ?? null;
-                } catch (e) {
-                    // ignore
-                }
-            }
-        } else {
-            try {
-                const fetched = await getUsername();
-                alias = fetched ?? alias;
-            } catch (e) {
-                // ignore
-            }
-            if (!alias) alias = localStorage.getItem("guestUsername") || null;
+  (async () => {
+    // determine alias for this match.
+    // If this is a remote2 match prefer the remote2 alias, then logged-in username, then guestUsername
+    let alias: string | null = null;
+    if (matchInfos?.mode === "remote2") {
+      if (!alias) {
+        try {
+          const fetched = await getUsername();
+          alias = fetched ?? null;
+        } catch (e) {
+          // ignore
         }
-        // Build websocket URL: use secure websocket on https pages, fallback to ws on http,
-        // and always target port 8443 (reverse-proxy / backend should expose this).
-        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-        const port = 8443;
-        let url = `${protocol}://${SERVER_BASE}:${port}/api/game-engine/${matchInfos.id}`;
-        if (alias && alias.length > 0) {
-            url += `?alias=${encodeURIComponent(alias)}`;
-        }
-        const ws = new WebSocket(url);
+      }
+    } else {
+      try {
+        const fetched = await getUsername();
+        alias = fetched ?? alias;
+      } catch (e) {
+        // ignore
+      }
+      if (!alias) alias = localStorage.getItem("guestUsername") || null;
+    }
+    // Build websocket URL: use secure websocket on https pages, fallback to ws on http,
+    // and always target port 8443 (reverse-proxy / backend should expose this).
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const port = 8443;
+    let url = `${protocol}://${SERVER_BASE}:${port}/api/game-engine/${matchInfos.id}`;
+    if (alias && alias.length > 0) {
+      url += `?alias=${encodeURIComponent(alias)}`;
+    }
+    const ws = new WebSocket(url);
     window.addEventListener("popstate", onPopState);
     window.addEventListener("beforeunload", onBeforeUnload);
     let gameEnded = false;
     let hasLeftGame = false;
 
     ws.onopen = () => {
-        document.addEventListener("keydown", handleKeyDown);
-        document.addEventListener("keyup", handleKeyUp);
+      document.addEventListener("keydown", handleKeyDown);
+      document.addEventListener("keyup", handleKeyUp);
     };
 
     ws.onclose = () => {
-        document.removeEventListener("keydown", handleKeyDown);
-        document.removeEventListener("keyup", handleKeyUp);
+      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keyup", handleKeyUp);
     };
 
     function leaveGame() {
-        if (hasLeftGame) {
-            return;
-        }
-        hasLeftGame = true;
+      if (hasLeftGame) {
+        return;
+      }
+      hasLeftGame = true;
 
-        if (ws && ws.readyState == WebSocket.OPEN) {
-            ws.send(JSON.stringify({type: "leave"}));
-        }
+      if (ws && ws.readyState == WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "leave" }));
+      }
     }
 
     function onPopState(_event: PopStateEvent) {
-        leaveGame();
+      leaveGame();
     }
 
     function onBeforeUnload(_event: BeforeUnloadEvent) {
-        leaveGame();
+      leaveGame();
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
-        const key = event.key.toLowerCase();
-        if (["w", "s", "p", "l"].includes(key)) {
-            ws.send(JSON.stringify({type: "keyPress", key}));
-        }
+      const key = event.key.toLowerCase();
+      if (["w", "s", "p", "l"].includes(key)) {
+        ws.send(JSON.stringify({ type: "keyPress", key }));
+      }
     };
 
     const handleKeyUp = (event: KeyboardEvent) => {
-        const key = event.key.toLowerCase();
-        if (["w", "s", "p", "l"].includes(key)) {
-            ws.send(JSON.stringify({type: "keyRelease", key}));
-        }
+      const key = event.key.toLowerCase();
+      if (["w", "s", "p", "l"].includes(key)) {
+        ws.send(JSON.stringify({ type: "keyRelease", key }));
+      }
     };
 
     ws.onmessage = (event) => {
-        if (gameEnded) {
-            return;
-        }
+      if (gameEnded) {
+        return;
+      }
 
-        const message = JSON.parse(event.data);
+      const message = JSON.parse(event.data);
 
-        if (message.type === "gameState") {
-            const gameState = message.data;
-            update3DMeshPos(ball, -gameState.ball.x, 0.25, gameState.ball.y);
-            update3DMeshPos(leftPaddle, -gameState.paddles.left.x, 0, gameState.paddles.left.y);
-            update3DMeshPos(rightPaddle, -gameState.paddles.right.x, 0, gameState.paddles.right.y);
+      if (message.type === "gameState") {
+        const gameState = message.data;
+        update3DMeshPos(ball, -gameState.ball.x, 0.25, gameState.ball.y);
+        update3DMeshPos(
+          leftPaddle,
+          -gameState.paddles.left.x,
+          0,
+          gameState.paddles.left.y
+        );
+        update3DMeshPos(
+          rightPaddle,
+          -gameState.paddles.right.x,
+          0,
+          gameState.paddles.right.y
+        );
 
-            if (gameState.score && appDiv) {
-                displayScore2(matchInfos, appDiv, gameState, scoreText);
+        if (gameState.score && appDiv) {
+          displayScore2(matchInfos, appDiv, gameState, scoreText);
 
-                if (gameState.score.left >= 5 || gameState.score.right >= 5) {
-                    const winner =
-                        gameState.score.left >= 3
-                            ? matchInfos.players[0].alias
-                            : matchInfos.players[1].alias;
-                    gameEnded = true;
-                    ws.close();
-                    document.removeEventListener("keydown", handleKeyDown);
-                    document.removeEventListener("keyup", handleKeyUp);
+          if (gameState.score.left >= 5 || gameState.score.right >= 5) {
+            const winner =
+              gameState.score.left >= 3
+                ? matchInfos.players[0].alias
+                : matchInfos.players[1].alias;
+            gameEnded = true;
+            ws.close();
+            document.removeEventListener("keydown", handleKeyDown);
+            document.removeEventListener("keyup", handleKeyUp);
 
-                    if (onGameEnd) {
-                        onGameEnd(winner);
-                    } else {
-                        endGameView(winner);
-                    }
-                }
+            if (onGameEnd) {
+              onGameEnd(winner);
+            } else {
+              endGameView(winner);
             }
+          }
         }
+      }
 
-        if (message.type == "player_disconnected") {
-            hasLeftGame = true;
-            ws?.close();
-            window.removeEventListener("popstate", onPopState);
-            window.removeEventListener("beforeunload", onBeforeUnload);
-            endGameView(message.winner);
-        }
+      if (message.type == "player_disconnected") {
+        hasLeftGame = true;
+        ws?.close();
+        window.removeEventListener("popstate", onPopState);
+        window.removeEventListener("beforeunload", onBeforeUnload);
+        endGameView(message.winner);
+      }
     };
-    })();
+  })();
 }
 
 function setupScene(canvas: HTMLCanvasElement) {
-    const engine = new BABYLON.Engine(canvas, true);
-    const scene = new BABYLON.Scene(engine);
+  const engine = new BABYLON.Engine(canvas, true);
+  const scene = new BABYLON.Scene(engine);
 
-    const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
-    groundMaterial.diffuseTexture = new BABYLON.Texture(groundTexture, scene);
+  const groundMaterial = new BABYLON.StandardMaterial("groundMaterial", scene);
+  groundMaterial.diffuseTexture = new BABYLON.Texture(groundTexture, scene);
 
-    const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
-    wallMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
+  const wallMaterial = new BABYLON.StandardMaterial("wallMaterial", scene);
+  wallMaterial.diffuseColor = new BABYLON.Color3(0, 0, 0);
 
-    const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
-    ballMaterial.diffuseTexture = new BABYLON.Texture(eyeTexture, scene);
+  const ballMaterial = new BABYLON.StandardMaterial("ballMaterial", scene);
+  ballMaterial.diffuseTexture = new BABYLON.Texture(eyeTexture, scene);
 
-    const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
-    paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
+  const paddleMaterial = new BABYLON.StandardMaterial("paddleMaterial", scene);
+  paddleMaterial.diffuseColor = new BABYLON.Color3(1, 1, 1);
 
-    createBackgroundScene();
+  createBackgroundScene();
 
-    const pongRoot = new BABYLON.TransformNode("pongRoot", scene);
+  const pongRoot = new BABYLON.TransformNode("pongRoot", scene);
 
-    const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 20, height: 10}, scene);
-    ground.material = groundMaterial;
-    ground.parent = pongRoot;
+  const ground = BABYLON.MeshBuilder.CreateGround(
+    "ground",
+    { width: 20, height: 10 },
+    scene
+  );
+  ground.material = groundMaterial;
+  ground.parent = pongRoot;
 
-    const ball = BABYLON.MeshBuilder.CreateCylinder(
-        "ball",
-        {
-            diameter: 0.5,
-            height: 0.01,
-        },
-        scene,
-    );
-    ball.material = ballMaterial;
-    update3DMeshPos(ball, 0, 0.25, 0);
-    ball.parent = pongRoot;
+  const ball = BABYLON.MeshBuilder.CreateCylinder(
+    "ball",
+    {
+      diameter: 0.5,
+      height: 0.01,
+    },
+    scene
+  );
+  ball.material = ballMaterial;
+  update3DMeshPos(ball, 0, 0.25, 0);
+  ball.parent = pongRoot;
 
-    const leftP = createPaddle(scene);
-    leftP.parent = pongRoot;
+  const leftP = createPaddle(scene);
+  leftP.parent = pongRoot;
 
-    const rightP = createPaddle(scene);
-    rightP.parent = pongRoot;
+  const rightP = createPaddle(scene);
+  rightP.parent = pongRoot;
 
-    const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
-    leftWall.material = wallMaterial;
-    scaling3DMesh(leftWall, 0.2, 0.5, 10);
-    update3DMeshPos(leftWall, -10, 0, 0);
-    leftWall.parent = pongRoot;
+  const leftWall = BABYLON.MeshBuilder.CreateBox("leftWall", {}, scene);
+  leftWall.material = wallMaterial;
+  scaling3DMesh(leftWall, 0.2, 0.5, 10);
+  update3DMeshPos(leftWall, -10, 0, 0);
+  leftWall.parent = pongRoot;
 
-    const rightWall = BABYLON.MeshBuilder.CreateBox("rightWall", {}, scene);
-    rightWall.material = wallMaterial;
-    scaling3DMesh(rightWall, 0.2, 0.5, 10);
-    update3DMeshPos(rightWall, 10, 0, 0);
-    rightWall.parent = pongRoot;
+  const rightWall = BABYLON.MeshBuilder.CreateBox("rightWall", {}, scene);
+  rightWall.material = wallMaterial;
+  scaling3DMesh(rightWall, 0.2, 0.5, 10);
+  update3DMeshPos(rightWall, 10, 0, 0);
+  rightWall.parent = pongRoot;
 
-    const upperWall = BABYLON.MeshBuilder.CreateBox("upperWall", {}, scene);
-    upperWall.material = wallMaterial;
-    scaling3DMesh(upperWall, 20.2, 0.5, 0.2);
-    update3DMeshPos(upperWall, 0, 0, -5);
-    upperWall.parent = pongRoot;
+  const upperWall = BABYLON.MeshBuilder.CreateBox("upperWall", {}, scene);
+  upperWall.material = wallMaterial;
+  scaling3DMesh(upperWall, 20.2, 0.5, 0.2);
+  update3DMeshPos(upperWall, 0, 0, -5);
+  upperWall.parent = pongRoot;
 
-    const lowerWall = BABYLON.MeshBuilder.CreateBox("lowerWall", {}, scene);
-    lowerWall.material = wallMaterial;
-    scaling3DMesh(lowerWall, 20.2, 0.5, 0.2);
-    update3DMeshPos(lowerWall, 0, 0, 5);
-    lowerWall.parent = pongRoot;
+  const lowerWall = BABYLON.MeshBuilder.CreateBox("lowerWall", {}, scene);
+  lowerWall.material = wallMaterial;
+  scaling3DMesh(lowerWall, 20.2, 0.5, 0.2);
+  update3DMeshPos(lowerWall, 0, 0, 5);
+  lowerWall.parent = pongRoot;
 
-    const topleftTorch = createTorch(scene);
-    update3DMeshPos(topleftTorch, 10, 0, -5);
-    topleftTorch.parent = pongRoot;
+  const topleftTorch = createTorch(scene);
+  update3DMeshPos(topleftTorch, 10, 0, -5);
+  topleftTorch.parent = pongRoot;
 
-    const topRightTorch = createTorch(scene);
-    update3DMeshPos(topRightTorch, -10, 0, -5);
-    topRightTorch.parent = pongRoot;
+  const topRightTorch = createTorch(scene);
+  update3DMeshPos(topRightTorch, -10, 0, -5);
+  topRightTorch.parent = pongRoot;
 
-    const bottomleftTorch = createTorch(scene);
-    update3DMeshPos(bottomleftTorch, 10, 0, 5);
-    bottomleftTorch.parent = pongRoot;
+  const bottomleftTorch = createTorch(scene);
+  update3DMeshPos(bottomleftTorch, 10, 0, 5);
+  bottomleftTorch.parent = pongRoot;
 
-    const bottomRightTorch = createTorch(scene);
-    update3DMeshPos(bottomRightTorch, -10, 0, 5);
-    bottomRightTorch.parent = pongRoot;
+  const bottomRightTorch = createTorch(scene);
+  update3DMeshPos(bottomRightTorch, -10, 0, 5);
+  bottomRightTorch.parent = pongRoot;
 
-    scaling3DMesh(pongRoot, 2, 2, 2);
+  scaling3DMesh(pongRoot, 2, 2, 2);
 
-    const tower = createBaradDur(scene);
-    scaling3DMesh(tower, 5, 5, 5);
-    update3DMeshPos(tower, -20, 0, -20);
+  const tower = createBaradDur(scene);
+  scaling3DMesh(tower, 5, 5, 5);
+  update3DMeshPos(tower, -20, 0, -20);
 
-    const visionCone = createVisionCone(scene);
-    updateVisionConePos(scene, ball, visionCone);
+  const visionCone = createVisionCone(scene);
+  updateVisionConePos(scene, ball, visionCone);
 
-    const scoreText = createScoreBox2(scene);
-    createCamera(scene, canvas);
-    createLight(scene);
+  const scoreText = createScoreBox2(scene);
+  createCamera(scene, canvas);
+  createLight(scene);
 
-    return {engine, scene, ball, leftP, rightP, visionCone, scoreText};
+  return { engine, scene, ball, leftP, rightP, visionCone, scoreText };
 }
 
-export function renderGame(matchInfos: any, onGameEnd?: (winner: string) => void) {
-    if (!appDiv) return;
-    clearDiv(appDiv);
+export function renderGame(
+  matchInfos: any,
+  onGameEnd?: (winner: string) => void
+) {
+  if (!appDiv) return;
+  clearDiv(appDiv);
 
-    if (!gotMatchInfos(matchInfos)) {
-        console.error("Invalid match object");
-        return;
-    }
+  if (!gotMatchInfos(matchInfos)) {
+    console.error("Invalid match object");
+    return;
+  }
 
-    const canvas = createCanvas();
-    appDiv.appendChild(createVideoBackgroundDiv("../../public/backgrounds/Sauron.mp4"));
-    appDiv.appendChild(createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo"));
-    appDiv.appendChild(createHeadingText("Lord of Transcendence"));
-    appDiv.appendChild(canvas);
+  const canvas = createCanvas();
+  appDiv.appendChild(
+    createVideoBackgroundDiv("../../public/backgrounds/Sauron.mp4")
+  );
+  appDiv.appendChild(
+    createLogoElement("../public/icons/sauron.png", "Barad-dûr Logo")
+  );
+  appDiv.appendChild(createHeadingText("Lord of Transcendence"));
+  appDiv.appendChild(canvas);
 
-    let {engine, scene, ball, leftP, rightP, visionCone, scoreText} = setupScene(canvas);
-    setupWebSocket(matchInfos, ball, leftP, rightP, scoreText, onGameEnd);
+  let { engine, scene, ball, leftP, rightP, visionCone, scoreText } =
+    setupScene(canvas);
+  setupWebSocket(matchInfos, ball, leftP, rightP, scoreText, onGameEnd);
 
-    engine.runRenderLoop(() => {
-        updateVisionConePos(scene, ball, visionCone);
-        scene.render();
-    });
-    window.addEventListener("resize", () => engine.resize());
+  engine.runRenderLoop(() => {
+    updateVisionConePos(scene, ball, visionCone);
+    scene.render();
+  });
+  window.addEventListener("resize", () => engine.resize());
 }

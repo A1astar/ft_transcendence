@@ -1,17 +1,20 @@
+# Global
 dist/
+*.bak
+*.bkp
 node_modules/
-.bkpapp/frontend/styles/output.css
+package-lock.json
+prod.package.json
+prod.tsconfig.json
 
-# Environment files
-.env
-*.env
-**/.env
+# Frontend
+*output.css
 
-# SSL/TLS certificates
+# Infrastructure
+keys/
+data/
 certs/
-*.certs
-*.key
-*.pem
-**/*.certs
-**/*.key
-**/*.pem
+secrets/
+
+# Services
+database/

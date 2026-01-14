@@ -1,70 +1,121 @@
-//view
-import {renderGameMenu} from "./view/gameMenuView.js";
-import {renderGuestLogin} from "./view/guestView.js";
-import {renderHome} from "./view/homeView.js";
-import {renderLogin} from "./view/loginView.js";
-import {renderRegister} from "./view/registerView.js";
-import {renderNotFound} from "./view/notFoundView.js";
-import {renderProfile} from "./view/profileView.js";
-import {renderLocalLobby} from "./view/localLobbyView.js";
-import {renderRemote2Lobby} from "./view/remote2LobbyView.js";
-import {renderRemote4Lobby} from "./view/remote4LobbyView.js";
-import {renderTournament4Lobby} from "./view/tournament4LobbyView.js";
-import {renderTournament8Lobby} from "./view/tournament8LobbyView.js";
+import type { ViewEventBinder } from "./binder/binderInterface.js";
 
-//binder
-import {ViewEventBinder} from "./binder/binderInterface.js";
-import {GameMenuViewBinder} from "./binder/gameMenuViewBinder.js";
-import {GuestViewBinder} from "./binder/guestViewBinder.js";
-import {HomeViewBinder} from "./binder/homeViewBinder.js";
-import {LoginViewBinder} from "./binder/loginViewBinder.js";
-import {ProfileViewBinder} from "./binder/profileViewBinder.js";
-import {RegisterViewBinder} from "./binder/registerViewBinder.js";
-import {LocalLobbyViewBinder} from "./binder/localLobbyViewBinder.js";
-import {Remote2LobbyViewBinder} from "./binder/Remote2LobbyViewBinder.js";
-import {Remote4LobbyViewBinder} from "./binder/Remote4LobbyViewBinder.js";
-import {Tournament4LobbyViewBinder} from "./binder/Tournament4LobbyViewBinder.js";
-import {Tournament8LobbyViewBinder} from "./binder/Tournament8LobbyViewBinder.js";
+let currentBinder: ViewEventBinder | null = null;
 
-const viewMap: {[key: string]: () => void} = {
-    "/": renderHome,
-    "/login": renderLogin,
-    "/register": renderRegister,
-    "/guest": renderGuestLogin,
-    "/profile": renderProfile,
-    "/gameMenu": renderGameMenu,
-    "/localLobby": renderLocalLobby,
-    "/remote2Lobby": renderRemote2Lobby,
-    "/remote4Lobby": renderRemote4Lobby,
-    "/tournament4Lobby": renderTournament4Lobby,
-    "/tournament8Lobby": renderTournament8Lobby,
+type RouteHandler = () => Promise<void>;
+
+async function loadAndBind<T extends ViewEventBinder>(
+  viewImport: Promise<{ [k: string]: any }>,
+  binderImport: Promise<{ [k: string]: any }>,
+  viewFnName: string,
+  binderClassName: string
+): Promise<void> {
+  // Unbind previous route listeners before re-rendering
+  currentBinder?.unbind();
+  const [viewModule, binderModule] = await Promise.all([
+    viewImport,
+    binderImport,
+  ]);
+  const renderFn = viewModule[viewFnName] as () => Promise<void> | void;
+  const BinderClass = binderModule[binderClassName] as new () => T;
+  await Promise.resolve(renderFn());
+  const binder = new BinderClass();
+  binder.bind();
+  currentBinder = binder;
+}
+
+const handlers: Record<string, RouteHandler> = {
+  "/": () =>
+    loadAndBind(
+      import("./view/homeView.js"),
+      import("./binder/homeViewBinder.js"),
+      "renderHome",
+      "HomeViewBinder"
+    ),
+  "/login": () =>
+    loadAndBind(
+      import("./view/loginView.js"),
+      import("./binder/loginViewBinder.js"),
+      "renderLogin",
+      "LoginViewBinder"
+    ),
+  "/register": () =>
+    loadAndBind(
+      import("./view/registerView.js"),
+      import("./binder/registerViewBinder.js"),
+      "renderRegister",
+      "RegisterViewBinder"
+    ),
+  "/guest": () =>
+    loadAndBind(
+      import("./view/guestView.js"),
+      import("./binder/guestViewBinder.js"),
+      "renderGuestLogin",
+      "GuestViewBinder"
+    ),
+  "/profile": () =>
+    loadAndBind(
+      import("./view/profileView.js"),
+      import("./binder/profileViewBinder.js"),
+      "renderProfile",
+      "ProfileViewBinder"
+    ),
+  "/gameMenu": () =>
+    loadAndBind(
+      import("./view/gameMenuView.js"),
+      import("./binder/gameMenuViewBinder.js"),
+      "renderGameMenu",
+      "GameMenuViewBinder"
+    ),
+  "/localLobby": () =>
+    loadAndBind(
+      import("./view/localLobbyView.js"),
+      import("./binder/localLobbyViewBinder.js"),
+      "renderLocalLobby",
+      "LocalLobbyViewBinder"
+    ),
+  "/remote2Lobby": () =>
+    loadAndBind(
+      import("./view/remote2LobbyView.js"),
+      import("./binder/Remote2LobbyViewBinder.js"),
+      "renderRemote2Lobby",
+      "Remote2LobbyViewBinder"
+    ),
+  "/remote4Lobby": () =>
+    loadAndBind(
+      import("./view/remote4LobbyView.js"),
+      import("./binder/Remote4LobbyViewBinder.js"),
+      "renderRemote4Lobby",
+      "Remote4LobbyViewBinder"
+    ),
+  "/tournament4Lobby": () =>
+    loadAndBind(
+      import("./view/tournament4LobbyView.js"),
+      import("./binder/Tournament4LobbyViewBinder.js"),
+      "renderTournament4Lobby",
+      "Tournament4LobbyViewBinder"
+    ),
+  "/tournament8Lobby": () =>
+    loadAndBind(
+      import("./view/tournament8LobbyView.js"),
+      import("./binder/Tournament8LobbyViewBinder.js"),
+      "renderTournament8Lobby",
+      "Tournament8LobbyViewBinder"
+    ),
 };
 
-const bindMap: {[key: string]: ViewEventBinder} = {
-    "/": new HomeViewBinder(),
-    "/login": new LoginViewBinder(),
-    "/register": new RegisterViewBinder(),
-    "/guest": new GuestViewBinder(),
-    "/profile": new ProfileViewBinder(),
-    "/gameMenu": new GameMenuViewBinder(),
-    "/localLobby": new LocalLobbyViewBinder(),
-    "/remote2Lobby": new Remote2LobbyViewBinder(),
-    "/remote4Lobby": new Remote4LobbyViewBinder(),
-    "/tournament4Lobby": new Tournament4LobbyViewBinder(),
-    "/tournament8Lobby": new Tournament8LobbyViewBinder(),
-};
+async function renderNotFoundLazy(): Promise<void> {
+  currentBinder?.unbind();
+  const { renderNotFound } = await import("./view/notFoundView.js");
+  renderNotFound();
+  currentBinder = null;
+}
 
 export async function router(path: string): Promise<void> {
-    console.log(path);
-    let renderFunction = viewMap[path];
-    let binderInterface = bindMap[path];
-    if (renderFunction) {
-        const result = renderFunction();
-        if (result !== undefined && result !== null && typeof (result as any).then === "function") {
-            await (result as Promise<any>);
-        }
-    } else {
-        renderNotFound();
-    }
-    binderInterface?.bind();
+  const handler = handlers[path];
+  if (handler) {
+    await handler();
+  } else {
+    await renderNotFoundLazy();
+  }
 }

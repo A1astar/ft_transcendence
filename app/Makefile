@@ -1,68 +1,58 @@
-IMAGE = reverse-proxy \
-		authentication \
-        gateway \
-        game-orchestration
-
-IMAGE := $(addprefix transcendence-, $(IMAGE))
-
 COMPOSE_FILE=./build/docker-compose.yml
-PROJECT_DIR := $(abspath .)
-FRONTEND_DIR := $(PROJECT_DIR)/frontend
 
-all: clean local-build setup-certs build up
+# Set these variables for the vault
+UID = $(shell id -u)
+GID = $(shell id -g)
+export UID
+export GID
 
-setup-certs:
-	@mkdir -p $(FRONTEND_DIR)/certs
-	@if [ ! -f $(FRONTEND_DIR)/certs/self.key ]; then \
-		echo "Generating SSL certificates..."; \
-		openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-		-keyout $(FRONTEND_DIR)/certs/self.key \
-		-out $(FRONTEND_DIR)/certs/self.crt \
-		-subj "/C=TW/ST=Taipei/L=Taipei/O=42/OU=Transcendence/CN=localhost"; \
-	fi
+all: clean build up
 
-build: setup-certs frontend-build
+build:
+	./build/build.sh prod
 	docker compose -f $(COMPOSE_FILE) build --no-cache
+	./build/build.sh prod-clean
 
-up: setup-certs frontend-build
-	docker compose -f $(COMPOSE_FILE) build reverse-proxy
+up:
 	docker compose -f $(COMPOSE_FILE) up
 
 down:
 	docker compose -f $(COMPOSE_FILE) down --rmi local
 
-local-run:
-	cd build && ./build.sh local-run
+local:
+	./build/build.sh local
 
 local-watch:
-	cd build && ./build.sh local-watch
+	./build/build.sh local-watch
 
 local-build:
-	cd build && ./build.sh local-build
+	./build/build.sh local-build
 
 local-clean:
-	cd build && ./build.sh local-clean
+	./build/build.sh local-clean
 
-# ---- Frontend shortcuts (no more manual npm commands) ----
-frontend-install:
-	cd build && ./build.sh frontend-install
+local-re: local-clean local
 
-frontend-build:
-	cd build && ./build.sh frontend-build
-
-frontend-serve:
-	cd build && ./build.sh frontend-serve
-
-# Run backend watchers + HTTPS/WSS dev server together
-local-watch-all:
-	$(MAKE) -j2 local-watch frontend-serve
-
-local-re: local-clean local-run
-
-clean: down
-
-fclean: clean
+clean: down local-clean
 
 re: clean all
 
-.PHONY: all build up down local-run local-watch local-build local-clean local-watch-all local-re clean fclean re setup-certs frontend-install frontend-build frontend-serve
+lint:
+	npm run lint
+
+format:
+	npm run format
+
+update:
+	./build/build.sh update
+
+upgrade:
+	./build/build.sh upgrade
+
+test:
+	./test/script.sh
+
+.PHONY: \
+all setup-certs build up down \
+local local-watch local-build local-clean local-watch-all local-re \
+clean re lint format update upgrade test

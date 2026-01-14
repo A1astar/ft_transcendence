@@ -1,122 +1,156 @@
 {
   "compilerOptions": {
 
-    /* Type Checking */
-    "strict": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictBindCallApply": true,
-    "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "useUnknownInCatchVariables": true,
+    // Type Checking
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
     "alwaysStrict": true,
+    "exactOptionalPropertyTypes": false,
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": false,
+    "noImplicitOverride": false,
+    "noImplicitReturns": false,
+    "noImplicitThis": false,
+    "noPropertyAccessFromIndexSignature": false,
+    "noUncheckedIndexedAccess": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "exactOptionalPropertyTypes": false,
-    "noImplicitReturns": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedIndexedAccess": true,
-    "noImplicitOverride": true,
-    "noPropertyAccessFromIndexSignature": true,
-    "allowUnusedLabels": false,
-    "allowUnreachableCode": false,
+    "strict": true,
+    "strictBindCallApply": false,
+    "strictBuiltinIteratorReturn": false,
+    "strictFunctionTypes": false,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+    "useUnknownInCatchVariables": false,
 
-    /* Modules */
-    "module": "ES2022",
-    "moduleResolution": "bundler",
-    // "baseUrl": "./",
-    // "paths": {},
-    // "rootDir": "./",
-    // "rootDirs": [],
-    // "typeRoots": ["./node_modules/@types"],
-    // "types": [],
-    "allowUmdGlobalAccess": false,
-    "moduleSuffixes": [],
-    "resolveJsonModule": true,
-    "noResolve": false,
-    "allowImportingTsExtensions": false,
+    // Modules
     "allowArbitraryExtensions": false,
+    "allowImportingTsExtensions": false,
+    "allowUmdGlobalAccess": false,
+    // "baseUrl": undefined,
     "customConditions": [],
+    "module": "es2022",
+    "moduleResolution": "bundler",
+    "moduleSuffixes": [],
+    "noResolve": false,
+    "noUncheckedSideEffectImports": false,
+    "paths": {},
+    "resolveJsonModule": false,
+    "resolvePackageJsonExports": true,
+    "resolvePackageJsonImports": true,
+    // "rootDir": undefined,
+    "rootDirs": [],
+    // "types": undefined,
 
-    /* Emit */
+    // Emit
     "declaration": false,
+    // "declarationDir": undefined,
     "declarationMap": false,
-    "emitDeclarationOnly": false,
-    "sourceMap": true,
-    "inlineSourceMap": false,
-    // "outFile": "",
-    // "outDir": "dist",
-    "removeComments": false,
-    "noEmit": false,
-    "importHelpers": true,
-    "importsNotUsedAsValues": "remove",
-    "downlevelIteration": true,
-    "sourceRoot": "",
-    "mapRoot": "",
-    "inlineSources": false,
+    "downlevelIteration": false,
     "emitBOM": false,
+    "emitDeclarationOnly": false,
+    "importHelpers": false,
+    "importsNotUsedAsValues": "remove",
+    "inlineSourceMap": false,
+    "inlineSources": false,
+    // "mapRoot": undefined,
     "newLine": "lf",
-    "stripInternal": false,
+    "noEmit": false,
     "noEmitHelpers": false,
     "noEmitOnError": false,
-    "preserveConstEnums": true,
+    // "outDir": undefined,
+    // "outFile": undefined,
+    "preserveConstEnums": false,
     "preserveValueImports": false,
+    "removeComments": false,
+    "sourceMap": false,
+    // "sourceRoot": undefined,
+    "stripInternal": false,
 
-    /* JavaScript Support */
+    // JavaScript Support
     "allowJs": false,
     "checkJs": false,
     "maxNodeModuleJsDepth": 0,
 
-    /* Interop Constraints */
-    "isolatedModules": true,
-    "verbatimModuleSyntax": false,
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "preserveSymlinks": false,
-    "forceConsistentCasingInFileNames": true,
+    // Editor Support
+    "disableSizeLimit": false,
+    "plugins": [],
 
-    // /* Language and Environment */
-    "target": "ES2022",
-    // "lib": ["ES2020", "DOM"],
+    // Interop Constraints
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": false,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedDeclarations": false,
+    "isolatedModules": false,
+    "preserveSymlinks": false,
+    "verbatimModuleSyntax": false,
+
+    // Backwards Compatibility
+    // "charset": "utf8",
+    "keyofStringsOnly": false,
+    "noImplicitUseStrict": false,
+    "noStrictGenericChecks": false,
+    // "out": undefined,
+    "suppressExcessPropertyErrors": false,
+    "suppressImplicitAnyIndexErrors": false,
+
+    // Language and Environment
+    "emitDecoratorMetadata": false,
+    "experimentalDecorators": false,
     // "jsx": "preserve",
-    // "experimentalDecorators": true,
-    // "emitDecoratorMetadata": true,
     // "jsxFactory": "React.createElement",
     // "jsxFragmentFactory": "React.Fragment",
     // "jsxImportSource": "react",
-    // "useDefineForClassFields": true,
+    "lib": ["dom", "es2022"],
+    "moduleDetection": "auto",
+    "noLib": false,
+    // "reactNamespace": "React",
+    "target": "es2022",
+    "useDefineForClassFields": false,
 
-    /* Completeness */
+    // Compiler Diagnostics
+    "diagnostics": false,
+    "explainFiles": false,
+    "extendedDiagnostics": false,
+    // "generateCpuProfile": "profile.cpuprofile",
+    // "generateTrace": undefined,
+    "listEmittedFiles": false,
+    "listFiles": false,
+    "traceResolution": false,
+
+    // Projects
+    "composite": false,
+    "disableReferencedProjectLoad": false,
+    "disableSolutionSearching": false,
+    "disableSourceOfProjectReferenceRedirect": false,
+    "incremental": false,
+    // "tsBuildInfoFile": ".tsbuildinfo",
+
+    // Output Formatting
+    "noErrorTruncation": false,
+    "preserveWatchOutput": false,
+    "pretty": true,
+
+    // Completeness
     "skipDefaultLibCheck": false,
-    "skipLibCheck": true
+    "skipLibCheck": false
   },
 
-  /* Project Options */
-//   "files": [],
-//   "include": [],
-//   "exclude": ["node_modules", "bower_components", "jspm_packages"],
-//   "extends": "",
-//   "references": [],
+  // Watch Options
+  "watchOptions": {
+    "watchFile": "useFsEvents",
+    "watchDirectory": "useFsEvents",
+    "fallbackPolling": "dynamicPriority",
+    "synchronousWatchDirectory": false,
+    "excludeDirectories": [],
+    "excludeFiles": []
+  },
 
-  /* Watch Options */
-//   "watchOptions": {
-//     "watchFile": "useFsEvents",
-//     "watchDirectory": "useFsEvents",
-//     "fallbackPolling": "dynamicPriority",
-//     "synchronousWatchDirectory": false,
-//     "excludeDirectories": [],
-//     "excludeFiles": []
-//   },
-
-  /* Type Acquisition */
-//   "typeAcquisition": {
-//     "enable": false,
-//     "include": [],
-//     "exclude": [],
-//     "disableFilenameBasedTypeAcquisition": false
-//   },
-
-  /* Build Options */
-  "compileOnSave": false
+  // Type Acquisition
+  "typeAcquisition": {
+    "enable": false,
+    "include": [],
+    "exclude": [],
+    "disableFilenameBasedTypeAcquisition": false
+  }
 }

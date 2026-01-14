@@ -2,50 +2,71 @@ name: transcendence
 services:
   reverse-proxy:
     build:
-      context: ..
-      dockerfile: infrastructure/reverse-proxy/Dockerfile
+        context: ../
+        dockerfile: infrastructure/reverse-proxy/Dockerfile
     ports:
       - "8080:80"
       - "8443:443"
     networks:
       - microservices-network
     volumes:
-      - ../frontend/certs:/etc/nginx/certs:ro
-      - ../infrastructure/reverse-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../infrastructure/reverse-proxy/certs:/etc/nginx/certs:ro
     depends_on:
       - gateway
-    restart: "no"
+    restart: unless-stopped
 
   gateway:
     build: ../services/gateway
     ports:
-      - "3000:3000"
+      - "3000"
     networks:
       - microservices-network
     depends_on:
-      # - authentication
+      - authentication
       - game-orchestration
       - game-engine
-    restart: "no"
+    restart: unless-stopped
 
   authentication:
     build: ../services/authentication
     ports:
-      - "3001:3001"
+      - "3001"
     networks:
       - microservices-network
-    # Temporarily disabled vault dependency for testing
+      - vault-network
+    volumes:
+      - ../infrastructure/hcp-vault/certs/ca.crt:/etc/ssl/vault/ca.crt:ro
+      - ../infrastructure/hcp-vault/secrets:/run/secrets:ro
     environment:
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
       - GOOGLE_CALLBACK_URL=https://localhost:8443/api/auth/oauth/google/callback
+      - VAULT_ADDR=https://hashicorp-vault:8200
+      - NODE_EXTRA_CA_CERTS=/etc/ssl/vault/ca.crt
+    depends_on:
+      - hashicorp-vault
     restart: unless-stopped
 
+  hashicorp-vault:
+    build: ../infrastructure/hcp-vault
+    ports:
+      - "8200:8200"
+    networks:
+      - vault-network
+    volumes:
+      - vault-data:/vault/data
+      - vault-keys:/vault/keys
+      - ../infrastructure/hcp-vault/certs:/vault/certs:ro
+      - ../infrastructure/hcp-vault/secrets:/vault/secrets
+    environment:
+      - VAULT_ADDR=https://127.0.0.1:8200
+      - VAULT_CACERT=/vault/certs/ca.crt
+    restart: unless-stopped
 
   game-orchestration:
     build: ../services/game-orchestration
     ports:
-      - "3002:3002"
+      - "3002"
     networks:
       - microservices-network
     environment:
@@ -56,11 +77,51 @@ services:
   game-engine:
     build: ../services/game-engine
     ports:
-      - "3003:3003"
+      - "3003"
     networks:
       - microservices-network
-    restart: "no"
+    restart: unless-stopped
+
+  prometheus:
+    build: ../infrastructure/observability/metric/prometheus
+    networks:
+      - microservices-network
+    ports:
+      - "9090:9090"
+    volumes:
+      - ../infrastructure/observability/metric/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+
+  grafana:
+    build: ../infrastructure/observability/metric/graphana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GF_ADMIN_PASSWORD:-admin}
+    networks:
+      - microservices-network
+    ports:
+      - "3005:3000"
+    depends_on:
+      - prometheus
+    restart: unless-stopped
 
 networks:
   microservices-network:
     driver: bridge
+
+  vault-network:
+    driver: bridge
+
+volumes:
+  vault-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ../infrastructure/hcp-vault/data
+
+  vault-keys:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ../infrastructure/hcp-vault/keys

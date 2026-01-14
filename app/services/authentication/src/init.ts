@@ -1,162 +1,175 @@
-import Fastify, { FastifyInstance } from 'fastify';
+import fastifyOAuth2 from "@fastify/oauth2";
+import fastifyCookie from "@fastify/cookie";
+import { SQLiteDatabase } from "./database.js";
+import { VaultService } from "./vault.js";
+import fastifyJWT from "@fastify/jwt";
+import client from "prom-client";
+import { Auth } from "./auth.js";
+import Fastify from "fastify";
+import crypto from "crypto";
 
-import fastifySession from '@fastify/session';
-import fastifyCookie from '@fastify/cookie';
-import fastifyJWT from '@fastify/jwt';
+export async function initFastify(auth: Auth) {
+  const fastify = Fastify({
+    ajv: {
+      customOptions: {},
+      plugins: [],
+    },
+    bodyLimit: 1048576,
+    // caseSensitive: true,
+    connectionTimeout: 0,
+    disableRequestLogging: false,
+    exposeHeadRoutes: true,
+    forceCloseConnections: false,
+    // genReqId: (req) => {
+    //     return `req-${Date.now()}-${Math.random()}`;
+    // },
+    // http2: false,
+    // http2SessionTimeout: 72000,
+    // https: undefined,
+    // ignoreTrailingSlash: false,
+    // ignoreDuplicateSlashes: false,
+    keepAliveTimeout: 72000,
+    logger: false,
+    // maxParamLength: 100,
+    maxRequestsPerSocket: 0,
+    // onProtocolError: 'error',
+    pluginTimeout: 10000,
+    // querystringParser: undefined,
+    requestIdHeader: false,
+    requestIdLogLabel: "reqId",
+    requestTimeout: 0,
+    return503OnClosing: true,
+    rewriteUrl: undefined,
+    schemaController: undefined,
+    schemaErrorFormatter: undefined,
+    serializerOpts: {},
+    serverFactory: undefined,
+    trustProxy: true,
+    // versioning: undefined,
+  });
 
-import crypto from 'crypto';
-import color from 'chalk';
+  fastify.register(fastifyCookie);
 
-import fastifyOAuth2 from '@fastify/oauth2';
+  // Load OAuth credentials from Vault (fallback to env)
+  let oauthCfg: any = null;
+  try {
+    oauthCfg = await auth.vault.getOAuthConfig("google");
+  } catch (error) {
+    console.error("[auth] OAuth Vault load failed; falling back to env");
+  }
+  const googleClientId =
+    oauthCfg?.client_id || process.env.GOOGLE_CLIENT_ID || "GOOGLE_CLIENT_ID";
+  const googleClientSecret =
+    oauthCfg?.client_secret ||
+    process.env.GOOGLE_CLIENT_SECRET ||
+    "GOOGLE_CLIENT_SECRET";
+  const googleCallbackUrl =
+    oauthCfg?.callback_url ||
+    process.env.GOOGLE_CALLBACK_URL ||
+    "http://localhost:8080/api/auth/oauth/google/callback";
+  const googleScope = Array.isArray(oauthCfg?.scope)
+    ? oauthCfg.scope
+    : ["profile", "email"];
 
-export async function initAuthenticationService() {
-    const fastify = Fastify({
-        // AJV options for schema validation
-        ajv: {
-            customOptions: {},
-            plugins: []
+  fastify.register(fastifyOAuth2, {
+    name: "googleOAuth2",
+    scope: googleScope,
+    credentials: {
+      client: {
+        id: googleClientId,
+        secret: googleClientSecret,
+      },
+      auth: (fastifyOAuth2 as any).GOOGLE_CONFIGURATION,
+    },
+    startRedirectPath: "/api/auth/oauth/google",
+    callbackUri: googleCallbackUrl,
+  });
+
+  // Configure JWT from Vault
+  let jwtKey: string | null = null;
+  try {
+    jwtKey = await auth.vault.getJwtKey();
+  } catch (e) {
+    console.error("[auth] Vault JWT load failed:", e);
+  }
+
+  const isPem = jwtKey.includes("-----BEGIN");
+  if (isPem) {
+    let publicKey: string;
+    try {
+      publicKey = crypto
+        .createPublicKey(jwtKey)
+        .export({ type: "spki", format: "pem" })
+        .toString();
+    } catch (e) {
+      console.warn("[auth] RSA private key invalid; falling back to HS256");
+      publicKey = "";
+    }
+
+    if (publicKey) {
+      fastify.register(
+        fastifyJWT as any,
+        {
+          cookie: { cookieName: "access_token" },
+          secret: { private: jwtKey, public: publicKey } as any,
+          sign: {
+            algorithm: "RS256",
+            expiresIn: process.env.JWT_EXPIRES_IN || "15m",
+          },
+        } as any
+      );
+    } else {
+      fastify.register(
+        fastifyJWT as any,
+        {
+          cookie: { cookieName: "access_token" },
+          secret: jwtKey,
+          sign: {
+            algorithm: "HS256",
+            expiresIn: process.env.JWT_EXPIRES_IN || "15m",
+          },
+        } as any
+      );
+    }
+  } else {
+    fastify.register(
+      fastifyJWT as any,
+      {
+        cookie: { cookieName: "access_token" },
+        secret: jwtKey,
+        sign: {
+          algorithm: "HS256",
+          expiresIn: process.env.JWT_EXPIRES_IN || "15m",
         },
+      } as any
+    );
+  }
 
-        // Body size limit (bytes)
-        bodyLimit: 1048576,                 // default: 1MB
+  // Prometheus metrics setup
+  const registry = new client.Registry();
+  client.collectDefaultMetrics({ register: registry });
 
-        // Case sensitivity for routes
-        // caseSensitive: true,                // default: true
+  fastify.get("/metrics", async (_req, reply) => {
+    reply.header("Content-Type", registry.contentType);
+    return registry.metrics();
+  });
 
-        // Connection timeout (milliseconds)
-        connectionTimeout: 0,               // default: 0 (disabled)
+  return fastify;
+}
 
-        // Disable request logging
-        disableRequestLogging: false,       // default: false
+export async function initAuthenticationService(): Promise<Auth | null> {
+  const vaultClient = new VaultService();
+  const sqlite = new SQLiteDatabase();
+  const auth = new Auth(sqlite, vaultClient);
 
-        // Expose HEAD routes for GET routes
-        exposeHeadRoutes: true,             // default: true
+  try {
+    await vaultClient.initialize();
+  } catch (err) {
+    console.error(err);
+    console.error(
+      "[auth] Vault initialization failed; proceeding without secrets"
+    );
+  }
 
-        // Force close connections on close
-        forceCloseConnections: false,       // default: false
-
-        // Custom request ID generator
-        // genReqId: (req) => {                // default: incremental counter
-        //     return `req-${Date.now()}-${Math.random()}`;
-        // },
-
-        // HTTP/2 support
-        // http2: false,                       // default: false
-
-        // HTTP/2 session timeout
-        // http2SessionTimeout: 72000,         // default: 72000ms (72s)
-
-        // HTTPS/TLS options
-        // https: undefined,                   // default: undefined (provide { key, cert } for HTTPS)
-
-        // Ignore trailing slashes in routes
-        // ignoreTrailingSlash: false,         // default: false
-
-        // Ignore duplicate slashes in routes
-        // ignoreDuplicateSlashes: false,      // default: false
-
-        // Keep-alive timeout
-        keepAliveTimeout: 72000,            // default: 72000ms (Node.js default)
-
-        // Logging configuration
-        logger: false,                       // default: false (or pino options)
-
-        // Max param length
-        // maxParamLength: 100,                // default: 100
-
-        // Max request headers count
-        maxRequestsPerSocket: 0,            // default: 0 (unlimited)
-
-        // On protocol error behavior
-        // onProtocolError: 'error',           // default: 'error' | 'ignore'
-
-        // Plugin timeout
-        pluginTimeout: 10000,               // default: 10000ms (10s)
-
-        // Query string parser
-        // querystringParser: undefined,       // default: undefined (uses Node's)
-
-        // Request ID header name
-        requestIdHeader: false,             // default: false (or string header name)
-
-        // Request ID log label
-        requestIdLogLabel: 'reqId',         // default: 'reqId'
-
-        // Request timeout
-        requestTimeout: 0,                  // default: 0 (disabled)
-
-        // Return 503 on closing
-        return503OnClosing: true,           // default: true
-
-        // Rewrite URL function
-        rewriteUrl: undefined,              // default: undefined
-
-        // Schema controller
-        schemaController: undefined,        // default: undefined
-
-        // Schema error formatter
-        schemaErrorFormatter: undefined,    // default: undefined
-
-        // Serializer options
-        serializerOpts: {},                 // default: {}
-
-        // Server factory (custom server)
-        serverFactory: undefined,           // default: undefined
-
-        // Trust proxy
-        trustProxy: false,                  // default: false (or true, string, number, function)
-
-        // Versioning options
-        // versioning: undefined,              // default: undefined
-    });
-
-    fastify.register(fastifyCookie);
-
-    fastify.register(fastifyOAuth2, {
-        name: 'googleOAuth2',
-        scope: ['profile', 'email'],
-        credentials: {
-            client: {
-                id: process.env.GOOGLE_CLIENT_ID || 'GOOGLE_CLIENT_ID',
-                secret: process.env.GOOGLE_CLIENT_SECRET || 'GOOGLE_CLIENT_SECRET',
-            },
-            auth: (fastifyOAuth2 as any).GOOGLE_CONFIGURATION
-        },
-        startRedirectPath: '/api/auth/oauth/google',
-        callbackUri: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8080/api/auth/oauth/google/callback'
-    });
-
-    // Cast to any to avoid strict type mismatches with plugin option names
-    fastify.register(fastifySession as any, {
-        // required
-        secret: crypto.randomBytes(32).toString('hex'),
-
-        // @fastify/session top-level options (defaults shown)
-        salt: undefined,                 // default internal value (version-dependent)
-        cookieName: 'sessionId',         // default cookie name
-        sessionName: 'session',          // default request decorator name
-        store: undefined,                // default in-memory store (not for production)
-        idGenerator: undefined,          // default internal id generator
-        saveUninitialized: false,        // default
-        rolling: false,                  // default
-        ttl: undefined,                  // default (store decides; often based on cookie)
-
-        // Cookie options (from @fastify/cookie / cookie-serialize)
-        cookie: {
-            path: '/',                   // default
-            domain: undefined,           // default
-            expires: undefined,          // default
-            maxAge: undefined,           // default
-            httpOnly: true,              // default for session cookies
-            sameSite: undefined,         // default
-            secure: 'auto',              // default (auto based on request)
-            priority: undefined,         // default
-            partitioned: undefined,      // default
-            encode: undefined,           // default (internal encoder)
-        },
-    } as any);
-
-    console.log(color.gray('Fastify instance configured, ready for routes'));
-
-    return fastify;
+  return auth;
 }

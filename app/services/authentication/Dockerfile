@@ -2,15 +2,17 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-COPY package*.json tsconfig.json ./
+COPY prod.package.json prod.tsconfig.json ./
 
-# RUN npm ci --production
-RUN apk add --no-cache git openssh-client \
-    && npm install
+COPY src ./src
 
-COPY . .
+RUN mkdir database
 
-RUN npm run build
+RUN mv prod.package.json package.json && mv prod.tsconfig.json tsconfig.json
+
+RUN apk add --no-cache git openssh-client
+
+RUN npm install
 
 EXPOSE 3001
 
