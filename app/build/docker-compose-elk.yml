@@ -64,7 +64,7 @@ services:
 
   hashicorp-vault:
     build: ../infrastructure/hcp-vault
-    user: "${UID}:${GID}"
+    # user: "${UID}:${GID}"
     ports:
       - "8200:8200"
     networks:

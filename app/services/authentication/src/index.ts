@@ -57,11 +57,6 @@ async function manageRequest(fastify: FastifyInstance, auth: Auth) {
     const urlObj = new URL(fullPath || "", "http://localhost");
     const pathname = urlObj.pathname;
 
-    console.log(
-      color.bold.blue("Authentication"),
-      color.cyan(`${request.method} ${fullPath}`)
-    );
-
     console.log("request: ", request.body);
     switch (pathname) {
       case "/api/auth/login":
