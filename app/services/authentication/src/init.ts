@@ -106,33 +106,42 @@ export async function initFastify(auth: Auth) {
     }
 
     if (publicKey) {
-      fastify.register(fastifyJWT as any, {
-        cookie: { cookieName: "access_token" },
-        secret: { private: jwtKey, public: publicKey } as any,
-        sign: {
-          algorithm: "RS256",
-          expiresIn: process.env.JWT_EXPIRES_IN || "15m",
-        },
-      } as any);
+      fastify.register(
+        fastifyJWT as any,
+        {
+          cookie: { cookieName: "access_token" },
+          secret: { private: jwtKey, public: publicKey } as any,
+          sign: {
+            algorithm: "RS256",
+            expiresIn: process.env.JWT_EXPIRES_IN || "15m",
+          },
+        } as any
+      );
     } else {
-      fastify.register(fastifyJWT as any, {
+      fastify.register(
+        fastifyJWT as any,
+        {
+          cookie: { cookieName: "access_token" },
+          secret: jwtKey,
+          sign: {
+            algorithm: "HS256",
+            expiresIn: process.env.JWT_EXPIRES_IN || "15m",
+          },
+        } as any
+      );
+    }
+  } else {
+    fastify.register(
+      fastifyJWT as any,
+      {
         cookie: { cookieName: "access_token" },
         secret: jwtKey,
         sign: {
           algorithm: "HS256",
           expiresIn: process.env.JWT_EXPIRES_IN || "15m",
         },
-      } as any);
-    }
-  } else {
-    fastify.register(fastifyJWT as any, {
-      cookie: { cookieName: "access_token" },
-      secret: jwtKey,
-      sign: {
-        algorithm: "HS256",
-        expiresIn: process.env.JWT_EXPIRES_IN || "15m",
-      },
-    } as any);
+      } as any
+    );
   }
 
   return fastify;

@@ -46,7 +46,7 @@ async function registerOAuth(
       reply.redirect("/login?error=oauth_failed");
     }
   } else {
-      reply.code(409).send({ error: "Wrong oauth provider." });
+    reply.code(409).send({ error: "Wrong oauth provider." });
   }
 }
 

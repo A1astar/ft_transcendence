@@ -2,7 +2,6 @@ import Fastify, { FastifyInstance } from "fastify";
 import { routeRequest } from "./redirectRoutes.js";
 import color from "chalk";
 
-
 async function initGateway(fastify: FastifyInstance) {
   try {
     await fastify.listen({ port: 3000, host: "0.0.0.0" });
