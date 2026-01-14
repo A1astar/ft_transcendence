@@ -83,7 +83,8 @@ createFilesAndDirectories()
              $app_dir/infrastructure/hcp-vault/data \
              $app_dir/infrastructure/hcp-vault/keys \
              $app_dir/infrastructure/hcp-vault/certs \
-             $app_dir/infrastructure/hcp-vault/secrets
+             $app_dir/infrastructure/hcp-vault/secrets \
+             $app_dir/infrastructure/observability/log/elasticsearch/data
 
     touch $app_dir/infrastructure/hcp-vault/secrets/approle_role_id \
           $app_dir/infrastructure/hcp-vault/secrets/approle_secret_id
@@ -97,6 +98,7 @@ removeDirectories()
            $app_dir/infrastructure/hcp-vault/certs \
            $app_dir/infrastructure/hcp-vault/secrets \
            $app_dir/infrastructure/reverse-proxy/certs \
+           $app_dir/infrastructure/observability/log/elasticsearch/data \
            $app_dir/frontend/certs
 }
 

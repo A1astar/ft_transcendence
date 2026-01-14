@@ -5,14 +5,23 @@ import { games, gameConnections } from "./objects.js";
 import { initGame } from "./initGame.js";
 import { handleWebSocket } from "./handleWebSocket.js";
 import { apiRoutes } from "./cliApis.js";
+import client from "prom-client";
 import chalk from "chalk";
 
-// Start server
 async function start() {
   const fastify = Fastify({ logger: false });
 
   fastify.register(cors, { origin: "*" });
   fastify.register(webSocket);
+
+  // Prometheus metrics setup
+  const registry = new client.Registry();
+  client.collectDefaultMetrics({ register: registry });
+
+  fastify.get("/metrics", async (_req, reply) => {
+    reply.header("Content-Type", registry.contentType);
+    return registry.metrics();
+  });
 
   initGame(fastify, games, gameConnections);
   handleWebSocket(fastify, games, gameConnections);

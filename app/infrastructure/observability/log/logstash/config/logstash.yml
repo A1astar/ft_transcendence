@@ -1,0 +1,5 @@
+config.reload.automatic: true
+config.reload.interval: 5s
+pipeline.ordered: auto
+log.level: info
+xpack.monitoring.enabled: false

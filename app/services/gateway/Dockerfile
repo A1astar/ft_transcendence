@@ -2,8 +2,6 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-RUN apk add --no-cache git openssh-client
-
 COPY prod.package.json prod.tsconfig.json ./
 
 COPY src ./src

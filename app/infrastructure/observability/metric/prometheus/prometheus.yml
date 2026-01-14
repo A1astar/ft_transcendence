@@ -1,0 +1,23 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'gateway'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['gateway:3000']
+
+  - job_name: 'authentication'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['authentication:3001']
+
+  - job_name: 'game-orchestration'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['game-orchestration:3002']
+
+  - job_name: 'game-engine'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['game-engine:3003']

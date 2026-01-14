@@ -1,6 +1,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import { initAuthenticationService, initFastify } from "./init.js";
 import { Auth } from "./auth.js";
+import client from "prom-client";
 import color from "chalk";
 
 async function registerOAuth(

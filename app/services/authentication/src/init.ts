@@ -3,6 +3,7 @@ import fastifyCookie from "@fastify/cookie";
 import { SQLiteDatabase } from "./database.js";
 import { VaultService } from "./vault.js";
 import fastifyJWT from "@fastify/jwt";
+import client from "prom-client";
 import { Auth } from "./auth.js";
 import Fastify from "fastify";
 import crypto from "crypto";
@@ -143,6 +144,15 @@ export async function initFastify(auth: Auth) {
       } as any
     );
   }
+
+  // Prometheus metrics setup
+  const registry = new client.Registry();
+  client.collectDefaultMetrics({ register: registry });
+
+  fastify.get("/metrics", async (_req, reply) => {
+    reply.header("Content-Type", registry.contentType);
+    return registry.metrics();
+  });
 
   return fastify;
 }

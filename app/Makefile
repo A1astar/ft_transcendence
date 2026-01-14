@@ -1,9 +1,3 @@
-IMAGE = reverse-proxy \
-        authentication \
-        gateway \
-        game-orchestration
-
-IMAGE := $(addprefix transcendence-, $(IMAGE))
 COMPOSE_FILE=./build/docker-compose.yml
 
 # Set these variables for the vault

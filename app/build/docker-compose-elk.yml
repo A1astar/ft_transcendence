@@ -13,6 +13,11 @@ services:
       - ../infrastructure/reverse-proxy/certs:/etc/nginx/certs:ro
     depends_on:
       - gateway
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "reverse-proxy"
     restart: unless-stopped
 
   gateway:
@@ -25,6 +30,11 @@ services:
       - authentication
       - game-orchestration
       - game-engine
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "gateway"
     restart: unless-stopped
 
   authentication:
@@ -45,10 +55,16 @@ services:
       - NODE_EXTRA_CA_CERTS=/etc/ssl/vault/ca.crt
     depends_on:
       - hashicorp-vault
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "authentication"
     restart: unless-stopped
 
   hashicorp-vault:
     build: ../infrastructure/hcp-vault
+    user: "${UID}:${GID}"
     ports:
       - "8200:8200"
     networks:
@@ -72,6 +88,11 @@ services:
     environment:
       - GAME_ENGINE_HOST=game-engine
       - GAME_ENGINE_PORT=3003
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "game-orchestration"
     restart: unless-stopped
 
   game-engine:
@@ -80,6 +101,11 @@ services:
       - "3003"
     networks:
       - microservices-network
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "game-engine"
     restart: unless-stopped
 
   prometheus:
@@ -103,6 +129,52 @@ services:
     depends_on:
       - prometheus
     restart: unless-stopped
+
+  elasticsearch:
+    build: ../infrastructure/observability/log/elasticsearch
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.enabled=true
+    ports:
+      - "9200:9200"
+    volumes:
+      - ../infrastructure/observability/log/elasticsearch/data:/usr/share/elasticsearch/data
+    networks:
+      - microservices-network
+
+  logstash:
+    build: ../infrastructure/observability/log/logstash
+    environment:
+      - LS_JAVA_OPTS=-Xms256m -Xmx256m
+      - ELASTIC_HOST=http://elasticsearch:9200
+      - ELASTIC_USER=elastic
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - ../infrastructure/observability/log/logstash/pipeline:/usr/share/logstash/pipeline
+      - ../infrastructure/observability/log/logstash/config:/usr/share/logstash/config
+    depends_on:
+      - elasticsearch
+    ports:
+      - "12201:12201/udp"   # GELF input from Docker logging driver
+      - "5044:5044"         # Beats (optional)
+      - "9600:9600"         # Monitoring API
+    networks:
+      - microservices-network
+
+  kibana:
+    build: ../infrastructure/observability/log/kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - microservices-network
 
 networks:
   microservices-network:
